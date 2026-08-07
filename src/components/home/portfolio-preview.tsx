@@ -27,7 +27,7 @@ export function PortfolioPreview({
         <span className="h-2.5 w-2.5 rounded-full bg-destructive/40" />
         <span className="h-2.5 w-2.5 rounded-full bg-accent/60" />
         <span className="h-2.5 w-2.5 rounded-full bg-primary/30" />
-        <span className="ml-3 truncate rounded-md bg-background px-2.5 py-1 text-[11px] text-muted-foreground">
+        <span className="ml-3 min-w-0 truncate rounded-md bg-background px-2.5 py-1 text-[11px] text-muted-foreground">
           beautyfolio.in/ritika-sharma-bridal-makeup-ahmedabad
         </span>
       </div>
