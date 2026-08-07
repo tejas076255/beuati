@@ -34,7 +34,7 @@ export function PortfolioShowcase() {
           </p>
         </Reveal>
 
-        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_1.4fr] [&>*]:min-w-0">
           <Reveal>
             <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1">
               {sections.map((s) => (
@@ -49,7 +49,7 @@ export function PortfolioShowcase() {
           </Reveal>
 
           <Reveal delay={0.1}>
-            <div className="rounded-3xl border border-border bg-gradient-soft p-4 sm:p-8">
+            <div className="rounded-3xl border border-border bg-gradient-soft p-4 sm:p-8 overflow-hidden">
               <div className="mb-4 flex justify-center">
                 <DeviceSwitcher
                   value={device}

@@ -23,7 +23,7 @@ export function Hero() {
         aria-hidden="true"
         className="bg-gradient-brand pointer-events-none absolute -top-40 -right-40 h-[32rem] w-[32rem] rounded-full opacity-10 blur-3xl"
       />
-      <div className="section-shell grid items-center gap-16 lg:grid-cols-[1.05fr_1fr]">
+      <div className="section-shell grid items-center gap-16 lg:grid-cols-[1.05fr_1fr] [&>*]:min-w-0">
         <div>
           <motion.span
             initial={{ opacity: 0, y: 12 }}
