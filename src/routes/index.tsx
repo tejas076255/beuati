@@ -1,24 +1,96 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { Hero } from "@/components/home/hero";
+import { SocialProof } from "@/components/home/social-proof";
+import { ProblemSection } from "@/components/home/problem-section";
+import { SolutionSection } from "@/components/home/solution-section";
+import { PortfolioShowcase } from "@/components/home/portfolio-showcase";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { WhyBeautyFolio } from "@/components/home/why-beautyfolio";
+import { SuccessStories } from "@/components/home/success-stories";
+import { PricingPreview } from "@/components/home/pricing-preview";
+import { FaqSection } from "@/components/home/faq-section";
+import { FinalCta } from "@/components/home/final-cta";
+import { faqs } from "@/data/home";
+
+const title = "BeautyFolio — SEO Portfolios for India's Beauty Professionals";
+const description =
+  "Create a free SEO-optimized beauty portfolio, rank on Google and local search, and get direct client enquiries with zero marketplace commissions.";
+
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "/" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "BeautyFolio",
+          url: "/",
+          description,
+          areaServed: "IN",
+          sameAs: [],
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "/" },
+          ],
+        }),
+      },
+    ],
+  }),
+  component: HomePage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function HomePage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main>
+        <Hero />
+        <SocialProof />
+        <ProblemSection />
+        <SolutionSection />
+        <PortfolioShowcase />
+        <HowItWorks />
+        <WhyBeautyFolio />
+        <SuccessStories />
+        <PricingPreview />
+        <FaqSection />
+        <FinalCta />
+      </main>
+      <SiteFooter />
     </div>
   );
 }
