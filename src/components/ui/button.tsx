@@ -14,14 +14,20 @@ const buttonVariants = cva(
         outline:
           "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-secondary hover:text-secondary-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        hero: "bg-gradient-brand text-primary-foreground shadow-soft transition-all hover:shadow-lift hover:brightness-110",
+        plum: "bg-primary text-primary-foreground shadow-soft hover:bg-primary/90",
+        softline:
+          "border border-border bg-background/70 text-foreground backdrop-blur transition-colors hover:bg-secondary",
+        invert: "bg-background text-primary shadow-soft transition-colors hover:bg-secondary",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3 text-xs",
+        lg: "h-12 rounded-xl px-7 text-[0.95rem]",
+        xl: "h-14 rounded-xl px-9 text-base",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {
