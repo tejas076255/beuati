@@ -45,7 +45,7 @@ const spans = [
   "md:col-span-3",
 ];
 
-function BentoVisual({ kind }: { kind?: string }) {
+function BentoVisual({ kind }: { kind?: string | undefined }) {
   if (kind === "rank") {
     return (
       <div className="mt-6 space-y-2" aria-hidden="true">
