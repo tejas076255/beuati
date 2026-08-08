@@ -35,6 +35,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-rose-gold: var(--rose-gold);
   --color-plum-deep: var(--plum-deep);
+  --color-charcoal: var(--charcoal);
+  --color-warm-white: var(--warm-white);
   --color-beige: var(--beige);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -60,38 +62,41 @@
 :root {
   --radius: 0.875rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.24 0.015 285);
+  /* Warm white background, dark charcoal ink */
+  --background: oklch(0.994 0.003 85);
+  --foreground: oklch(0.21 0.012 285);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.015 285);
+  --card-foreground: oklch(0.21 0.012 285);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.015 285);
+  --popover-foreground: oklch(0.21 0.012 285);
 
   /* Deep Plum */
-  --primary: oklch(0.32 0.11 330);
+  --primary: oklch(0.29 0.105 328);
   --primary-foreground: oklch(0.99 0.005 90);
-  --plum-deep: oklch(0.24 0.09 330);
+  --plum-deep: oklch(0.2 0.075 328);
+  --charcoal: oklch(0.21 0.012 285);
+  --warm-white: oklch(0.994 0.003 85);
 
-  /* Soft Beige */
-  --secondary: oklch(0.965 0.014 80);
-  --secondary-foreground: oklch(0.3 0.05 330);
-  --beige: oklch(0.955 0.02 78);
+  /* Soft Beige — warm, not pink */
+  --secondary: oklch(0.966 0.009 82);
+  --secondary-foreground: oklch(0.26 0.03 328);
+  --beige: oklch(0.955 0.014 80);
 
-  --muted: oklch(0.968 0.008 80);
-  --muted-foreground: oklch(0.51 0.02 300);
+  --muted: oklch(0.97 0.006 84);
+  --muted-foreground: oklch(0.48 0.012 290);
 
-  /* Rose Gold */
-  --accent: oklch(0.76 0.09 30);
-  --accent-foreground: oklch(0.24 0.05 330);
-  --rose-gold: oklch(0.76 0.09 30);
+  /* Rose Gold — reserved for CTAs and highlights */
+  --accent: oklch(0.72 0.11 28);
+  --accent-foreground: oklch(0.22 0.05 328);
+  --rose-gold: oklch(0.72 0.11 28);
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.99 0.005 90);
 
-  --border: oklch(0.92 0.008 330);
-  --input: oklch(0.92 0.008 330);
-  --ring: oklch(0.55 0.12 330);
+  --border: oklch(0.915 0.005 300);
+  --input: oklch(0.915 0.005 300);
+  --ring: oklch(0.45 0.12 328);
 
   --chart-1: oklch(0.32 0.11 330);
   --chart-2: oklch(0.76 0.09 30);
@@ -116,13 +121,15 @@
     oklch(0.32 0.13 300) 100%
   );
   --gradient-soft: linear-gradient(
-    160deg,
-    oklch(0.985 0.012 60) 0%,
-    oklch(0.97 0.016 340) 60%,
-    oklch(1 0 0) 100%
+    165deg,
+    oklch(0.99 0.008 85) 0%,
+    oklch(0.975 0.008 340) 55%,
+    oklch(0.994 0.003 85) 100%
   );
-  --shadow-soft: 0 1px 2px oklch(0.32 0.11 330 / 0.05), 0 12px 32px -16px oklch(0.32 0.11 330 / 0.18);
-  --shadow-lift: 0 2px 4px oklch(0.32 0.11 330 / 0.05), 0 28px 60px -28px oklch(0.32 0.11 330 / 0.3);
+  --gradient-ink: linear-gradient(150deg, oklch(0.2 0.075 328) 0%, oklch(0.17 0.02 300) 100%);
+  --shadow-soft: 0 1px 2px oklch(0.29 0.105 328 / 0.05), 0 12px 32px -16px oklch(0.29 0.105 328 / 0.16);
+  --shadow-lift: 0 2px 4px oklch(0.29 0.105 328 / 0.05), 0 28px 60px -28px oklch(0.29 0.105 328 / 0.26);
+  --shadow-glow: 0 0 0 1px oklch(0.72 0.11 28 / 0.35), 0 20px 60px -20px oklch(0.62 0.16 15 / 0.45);
 }
 
 .dark {
@@ -230,4 +237,54 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-secondary-foreground);
+}
+
+@utility bg-gradient-ink {
+  background: var(--gradient-ink);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Subtle abstract beauty pattern: fine grid + soft aurora blooms */
+@utility bg-beauty-grid {
+  background-image:
+    linear-gradient(to right, oklch(0.29 0.105 328 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.29 0.105 328 / 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 80%);
+}
+
+@utility bg-beauty-bloom {
+  background-image:
+    radial-gradient(40rem 26rem at 78% 8%, oklch(0.72 0.11 28 / 0.16), transparent 70%),
+    radial-gradient(34rem 24rem at 8% 72%, oklch(0.45 0.17 330 / 0.12), transparent 70%);
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@utility animate-float {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 oklch(0.72 0.11 28 / 0.45); }
+  70% { box-shadow: 0 0 0 12px oklch(0.72 0.11 28 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.72 0.11 28 / 0); }
+}
+
+@utility animate-pulse-ring {
+  animation: pulse-ring 2.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

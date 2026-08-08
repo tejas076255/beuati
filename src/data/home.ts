@@ -23,11 +23,74 @@ export const heroBadges = [
 ];
 
 export const stats = [
-  { value: 12400, suffix: "+", label: "Beauticians Joined" },
-  { value: 180, suffix: "+", label: "Cities Covered" },
-  { value: 2400000, suffix: "+", label: "Portfolio Views" },
-  { value: 460000, suffix: "+", label: "Monthly Visitors" },
-  { value: 38000, suffix: "+", label: "Verified Reviews" },
+  {
+    value: 12400,
+    suffix: "+",
+    label: "Beauticians Joined",
+    detail: "Artists, salons and academies building an owned digital identity.",
+    icon: "Users",
+  },
+  {
+    value: 180,
+    suffix: "+",
+    label: "Cities Covered",
+    detail: "From metros to tier-3 towns with real local search demand.",
+    icon: "MapPin",
+  },
+  {
+    value: 2400000,
+    suffix: "+",
+    label: "Portfolio Views",
+    detail: "Search-driven visits landing on portfolios, not feeds.",
+    icon: "Eye",
+  },
+  {
+    value: 460000,
+    suffix: "+",
+    label: "Monthly Visitors",
+    detail: "High-intent clients actively looking to book a professional.",
+    icon: "TrendingUp",
+  },
+  {
+    value: 38000,
+    suffix: "+",
+    label: "Verified Reviews",
+    detail: "Structured reviews that feed rich snippets and AI answers.",
+    icon: "Star",
+  },
+];
+
+export const instagramJourney = [
+  { step: "Post", detail: "You publish today's bridal look." },
+  { step: "Wait", detail: "The algorithm decides who sees it." },
+  { step: "Hope", detail: "Maybe a DM. Maybe nothing at all." },
+];
+
+export const googleJourney = [
+  { step: "Search", detail: "\u201cBridal makeup artist near me\u201d at 11pm." },
+  { step: "Intent", detail: "She compares portfolios, prices and reviews." },
+  { step: "Booking", detail: "She calls or WhatsApps you directly." },
+];
+
+export const discoverySurfaces = [
+  {
+    title: "Google Search",
+    detail: "Rank for city, area and service keywords with schema-backed pages.",
+    metric: "Position #2",
+    icon: "Search",
+  },
+  {
+    title: "Google Maps & Local",
+    detail: "Service-area pages that reinforce your Google Business Profile.",
+    metric: "Top 3 local pack",
+    icon: "MapPin",
+  },
+  {
+    title: "AI Search Answers",
+    detail: "Answer-first content ChatGPT, Gemini and AI Overviews can quote.",
+    metric: "Cited 41 times",
+    icon: "Sparkles",
+  },
 ];
 
 export const instagramLimits = [
@@ -103,17 +166,23 @@ export const steps = [
 ];
 
 export const bento = [
-  { title: "SEO Optimized", detail: "Technical SEO, metadata and schema handled automatically." },
-  { title: "Google Business Ready", detail: "Sync your profile, service areas and hours." },
-  { title: "AI Search Ready", detail: "Answer-first content built for AI assistants." },
-  { title: "Portfolio Builder", detail: "Drag, drop, publish. No design skills needed." },
-  { title: "Analytics", detail: "Rankings, views and enquiry sources at a glance." },
-  { title: "Reviews", detail: "Verified client testimonials with rich snippets." },
-  { title: "Blog", detail: "Publish authority content that keeps ranking." },
-  { title: "Personal Branding", detail: "A brand that looks as good as your work." },
-  { title: "Fast Loading", detail: "Sub-second pages on Indian mobile networks." },
-  { title: "Professional Design", detail: "Premium templates crafted for beauty." },
-  { title: "Custom Domain Ready", detail: "Bring yourname.in whenever you're ready." },
+  {
+    title: "Ranked on Google, not buried in a feed",
+    detail:
+      "Technical SEO, metadata, schema and internal linking are generated for every portfolio \u2014 so your name shows up the moment a client searches your city and service.",
+    icon: "Search",
+    kind: "rank",
+  },
+  { title: "Google Business Ready", detail: "Sync profile, service areas and hours.", icon: "MapPin" },
+  { title: "AI Search Ready", detail: "Answer-first content built for AI assistants.", icon: "Sparkles", kind: "ai" },
+  { title: "Portfolio Builder", detail: "Drag, drop, publish. No design skills needed.", icon: "LayoutTemplate" },
+  { title: "Analytics", detail: "Rankings, views and enquiry sources at a glance.", icon: "BarChart3", kind: "chart" },
+  { title: "Reviews", detail: "Verified testimonials with rich snippets.", icon: "Star" },
+  { title: "Blog", detail: "Publish authority content that keeps ranking.", icon: "PenLine" },
+  { title: "Personal Branding", detail: "A brand that looks as good as your work.", icon: "Crown" },
+  { title: "Fast Loading", detail: "Sub-second pages on Indian mobile networks.", icon: "Zap" },
+  { title: "Professional Design", detail: "Premium templates crafted for beauty.", icon: "Palette" },
+  { title: "Custom Domain Ready", detail: "Bring yourname.in whenever you\u2019re ready.", icon: "Globe" },
 ];
 
 export const testimonials = [
@@ -122,8 +191,10 @@ export const testimonials = [
     role: "Bridal Makeup Artist",
     location: "Ahmedabad, Gujarat",
     quote:
-      "I had 40k Instagram followers and barely 3 bridal bookings a month. Within 90 days on BeautyFolio I ranked on page one for “bridal makeup artist Ahmedabad”.",
-    metric: "3 → 19 bookings / month",
+      "I had 40k Instagram followers and barely 3 bridal bookings a month. Within 90 days on BeautyFolio I ranked on page one for \u201cbridal makeup artist Ahmedabad\u201d.",
+    metric: "3 \u2192 19 bookings / month",
+    before: { label: "Monthly leads", value: "2" },
+    after: { label: "Monthly leads", value: "47" },
     rating: 5,
   },
   {
@@ -132,7 +203,9 @@ export const testimonials = [
     location: "Kochi, Kerala",
     quote:
       "Google now sends me clients who are ready to book. My portfolio does the selling before they even call the salon.",
-    metric: "6.4× more enquiries",
+    metric: "6.4\u00d7 more enquiries",
+    before: { label: "Google visits", value: "90/mo" },
+    after: { label: "Google visits", value: "2,140/mo" },
     rating: 5,
   },
   {
@@ -141,7 +214,9 @@ export const testimonials = [
     location: "Pune, Maharashtra",
     quote:
       "Zero commissions, zero middlemen. My academy admissions come straight to WhatsApp from search.",
-    metric: "₹4.2L extra revenue",
+    metric: "\u20b94.2L extra revenue",
+    before: { label: "Admissions", value: "6/batch" },
+    after: { label: "Admissions", value: "31/batch" },
     rating: 5,
   },
 ];
@@ -149,40 +224,48 @@ export const testimonials = [
 export const plans = [
   {
     name: "Free",
-    price: "₹0",
-    period: "forever",
+    monthly: 0,
+    yearly: 0,
     tagline: "Get discoverable",
     features: ["Portfolio page", "Gallery (12 photos)", "WhatsApp button", "Basic SEO"],
   },
   {
     name: "Starter",
-    price: "₹399",
-    period: "/month",
+    monthly: 399,
+    yearly: 3990,
     tagline: "Look professional",
     features: ["Everything in Free", "Services & packages", "Reviews module", "Basic analytics"],
   },
   {
     name: "Silver",
-    price: "₹799",
-    period: "/month",
+    monthly: 799,
+    yearly: 7990,
     tagline: "Get found locally",
     features: ["Everything in Starter", "Local SEO pages", "Google Business sync", "Video section"],
     popular: true,
   },
   {
     name: "Gold",
-    price: "₹1,499",
-    period: "/month",
+    monthly: 1499,
+    yearly: 14990,
     tagline: "Build authority",
     features: ["Everything in Silver", "Blog & content engine", "AI search optimisation", "Priority support"],
   },
   {
     name: "Platinum",
-    price: "₹2,999",
-    period: "/month",
+    monthly: 2999,
+    yearly: 29990,
     tagline: "Dominate your city",
     features: ["Everything in Gold", "Custom domain", "Dedicated SEO manager", "Monthly growth report"],
   },
+];
+
+export const planComparison: { label: string; values: (string | boolean)[] }[] = [
+  { label: "Portfolio pages", values: ["1", "1", "3", "8", "Unlimited"] },
+  { label: "Local SEO pages", values: [false, false, true, true, true] },
+  { label: "AI search optimisation", values: [false, false, false, true, true] },
+  { label: "Custom domain", values: [false, false, false, false, true] },
+  { label: "Commission on bookings", values: ["0%", "0%", "0%", "0%", "0%"] },
 ];
 
 export const faqs = [
@@ -219,10 +302,17 @@ export const faqs = [
 export const footerColumns = [
   {
     title: "Platform",
-    links: ["Portfolio Builder", "Local SEO", "Reviews", "Analytics", "WhatsApp Leads"],
+    links: ["Portfolio Builder", "Local SEO", "Google Business Sync", "Reviews", "Analytics", "WhatsApp Leads"],
   },
-  { title: "Resources", links: ["Blog", "SEO Guides", "Portfolio Examples", "Help Center"] },
-  { title: "Company", links: ["About", "Careers", "Partners", "Contact"] },
-  { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Refund Policy"] },
-  { title: "Support", links: ["Book a Demo", "WhatsApp Support", "Community", "Status"] },
+  {
+    title: "Resources",
+    links: ["Blog", "Learning Center", "SEO Guides", "BeautyFolio Academy", "Portfolio Examples", "Keyword Ideas"],
+  },
+  {
+    title: "For Professionals",
+    links: ["Bridal Makeup Artists", "Salon Owners", "Hair Stylists", "Nail Artists", "Mehndi Artists", "Academies"],
+  },
+  { title: "Company", links: ["About", "Careers", "Partners", "Press", "Contact"] },
+  { title: "Support", links: ["Help Center", "Book a Demo", "WhatsApp Support", "Community", "Status"] },
+  { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Refund Policy", "Sitemap"] },
 ];
