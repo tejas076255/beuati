@@ -1,4 +1,4 @@
-import { MapPin, Star, TrendingUp } from "lucide-react";
+import { ArrowRight, MapPin, Star, TrendingUp } from "lucide-react";
 
 import { Reveal } from "@/components/home/motion-primitives";
 import { PortfolioPreview } from "@/components/home/portfolio-preview";
@@ -11,7 +11,7 @@ const photos = [t1, t2, t3];
 
 export function SuccessStories() {
   return (
-    <section id="stories" className="bg-secondary/40 py-24">
+    <section id="stories" className="bg-secondary/40 py-28">
       <div className="section-shell">
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="eyebrow">Success stories</span>
@@ -22,7 +22,7 @@ export function SuccessStories() {
 
         <div className="mt-14 grid gap-6 lg:grid-cols-3">
           {testimonials.map((item, i) => (
-            <Reveal key={item.name} delay={i * 0.09}>
+            <Reveal key={item.name} delay={i * 0.09} className="h-full">
               <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
                 <div className="flex items-center gap-4 p-6">
                   <img
@@ -43,9 +43,32 @@ export function SuccessStories() {
                   </div>
                 </div>
 
-                <blockquote className="px-6 text-sm text-muted-foreground">
+                <blockquote className="px-6 text-sm leading-relaxed text-muted-foreground">
                   &ldquo;{item.quote}&rdquo;
                 </blockquote>
+
+                <div className="mx-6 mt-6 flex items-center gap-3 rounded-xl border border-border bg-background p-4">
+                  <div className="min-w-0">
+                    <p className="text-[10px] tracking-wide text-muted-foreground uppercase">
+                      Before
+                    </p>
+                    <p className="font-display text-xl font-semibold text-muted-foreground">
+                      {item.before.value}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] tracking-wide text-muted-foreground uppercase">
+                      After
+                    </p>
+                    <p className="font-display text-gradient-brand text-xl font-semibold">
+                      {item.after.value}
+                    </p>
+                  </div>
+                  <span className="ml-auto text-right text-[10px] text-muted-foreground">
+                    {item.after.label}
+                  </span>
+                </div>
 
                 <div className="mt-5 flex items-center justify-between px-6">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
