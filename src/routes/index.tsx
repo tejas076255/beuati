@@ -6,6 +6,7 @@ import { Hero } from "@/components/home/hero";
 import { SocialProof } from "@/components/home/social-proof";
 import { ProblemSection } from "@/components/home/problem-section";
 import { SolutionSection } from "@/components/home/solution-section";
+import { DiscoverySection } from "@/components/home/discovery-section";
 import { PortfolioShowcase } from "@/components/home/portfolio-showcase";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { WhyBeautyFolio } from "@/components/home/why-beautyfolio";
