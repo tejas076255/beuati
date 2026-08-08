@@ -82,6 +82,7 @@ function HomePage() {
         <Hero />
         <SocialProof />
         <ProblemSection />
+        <DiscoverySection />
         <SolutionSection />
         <PortfolioShowcase />
         <HowItWorks />
