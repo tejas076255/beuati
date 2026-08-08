@@ -35,6 +35,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-rose-gold: var(--rose-gold);
   --color-plum-deep: var(--plum-deep);
+  --color-charcoal: var(--charcoal);
+  --color-warm-white: var(--warm-white);
   --color-beige: var(--beige);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -235,4 +237,54 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-secondary-foreground);
+}
+
+@utility bg-gradient-ink {
+  background: var(--gradient-ink);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Subtle abstract beauty pattern: fine grid + soft aurora blooms */
+@utility bg-beauty-grid {
+  background-image:
+    linear-gradient(to right, oklch(0.29 0.105 328 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.29 0.105 328 / 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 80%);
+}
+
+@utility bg-beauty-bloom {
+  background-image:
+    radial-gradient(40rem 26rem at 78% 8%, oklch(0.72 0.11 28 / 0.16), transparent 70%),
+    radial-gradient(34rem 24rem at 8% 72%, oklch(0.45 0.17 330 / 0.12), transparent 70%);
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@utility animate-float {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 oklch(0.72 0.11 28 / 0.45); }
+  70% { box-shadow: 0 0 0 12px oklch(0.72 0.11 28 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.72 0.11 28 / 0); }
+}
+
+@utility animate-pulse-ring {
+  animation: pulse-ring 2.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
