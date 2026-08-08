@@ -32,7 +32,7 @@ export function ProblemSection() {
 
               <ol className="mt-8 space-y-3">
                 {instagramJourney.map((item, i) => {
-                  const Icon = instaIcons[i];
+                  const Icon = instaIcons[i] ?? Upload;
                   return (
                     <li key={item.step}>
                       <div className="flex items-center gap-4 rounded-2xl border border-dashed border-border px-5 py-4">
@@ -71,7 +71,7 @@ export function ProblemSection() {
 
               <ol className="mt-8 space-y-3">
                 {googleJourney.map((item, i) => {
-                  const Icon = googleIcons[i];
+                  const Icon = googleIcons[i] ?? Search;
                   return (
                     <li key={item.step}>
                       <div className="flex items-center gap-4 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 px-5 py-4">
