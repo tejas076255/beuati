@@ -256,11 +256,8 @@
   mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 80%);
 }
 
-@utility bg-gradient-bloom {
-  background-image:
-    radial-gradient(40rem 26rem at 78% 8%, oklch(0.72 0.11 28 / 0.16), transparent 70%),
-    radial-gradient(34rem 24rem at 8% 72%, oklch(0.45 0.17 330 / 0.12), transparent 70%);
-}
+@utility bg-beauty-bloom {
+
 
 @utility bg-beauty-bloom {
   background-image:
