@@ -218,8 +218,14 @@ export const testimonials = [
     quote:
       "I had 40k Instagram followers and barely 3 bridal bookings a month. Within 90 days on BeautyFolio I ranked on page one for \u201cbridal makeup artist Ahmedabad\u201d.",
     metric: "3 \u2192 19 bookings / month",
-    before: { label: "Monthly leads", value: "2" },
-    after: { label: "Monthly leads", value: "47" },
+    timeline: "90 days on BeautyFolio",
+    beforeState: ["Instagram only", "2 leads a month", "Invisible on Google"],
+    outcomes: [
+      { label: "Google ranking", value: "#2", note: "bridal makeup Ahmedabad" },
+      { label: "Portfolio views", value: "4,318", note: "per month" },
+      { label: "Enquiries", value: "47", note: "from 2 / month" },
+      { label: "Revenue", value: "+218%", note: "vs. last season" },
+    ],
     rating: 5,
   },
   {
@@ -229,8 +235,14 @@ export const testimonials = [
     quote:
       "Google now sends me clients who are ready to book. My portfolio does the selling before they even call the salon.",
     metric: "6.4\u00d7 more enquiries",
-    before: { label: "Google visits", value: "90/mo" },
-    after: { label: "Google visits", value: "2,140/mo" },
+    timeline: "6 months on BeautyFolio",
+    beforeState: ["Walk-ins only", "90 site visits a month", "No local pack presence"],
+    outcomes: [
+      { label: "Google ranking", value: "Top 3", note: "Kochi local pack" },
+      { label: "Portfolio views", value: "2,140", note: "per month" },
+      { label: "Enquiries", value: "6.4\u00d7", note: "vs. before" },
+      { label: "Revenue", value: "+164%", note: "salon bookings" },
+    ],
     rating: 5,
   },
   {
@@ -240,11 +252,18 @@ export const testimonials = [
     quote:
       "Zero commissions, zero middlemen. My academy admissions come straight to WhatsApp from search.",
     metric: "\u20b94.2L extra revenue",
-    before: { label: "Admissions", value: "6/batch" },
-    after: { label: "Admissions", value: "31/batch" },
+    timeline: "4 months on BeautyFolio",
+    beforeState: ["Paid ads only", "6 admissions a batch", "Leads lost in DMs"],
+    outcomes: [
+      { label: "Google ranking", value: "#1", note: "hair academy Pune" },
+      { label: "Portfolio views", value: "3,020", note: "per month" },
+      { label: "Admissions", value: "31", note: "per batch" },
+      { label: "Revenue", value: "\u20b94.2L", note: "extra this year" },
+    ],
     rating: 5,
   },
 ];
+
 
 export const plans = [
   {
