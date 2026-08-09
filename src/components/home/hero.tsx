@@ -32,7 +32,7 @@ const floatCards = [
     Icon: Users,
     title: "New Leads",
     value: "12 this week",
-    pos: "-left-3 top-1/2 sm:-left-9",
+    pos: "-left-4 top-[44%] sm:-left-12",
   },
   {
     Icon: BarChart3,
@@ -44,7 +44,7 @@ const floatCards = [
     Icon: MessageCircle,
     title: "WhatsApp Enquiries",
     value: "38 this month",
-    pos: "right-1 top-1/2 sm:right-2",
+    pos: "-right-2 top-[62%] sm:-right-6",
   },
   {
     Icon: Sparkles,
