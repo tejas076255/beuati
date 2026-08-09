@@ -350,8 +350,17 @@ export const footerColumns = [
   },
   {
     title: "Resources",
-    links: ["Blog", "Learning Center", "SEO Guides", "BeautyFolio Academy", "Portfolio Examples", "Keyword Ideas"],
+    links: [
+      "Blog",
+      "SEO Learning Center",
+      "SEO Guides",
+      "Portfolio Templates",
+      "Beauty Academy",
+      "Portfolio Examples",
+      "Keyword Ideas",
+    ],
   },
+
   {
     title: "For Professionals",
     links: ["Bridal Makeup Artists", "Salon Owners", "Hair Stylists", "Nail Artists", "Mehndi Artists", "Academies"],
