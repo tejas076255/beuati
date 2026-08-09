@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Check, MessageCircle, Sparkles, Star, TrendingUp } from "lucide-react";
+import {
+  BarChart3,
+  Check,
+  MessageCircle,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DeviceSwitcher } from "@/components/home/device-switcher";
@@ -11,14 +19,20 @@ const floatCards = [
   {
     Icon: TrendingUp,
     title: "Google Ranking",
-    value: "#2 · bridal makeup Ahmedabad",
-    pos: "-left-4 top-20 sm:-left-10",
+    value: "#3 · bridal makeup Ahmedabad",
+    pos: "-left-4 top-16 sm:-left-10",
   },
   {
     Icon: Star,
-    title: "New Google Review",
-    value: "5.0 · “Best bridal look ever”",
-    pos: "right-2 top-4 sm:right-4",
+    title: "Google Reviews",
+    value: "stars",
+    pos: "right-2 top-2 sm:right-4",
+  },
+  {
+    Icon: Users,
+    title: "New Leads",
+    value: "12 this week",
+    pos: "-left-3 top-1/2 sm:-left-9",
   },
   {
     Icon: BarChart3,
@@ -27,12 +41,19 @@ const floatCards = [
     pos: "-left-3 bottom-24 sm:-left-8",
   },
   {
+    Icon: MessageCircle,
+    title: "WhatsApp Enquiries",
+    value: "38 this month",
+    pos: "right-1 top-1/2 sm:right-2",
+  },
+  {
     Icon: Sparkles,
     title: "AI SEO Score",
     value: "94 / 100 · Excellent",
     pos: "right-2 bottom-32 sm:right-4",
   },
 ];
+
 
 const enquiries = [
   "Priya · Bridal trial, 14 Feb",
