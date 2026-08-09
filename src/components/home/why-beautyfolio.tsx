@@ -35,8 +35,8 @@ const spans = [
   "md:col-span-4 md:row-span-2",
   "md:col-span-2 md:row-span-1",
   "md:col-span-2 md:row-span-2",
-  "md:col-span-2 md:row-span-1",
-  "md:col-span-4 md:row-span-2",
+  "md:col-span-2 md:row-span-2",
+  "md:col-span-4 md:row-span-1",
   "md:col-span-2 md:row-span-1",
   "md:col-span-3 md:row-span-1",
   "md:col-span-3 md:row-span-1",
@@ -70,7 +70,7 @@ function BentoVisual({ kind }: { kind?: string | undefined }) {
   }
   if (kind === "chart") {
     return (
-      <div className="mt-auto flex h-28 items-end gap-1.5 pt-6" aria-hidden="true">
+      <div className="mt-auto flex h-20 items-end gap-1.5 pt-4" aria-hidden="true">
         {[24, 38, 32, 55, 70, 84, 100].map((h, i) => (
           <span
             key={i}
