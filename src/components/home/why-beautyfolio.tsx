@@ -70,7 +70,7 @@ function BentoVisual({ kind }: { kind?: string | undefined }) {
   }
   if (kind === "chart") {
     return (
-      <div className="mt-5 flex h-20 items-end gap-1.5" aria-hidden="true">
+      <div className="mt-5 flex min-h-16 flex-1 items-end gap-1.5" aria-hidden="true">
         {[24, 38, 32, 55, 70, 84, 100].map((h, i) => (
           <span
             key={i}
@@ -118,7 +118,7 @@ export function WhyBeautyFolio() {
               <Reveal key={card.title} delay={(i % 3) * 0.06} className={cn(spans[i], "h-full")}>
                 <article
                   className={cn(
-                    "flex h-full flex-col rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift",
+                    "flex h-full flex-col overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift",
                     featured
                       ? "bg-gradient-ink border-transparent text-primary-foreground"
                       : "border-border bg-card",
