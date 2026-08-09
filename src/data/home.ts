@@ -75,23 +75,48 @@ export const googleJourney = [
 export const discoverySurfaces = [
   {
     title: "Google Search",
-    detail: "Rank for city, area and service keywords with schema-backed pages.",
+    detail:
+      "Every portfolio ships with schema-backed service, city and area pages, so you rank for the exact phrases brides type at midnight.",
     metric: "Position #2",
     icon: "Search",
+    kind: "serp",
   },
   {
     title: "Google Maps & Local",
-    detail: "Service-area pages that reinforce your Google Business Profile.",
+    detail:
+      "Service-area pages reinforce your Google Business Profile and push you into the three-result local pack that gets the calls.",
     metric: "Top 3 local pack",
     icon: "MapPin",
+    kind: "score",
   },
   {
     title: "AI Search Answers",
-    detail: "Answer-first content ChatGPT, Gemini and AI Overviews can quote.",
+    detail:
+      "Answer-first, structured content that ChatGPT, Gemini and AI Overviews can quote — and recommend you by name.",
     metric: "Cited 41 times",
     icon: "Sparkles",
+    kind: "chart",
   },
 ];
+
+export const searchVisibility = {
+  query: "bridal makeup artist ahmedabad",
+  result: {
+    breadcrumb: "beautyfolio.in › riya-patel › bridal-makeup-ahmedabad",
+    title: "Riya Patel — Bridal Makeup Artist in Ahmedabad | BeautyFolio",
+    description:
+      "12 years of bridal experience. HD & airbrush bridal packages from ₹18,000. 120 verified reviews. Book directly on WhatsApp — no commission.",
+    rating: "4.9",
+    reviews: "120 reviews",
+    chips: ["12 Years Experience", "HD & Airbrush", "Serving 12 areas", "Book Now"],
+  },
+  outcomes: [
+    { label: "Portfolio Views", delta: "620%", detail: "First 6 months after publishing" },
+    { label: "Google Leads", delta: "310%", detail: "Calls and forms from organic search" },
+    { label: "WhatsApp Clicks", delta: "180%", detail: "One-tap enquiries, zero commission" },
+  ],
+};
+
 
 export const instagramLimits = [
   "Algorithm decides who sees your work",
