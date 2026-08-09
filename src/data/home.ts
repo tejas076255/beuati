@@ -357,6 +357,10 @@ export const footerColumns = [
     links: ["Bridal Makeup Artists", "Salon Owners", "Hair Stylists", "Nail Artists", "Mehndi Artists", "Academies"],
   },
   { title: "Company", links: ["About", "Careers", "Partners", "Press", "Contact"] },
-  { title: "Support", links: ["Help Center", "Book a Demo", "WhatsApp Support", "Community", "Status"] },
+  {
+    title: "Support",
+    links: ["Help Center", "Book a Demo", "WhatsApp Support", "Community", "Partner Program", "Roadmap", "Status"],
+  },
   { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Refund Policy", "Sitemap"] },
+
 ];

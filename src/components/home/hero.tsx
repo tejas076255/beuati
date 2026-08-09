@@ -218,7 +218,21 @@ export function Hero() {
                       {title}
                     </p>
                     <p className="text-xs font-semibold">
-                      {value === "counter" ? <LiveViews /> : value}
+                      {value === "counter" ? (
+                        <LiveViews />
+                      ) : value === "stars" ? (
+                        <span className="flex items-center gap-1">
+                          <span className="flex text-accent">
+                            {Array.from({ length: 5 }).map((_, s) => (
+                              <Star key={s} className="h-3 w-3 fill-current" />
+                            ))}
+                          </span>
+                          4.9 · 214
+                        </span>
+                      ) : (
+                        value
+                      )}
+
                     </p>
                   </div>
                 </div>
