@@ -86,7 +86,9 @@ function HomePage() {
         <ProblemSection />
         <DiscoverySection />
         <SolutionSection />
+        <SearchVisibilityShowcase />
         <PortfolioShowcase />
+
         <HowItWorks />
         <WhyBeautyFolio />
         <SuccessStories />
