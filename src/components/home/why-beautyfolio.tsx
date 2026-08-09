@@ -70,12 +70,12 @@ function BentoVisual({ kind }: { kind?: string | undefined }) {
   }
   if (kind === "chart") {
     return (
-      <div className="mt-5 flex h-16 items-end gap-1.5" aria-hidden="true">
+      <div className="mt-auto flex h-28 items-end gap-1.5 pt-6" aria-hidden="true">
         {[24, 38, 32, 55, 70, 84, 100].map((h, i) => (
           <span
             key={i}
             style={{ height: `${h}%` }}
-            className="bg-gradient-brand w-full rounded-sm opacity-80"
+            className="bg-gradient-brand w-full rounded-t-md opacity-80"
           />
         ))}
       </div>
@@ -110,7 +110,7 @@ export function WhyBeautyFolio() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-4 md:auto-rows-[minmax(9rem,auto)] md:grid-cols-6">
+        <div className="mt-14 grid gap-4 md:auto-rows-[minmax(9rem,auto)] md:grid-flow-dense md:grid-cols-6">
           {bento.map((card, i) => {
             const Icon = icons[card.icon] ?? Sparkles;
             const featured = i === 0;
