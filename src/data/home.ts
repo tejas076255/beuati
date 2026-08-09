@@ -75,23 +75,48 @@ export const googleJourney = [
 export const discoverySurfaces = [
   {
     title: "Google Search",
-    detail: "Rank for city, area and service keywords with schema-backed pages.",
+    detail:
+      "Every portfolio ships with schema-backed service, city and area pages, so you rank for the exact phrases brides type at midnight.",
     metric: "Position #2",
     icon: "Search",
+    kind: "serp",
   },
   {
     title: "Google Maps & Local",
-    detail: "Service-area pages that reinforce your Google Business Profile.",
+    detail:
+      "Service-area pages reinforce your Google Business Profile and push you into the three-result local pack that gets the calls.",
     metric: "Top 3 local pack",
     icon: "MapPin",
+    kind: "score",
   },
   {
     title: "AI Search Answers",
-    detail: "Answer-first content ChatGPT, Gemini and AI Overviews can quote.",
+    detail:
+      "Answer-first, structured content that ChatGPT, Gemini and AI Overviews can quote — and recommend you by name.",
     metric: "Cited 41 times",
     icon: "Sparkles",
+    kind: "chart",
   },
 ];
+
+export const searchVisibility = {
+  query: "bridal makeup artist ahmedabad",
+  result: {
+    breadcrumb: "beautyfolio.in › riya-patel › bridal-makeup-ahmedabad",
+    title: "Riya Patel — Bridal Makeup Artist in Ahmedabad | BeautyFolio",
+    description:
+      "12 years of bridal experience. HD & airbrush bridal packages from ₹18,000. 120 verified reviews. Book directly on WhatsApp — no commission.",
+    rating: "4.9",
+    reviews: "120 reviews",
+    chips: ["12 Years Experience", "HD & Airbrush", "Serving 12 areas", "Book Now"],
+  },
+  outcomes: [
+    { label: "Portfolio Views", delta: "620%", detail: "First 6 months after publishing" },
+    { label: "Google Leads", delta: "310%", detail: "Calls and forms from organic search" },
+    { label: "WhatsApp Clicks", delta: "180%", detail: "One-tap enquiries, zero commission" },
+  ],
+};
+
 
 export const instagramLimits = [
   "Algorithm decides who sees your work",
@@ -193,8 +218,14 @@ export const testimonials = [
     quote:
       "I had 40k Instagram followers and barely 3 bridal bookings a month. Within 90 days on BeautyFolio I ranked on page one for \u201cbridal makeup artist Ahmedabad\u201d.",
     metric: "3 \u2192 19 bookings / month",
-    before: { label: "Monthly leads", value: "2" },
-    after: { label: "Monthly leads", value: "47" },
+    timeline: "90 days on BeautyFolio",
+    beforeState: ["Instagram only", "2 leads a month", "Invisible on Google"],
+    outcomes: [
+      { label: "Google ranking", value: "#2", note: "bridal makeup Ahmedabad" },
+      { label: "Portfolio views", value: "4,318", note: "per month" },
+      { label: "Enquiries", value: "47", note: "from 2 / month" },
+      { label: "Revenue", value: "+218%", note: "vs. last season" },
+    ],
     rating: 5,
   },
   {
@@ -204,8 +235,14 @@ export const testimonials = [
     quote:
       "Google now sends me clients who are ready to book. My portfolio does the selling before they even call the salon.",
     metric: "6.4\u00d7 more enquiries",
-    before: { label: "Google visits", value: "90/mo" },
-    after: { label: "Google visits", value: "2,140/mo" },
+    timeline: "6 months on BeautyFolio",
+    beforeState: ["Walk-ins only", "90 site visits a month", "No local pack presence"],
+    outcomes: [
+      { label: "Google ranking", value: "Top 3", note: "Kochi local pack" },
+      { label: "Portfolio views", value: "2,140", note: "per month" },
+      { label: "Enquiries", value: "6.4\u00d7", note: "vs. before" },
+      { label: "Revenue", value: "+164%", note: "salon bookings" },
+    ],
     rating: 5,
   },
   {
@@ -215,11 +252,18 @@ export const testimonials = [
     quote:
       "Zero commissions, zero middlemen. My academy admissions come straight to WhatsApp from search.",
     metric: "\u20b94.2L extra revenue",
-    before: { label: "Admissions", value: "6/batch" },
-    after: { label: "Admissions", value: "31/batch" },
+    timeline: "4 months on BeautyFolio",
+    beforeState: ["Paid ads only", "6 admissions a batch", "Leads lost in DMs"],
+    outcomes: [
+      { label: "Google ranking", value: "#1", note: "hair academy Pune" },
+      { label: "Portfolio views", value: "3,020", note: "per month" },
+      { label: "Admissions", value: "31", note: "per batch" },
+      { label: "Revenue", value: "\u20b94.2L", note: "extra this year" },
+    ],
     rating: 5,
   },
 ];
+
 
 export const plans = [
   {
@@ -306,13 +350,26 @@ export const footerColumns = [
   },
   {
     title: "Resources",
-    links: ["Blog", "Learning Center", "SEO Guides", "BeautyFolio Academy", "Portfolio Examples", "Keyword Ideas"],
+    links: [
+      "Blog",
+      "SEO Learning Center",
+      "SEO Guides",
+      "Portfolio Templates",
+      "Beauty Academy",
+      "Portfolio Examples",
+      "Keyword Ideas",
+    ],
   },
+
   {
     title: "For Professionals",
     links: ["Bridal Makeup Artists", "Salon Owners", "Hair Stylists", "Nail Artists", "Mehndi Artists", "Academies"],
   },
   { title: "Company", links: ["About", "Careers", "Partners", "Press", "Contact"] },
-  { title: "Support", links: ["Help Center", "Book a Demo", "WhatsApp Support", "Community", "Status"] },
+  {
+    title: "Support",
+    links: ["Help Center", "Book a Demo", "WhatsApp Support", "Community", "Partner Program", "Roadmap", "Status"],
+  },
   { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Refund Policy", "Sitemap"] },
+
 ];

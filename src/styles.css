@@ -257,10 +257,34 @@
 }
 
 @utility bg-beauty-bloom {
+
   background-image:
     radial-gradient(40rem 26rem at 78% 8%, oklch(0.72 0.11 28 / 0.16), transparent 70%),
     radial-gradient(34rem 24rem at 8% 72%, oklch(0.45 0.17 330 / 0.12), transparent 70%);
 }
+
+/* Brand signature: an elegant curved arc — the beauty-mirror motif —
+   repeated as a quiet watermark across cards, sections and CTAs. */
+@utility brand-arc {
+  position: relative;
+  isolation: isolate;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    right: -12%;
+    z-index: -1;
+    width: 18rem;
+    height: 18rem;
+    border-radius: 9999px;
+    border: 1.5px solid currentColor;
+    opacity: 0.07;
+    pointer-events: none;
+    mask-image: linear-gradient(200deg, black 10%, transparent 65%);
+  }
+}
+
 
 @keyframes float-soft {
   0%, 100% { transform: translateY(0); }
