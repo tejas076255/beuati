@@ -1,4 +1,4 @@
-import { ArrowUpRight, MessageCircle, Search, Star } from "lucide-react";
+import { MessageCircle, Search, Star } from "lucide-react";
 
 import { Reveal } from "@/components/home/motion-primitives";
 import { searchVisibility } from "@/data/home";
