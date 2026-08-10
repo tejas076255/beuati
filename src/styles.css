@@ -43,6 +43,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-rose: var(--rose);
+  --color-purple-accent: var(--purple-accent);
+  --color-soft-highlight: var(--soft-highlight);
+
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -126,7 +130,16 @@
     oklch(0.975 0.008 340) 55%,
     oklch(0.994 0.003 85) 100%
   );
-  --gradient-ink: linear-gradient(150deg, oklch(0.2 0.075 328) 0%, oklch(0.17 0.02 300) 100%);
+  /* Dark section brand system */
+  --plum-900: #240b2e;
+  --plum-800: #2b0e36;
+  --plum-700: #35113f;
+  --rose: #d94f78;
+  --purple-accent: #8b4dad;
+  --soft-highlight: #f3dce7;
+  --gradient-ink: linear-gradient(168deg, #240b2e 0%, #2a0d34 58%, #35113f 100%);
+  --gradient-ink-alt: linear-gradient(102deg, #35113f 0%, #2b0e36 52%, #240b2e 100%);
+
   --shadow-soft: 0 1px 2px oklch(0.29 0.105 328 / 0.05), 0 12px 32px -16px oklch(0.29 0.105 328 / 0.16);
   --shadow-lift: 0 2px 4px oklch(0.29 0.105 328 / 0.05), 0 28px 60px -28px oklch(0.29 0.105 328 / 0.26);
   --shadow-glow: 0 0 0 1px oklch(0.72 0.11 28 / 0.35), 0 20px 60px -20px oklch(0.62 0.16 15 / 0.45);
@@ -242,6 +255,30 @@
 @utility bg-gradient-ink {
   background: var(--gradient-ink);
 }
+
+@utility bg-gradient-ink-alt {
+  background: var(--gradient-ink-alt);
+}
+
+/* Very soft radial plum/rose halo behind dark-section content */
+@utility bg-plum-halo {
+  background-image:
+    radial-gradient(48rem 30rem at 50% -5%, color-mix(in oklab, var(--purple-accent) 26%, transparent), transparent 70%),
+    radial-gradient(36rem 24rem at 82% 105%, color-mix(in oklab, var(--rose) 14%, transparent), transparent 72%);
+}
+
+@utility bg-plum-halo-side {
+  background-image:
+    radial-gradient(40rem 34rem at 12% 40%, color-mix(in oklab, var(--purple-accent) 22%, transparent), transparent 70%),
+    radial-gradient(32rem 22rem at 95% 8%, color-mix(in oklab, var(--rose) 12%, transparent), transparent 72%);
+}
+
+/* Fine film-grain texture, cheap single-layer SVG noise */
+@utility bg-plum-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
 
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
