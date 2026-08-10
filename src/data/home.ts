@@ -15,6 +15,12 @@ export const navLinks = [
   { label: "About", href: "#why" },
 ];
 
+export const heroTrustSignals = [
+  "Free to start",
+  "No credit card required",
+  "Ready in 10 minutes",
+];
+
 export const heroBadges = [
   "Free Forever Plan",
   "SEO Optimized",
@@ -100,8 +106,10 @@ export const discoverySurfaces = [
 ];
 
 export const searchVisibility = {
-  query: "bridal makeup artist ahmedabad",
+  query: "Bridal Makeup Artist in Ahmedabad",
   result: {
+    rank: "#3",
+    source: "BeautyFolio Portfolio",
     breadcrumb: "beautyfolio.in › riya-patel › bridal-makeup-ahmedabad",
     title: "Riya Patel — Bridal Makeup Artist in Ahmedabad | BeautyFolio",
     description:
@@ -111,9 +119,8 @@ export const searchVisibility = {
     chips: ["12 Years Experience", "HD & Airbrush", "Serving 12 areas", "Book Now"],
   },
   outcomes: [
-    { label: "Portfolio Views", delta: "620%", detail: "First 6 months after publishing" },
-    { label: "Google Leads", delta: "310%", detail: "Calls and forms from organic search" },
-    { label: "WhatsApp Clicks", delta: "180%", detail: "One-tap enquiries, zero commission" },
+    { label: "Portfolio Views", delta: "+312%", detail: "First 6 months after ranking on page 1" },
+    { label: "WhatsApp Enquiries", delta: "+180%", detail: "One-tap enquiries, zero commission" },
   ],
 };
 

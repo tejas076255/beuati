@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DeviceSwitcher } from "@/components/home/device-switcher";
 import { PortfolioPreview } from "@/components/home/portfolio-preview";
-import { heroBadges, type DeviceKey } from "@/data/home";
+import { heroBadges, heroTrustSignals, type DeviceKey } from "@/data/home";
 
 const floatCards = [
   {
@@ -167,10 +167,10 @@ export function Hero() {
             className="mt-9 flex flex-wrap gap-3"
           >
             <Button variant="hero" size="xl">
-              Create Free Portfolio
+              Create My Free Portfolio
             </Button>
-            <Button variant="softline" size="xl">
-              Book Demo
+            <Button variant="softline" size="xl" asChild>
+              <a href="#how-it-works">See How It Works</a>
             </Button>
           </motion.div>
 
@@ -178,12 +178,30 @@ export function Hero() {
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-9 flex flex-wrap gap-x-6 gap-y-3"
+            transition={{ duration: 0.5, delay: 0.28 }}
+            className="mt-5 flex flex-wrap gap-x-6 gap-y-2"
+          >
+            {heroTrustSignals.map((signal) => (
+              <li
+                key={signal}
+                className="flex items-center gap-1.5 text-sm font-medium text-foreground/80"
+              >
+                <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                {signal}
+              </li>
+            ))}
+          </motion.ul>
+
+          <motion.ul
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.34 }}
+            className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-border/70 pt-6"
           >
             {heroBadges.map((badge) => (
               <li key={badge} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                <Check className="h-4 w-4 text-primary/70" aria-hidden="true" />
                 {badge}
               </li>
             ))}
