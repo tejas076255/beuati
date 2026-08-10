@@ -94,7 +94,6 @@ export function SearchVisibilityShowcase() {
                 >
                   <p className="text-sm font-medium text-muted-foreground">{o.label}</p>
                   <p className="font-display text-gradient-brand mt-2 flex items-center gap-1 text-4xl font-semibold">
-                    <ArrowUpRight className="h-7 w-7 text-accent" aria-hidden="true" />
                     {o.delta}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">{o.detail}</p>
