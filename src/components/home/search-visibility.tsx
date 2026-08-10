@@ -35,6 +35,14 @@ export function SearchVisibilityShowcase() {
                 <p className="text-xs text-muted-foreground">About 84,300 results (0.42 seconds)</p>
 
                 <article className="rounded-2xl border border-primary/25 bg-background p-5 shadow-soft">
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground">
+                      {result.rank}
+                    </span>
+                    <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[11px] font-semibold text-accent-foreground">
+                      {result.source}
+                    </span>
+                  </div>
                   <p className="truncate text-xs text-muted-foreground">{result.breadcrumb}</p>
                   <h3 className="font-display mt-1.5 text-lg leading-snug font-semibold text-primary">
                     {result.title}
