@@ -179,14 +179,14 @@ export function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.28 }}
-            className="mt-5 flex flex-wrap gap-x-6 gap-y-2"
+            className="mt-5 flex flex-wrap gap-3"
           >
             {heroTrustSignals.map((signal) => (
               <li
                 key={signal}
-                className="flex items-center gap-1.5 text-sm font-medium text-foreground/80"
+                className="group inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-card/50 px-4 py-1.5 text-[13px] font-medium tracking-wide text-foreground/80 shadow-soft backdrop-blur-sm transition-all hover:border-rose-gold/60"
               >
-                <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                <Check className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                 {signal}
               </li>
             ))}
@@ -197,12 +197,17 @@ export function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.34 }}
-            className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-border/70 pt-6"
+            className="mt-6 flex flex-wrap gap-3 border-t border-border/70 pt-6"
           >
             {heroBadges.map((badge) => (
-              <li key={badge} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="h-4 w-4 text-primary/70" aria-hidden="true" />
-                {badge}
+              <li
+                key={badge}
+                className="inline-flex items-center gap-2 rounded-full border border-secondary bg-secondary/40 px-4 py-1.5 transition-colors hover:bg-secondary/60"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-gold" aria-hidden="true" />
+                <span className="text-xs font-medium tracking-widest text-foreground/70 uppercase">
+                  {badge}
+                </span>
               </li>
             ))}
           </motion.ul>
