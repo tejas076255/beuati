@@ -485,7 +485,7 @@ export function GallerySection({ profile }: P) {
           })}
         </div>
 
-        {items.length > 5 && (
+        {items.length > 6 && (
           <Button
             variant="softline"
             className="mt-4 w-full sm:hidden"
