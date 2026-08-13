@@ -108,7 +108,8 @@ export function PortfolioHeroSection({ profile }: P) {
       className="bg-gradient-soft bg-beauty-bloom overflow-x-clip pt-24 pb-12 sm:pt-32 sm:pb-16"
     >
       <div className="section-shell grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
-        <div>
+        <div className="min-w-0">
+
           <span className="eyebrow">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {profile.specialty}
           </span>
