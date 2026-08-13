@@ -552,7 +552,7 @@ export function VideosSection({ profile }: P) {
           title="Transformations on camera"
           sub="Short reels showing the full process from prep to final look."
         />
-        <div className="-mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+        <div className="mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 md:grid md:grid-cols-3 md:overflow-visible">
           {profile.videos.map((v) => (
             <article
               key={v.title}
