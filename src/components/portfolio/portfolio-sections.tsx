@@ -1221,36 +1221,37 @@ export function FinalCtaSection({ profile }: P) {
 export function MobileStickyCta({ profile }: P) {
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-lift backdrop-blur-md md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="grid grid-cols-[auto_auto_1fr] items-center gap-2 px-3 py-2.5">
+      <div className="grid grid-cols-[auto_auto_1fr] items-center gap-2.5 px-4 py-3">
         <a
           href={waLink(profile)}
           target="_blank"
           rel="noreferrer"
           aria-label={`Message ${profile.name} on WhatsApp`}
-          className="flex h-12 w-14 flex-col items-center justify-center rounded-xl border border-border text-[11px] font-semibold"
+          className="flex h-12 w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-primary/25 bg-secondary/60 text-[11px] font-semibold text-foreground"
         >
-          <MessageCircle className="h-4 w-4 text-primary" aria-hidden="true" />
+          <MessageCircle className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
           WhatsApp
         </a>
         <a
           href={telLink(profile)}
           aria-label={`Call ${profile.name}`}
-          className="flex h-12 w-14 flex-col items-center justify-center rounded-xl border border-border text-[11px] font-semibold"
+          className="flex h-12 w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-primary/25 bg-secondary/60 text-[11px] font-semibold text-foreground"
         >
-          <Phone className="h-4 w-4 text-primary" aria-hidden="true" />
+          <Phone className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
           Call
         </a>
         <a
           href="#availability"
-          className="bg-gradient-brand flex h-12 items-center justify-center rounded-xl px-3 text-center text-[15px] font-semibold text-primary-foreground"
+          className="bg-gradient-brand shadow-glow flex h-12 items-center justify-center rounded-xl px-4 text-center text-[15px] font-semibold tracking-tight text-primary-foreground"
         >
           Check availability
         </a>
       </div>
     </div>
+
   );
 }
 
