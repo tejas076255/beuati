@@ -420,7 +420,7 @@ export function GallerySection({ profile }: P) {
     () => profile.gallery.filter((g) => active === "all" || g.category === active),
     [profile.gallery, active],
   );
-  const mobileItems = showAll ? items : items.slice(0, 5);
+  const mobileItems = showAll ? items : items.slice(0, 6);
 
   return (
     <section id="gallery" className="py-14 sm:py-20">
