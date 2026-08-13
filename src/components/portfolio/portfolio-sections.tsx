@@ -1230,7 +1230,7 @@ export function MobileStickyCta({ profile }: P) {
           target="_blank"
           rel="noreferrer"
           aria-label={`Contact ${profile.name} on WhatsApp`}
-          className="flex h-12 shrink-0 flex-[0_0_22%] min-w-[4.25rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
+          className="flex h-12 shrink-0 flex-[0_0_22%] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           <MessageCircle className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           WhatsApp
@@ -1238,7 +1238,7 @@ export function MobileStickyCta({ profile }: P) {
         <a
           href={telLink(profile)}
           aria-label={`Call ${profile.name}`}
-          className="flex h-12 shrink-0 flex-[0_0_20%] min-w-[4rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
+          className="flex h-12 shrink-0 flex-[0_0_20%] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           <Phone className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           Call
@@ -1246,7 +1246,7 @@ export function MobileStickyCta({ profile }: P) {
         <a
           href="#availability"
           aria-label={`Check ${profile.name}'s availability`}
-          className="flex h-13 flex-1 min-w-0 items-center justify-center gap-2 rounded-[15px] bg-gradient-to-r from-[#D94F78] to-[#5B176E] px-4 text-center text-[15px] font-semibold leading-tight text-white shadow-[0_4px_18px_-6px_rgba(91,23,110,0.45)] transition-transform duration-150 ease-out active:scale-[0.97]"
+          className="flex h-13 flex-1 min-w-0 items-center justify-center gap-2 rounded-[15px] bg-gradient-to-r from-[#D94F78] to-[#5B176E] px-3 text-center text-[15px] font-semibold leading-tight text-white shadow-[0_4px_18px_-6px_rgba(91,23,110,0.45)] transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           <Calendar className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
           <span className="whitespace-nowrap">Check availability</span>
