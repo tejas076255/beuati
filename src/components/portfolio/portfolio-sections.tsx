@@ -123,15 +123,22 @@ export function PortfolioHeroSection({ profile }: P) {
             <MapPin className="h-4 w-4 text-primary" aria-hidden="true" /> {profile.primaryCity}
           </p>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] sm:mt-6 sm:gap-x-6 sm:gap-y-3 sm:text-sm">
-            <span className="inline-flex items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-[14px] sm:mt-6 sm:gap-2.5 sm:text-sm">
+            <span className="inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-card/60 px-3 py-1.5 shadow-soft backdrop-blur-sm">
               <Stars />
               <span className="font-semibold">{profile.rating}</span>
               <span className="text-muted-foreground">({profile.reviewCount}+ clients)</span>
             </span>
-            <span className="text-muted-foreground">{profile.experience} experience</span>
-            <span className="hidden text-muted-foreground sm:inline">{profile.primaryCity}</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-rose-gold/25 bg-secondary/50 px-3 py-1.5 text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-gold" aria-hidden="true" />
+              {profile.experience} experience
+            </span>
+            <span className="hidden items-center gap-2 rounded-full border border-rose-gold/25 bg-secondary/50 px-3 py-1.5 text-muted-foreground sm:inline-flex">
+              <MapPin className="h-3.5 w-3.5 text-rose-gold" aria-hidden="true" />
+              {profile.primaryCity}
+            </span>
           </div>
+
 
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
             {profile.positioning}
