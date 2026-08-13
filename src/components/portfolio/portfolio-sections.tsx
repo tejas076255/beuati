@@ -66,7 +66,7 @@ function Stars({ count = 5, className }: { count?: number; className?: string })
 /* 1. HERO */
 export function PortfolioHeroSection({ profile }: P) {
   return (
-    <section id="top" className="bg-gradient-soft bg-beauty-bloom pt-28 pb-16 sm:pt-32">
+    <section id="top" className="bg-gradient-soft bg-beauty-bloom overflow-x-clip pt-28 pb-16 sm:pt-32">
       <div className="section-shell grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
           <span className="eyebrow">
@@ -810,7 +810,7 @@ export function FaqSection({ profile }: P) {
 /* 13. FINAL CTA */
 export function FinalCtaSection({ profile }: P) {
   return (
-    <section className="bg-gradient-soft bg-beauty-bloom py-20">
+    <section className="bg-gradient-soft bg-beauty-bloom overflow-x-clip py-20">
       <div className="section-shell">
         <div className="brand-arc relative mx-auto max-w-3xl rounded-3xl border border-border bg-card px-8 py-12 text-center text-primary shadow-lift">
           <h2 className="font-display text-3xl font-semibold sm:text-4xl">
