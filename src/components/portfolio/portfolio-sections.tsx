@@ -1217,41 +1217,42 @@ export function FinalCtaSection({ profile }: P) {
   );
 }
 
-/* 14. MOBILE STICKY CTA */
+/* 14. MOBILE STICKY CTA — Premium floating booking bar */
 export function MobileStickyCta({ profile }: P) {
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-lift backdrop-blur-md md:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="fixed bottom-0 left-0 right-0 z-50 p-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:hidden"
+      aria-label="Mobile booking actions"
     >
-      <div className="grid grid-cols-[auto_auto_1fr] items-center gap-2.5 px-4 py-3">
+      <div className="flex items-center gap-2 rounded-[18px] border border-[rgba(40,20,40,0.08)] bg-white/96 p-2.5 shadow-[0_4px_24px_-8px_rgba(40,20,40,0.18)] backdrop-blur-md">
         <a
           href={waLink(profile)}
           target="_blank"
           rel="noreferrer"
-          aria-label={`Message ${profile.name} on WhatsApp`}
-          className="flex h-12 w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-primary/25 bg-secondary/60 text-[11px] font-semibold text-foreground"
+          aria-label={`Contact ${profile.name} on WhatsApp`}
+          className="flex h-12 shrink-0 flex-[0_0_22%] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
         >
-          <MessageCircle className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
+          <MessageCircle className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           WhatsApp
         </a>
         <a
           href={telLink(profile)}
           aria-label={`Call ${profile.name}`}
-          className="flex h-12 w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-primary/25 bg-secondary/60 text-[11px] font-semibold text-foreground"
+          className="flex h-12 shrink-0 flex-[0_0_20%] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
         >
-          <Phone className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
+          <Phone className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           Call
         </a>
         <a
           href="#availability"
-          className="bg-gradient-brand shadow-glow flex h-12 items-center justify-center rounded-xl px-4 text-center text-[15px] font-semibold tracking-tight text-primary-foreground"
+          aria-label={`Check ${profile.name}'s availability`}
+          className="flex h-13 flex-1 min-w-0 items-center justify-center gap-2 rounded-[15px] bg-gradient-to-r from-[#D94F78] to-[#5B176E] px-3 text-center text-[15px] font-semibold leading-tight text-white shadow-[0_4px_18px_-6px_rgba(91,23,110,0.45)] transition-transform duration-150 ease-out active:scale-[0.97]"
         >
-          Check availability
+          <Calendar className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+          <span className="whitespace-nowrap">Check availability</span>
         </a>
       </div>
     </div>
-
   );
 }
 

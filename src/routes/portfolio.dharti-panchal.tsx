@@ -231,7 +231,7 @@ function PortfolioPage() {
 
       <WhatsAppButton profile={profile} />
       <MobileStickyCta profile={profile} />
-      <div className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <SiteFooter />
       </div>
     </div>
