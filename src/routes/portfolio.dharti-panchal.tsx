@@ -126,24 +126,28 @@ export const Route = createFileRoute("/portfolio/dharti-panchal")({
 
 const navItems = [
   { label: "About", href: "#about" },
-  { label: "Gallery", href: "#gallery" },
+  { label: "Work", href: "#gallery" },
   { label: "Transformations", href: "#transformations" },
   { label: "Services", href: "#services" },
   { label: "Packages", href: "#packages" },
   { label: "Reviews", href: "#reviews" },
+  { label: "Videos", href: "#videos" },
   { label: "FAQ", href: "#faq" },
+  { label: "Contact", href: "#contact" },
 ];
 
 function PortfolioPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen">
       <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
-        <div className="section-shell flex h-16 items-center justify-between gap-4">
-          <a href="#top" className="font-display text-sm font-semibold whitespace-nowrap">
+        <div className="section-shell flex h-16 items-center justify-between gap-3">
+          <a href="#top" className="font-display text-[15px] font-semibold whitespace-nowrap">
             {profile.name}
           </a>
           <nav aria-label="Portfolio sections" className="hidden gap-1 lg:flex">
-            {navItems.map((n) => (
+            {navItems.slice(0, 7).map((n) => (
               <a
                 key={n.label}
                 href={n.href}
@@ -153,16 +157,61 @@ function PortfolioPage() {
               </a>
             ))}
           </nav>
-          <a
-            href="#availability"
-            className="hidden text-sm font-semibold text-primary md:inline"
-          >
-            Check availability
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href="#availability"
+              className="hidden text-sm font-semibold text-primary md:inline"
+            >
+              Check availability
+            </a>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="portfolio-mobile-menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-border lg:hidden"
+            >
+              {menuOpen ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {menuOpen && (
+          <nav
+            id="portfolio-mobile-menu"
+            aria-label="Mobile navigation"
+            className="animate-in fade-in slide-in-from-top-2 max-h-[70vh] overflow-y-auto border-t border-border bg-background px-5 pt-2 pb-5 duration-200 lg:hidden"
+          >
+            <ul className="grid grid-cols-2 gap-1.5">
+              {navItems.map((n) => (
+                <li key={n.label}>
+                  <a
+                    href={n.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex min-h-12 items-center rounded-xl px-3 text-[15px] font-medium"
+                  >
+                    {n.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <a
+              href="#availability"
+              onClick={() => setMenuOpen(false)}
+              className="bg-gradient-brand mt-3 flex min-h-12 items-center justify-center rounded-xl text-[15px] font-semibold text-primary-foreground"
+            >
+              Check availability
+            </a>
+          </nav>
+        )}
       </header>
 
-      <main className="pb-20 md:pb-0">
+      <main>
         <PortfolioHeroSection profile={profile} />
         <AboutSection profile={profile} />
         <WhyChooseSection profile={profile} />
@@ -180,7 +229,10 @@ function PortfolioPage() {
 
       <WhatsAppButton profile={profile} />
       <MobileStickyCta profile={profile} />
-      <SiteFooter />
+      <div className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+        <SiteFooter />
+      </div>
     </div>
   );
 }
+
