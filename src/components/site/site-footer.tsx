@@ -59,7 +59,7 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+          <nav aria-label="Footer" className="hidden gap-8 sm:grid sm:grid-cols-3 lg:grid-cols-5">
             {footerColumns.map((col) => (
               <div key={col.title}>
                 <h3 className="text-sm font-semibold">{col.title}</h3>
@@ -78,6 +78,36 @@ export function SiteFooter() {
               </div>
             ))}
           </nav>
+
+          {/* Mobile: collapsible groups */}
+          <nav aria-label="Footer" className="-mt-4 divide-y divide-border border-y border-border sm:hidden">
+            {footerColumns.map((col) => (
+              <details key={col.title} className="group">
+                <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-[15px] font-semibold">
+                  {col.title}
+                  <span
+                    className="text-muted-foreground transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  >
+                    ▾
+                  </span>
+                </summary>
+                <ul className="pb-3">
+                  {col.links.map((link) => (
+                    <li key={link}>
+                      <a
+                        href="#top"
+                        className="flex min-h-11 items-center text-[15px] text-muted-foreground"
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+          </nav>
+
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
