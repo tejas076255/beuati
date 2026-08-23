@@ -14,38 +14,127 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: Database["public"]["Enums"]["admin_audit_action"]
+          actor_user_id: string
+          created_at: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["admin_audit_entity_type"]
+          id: string
+          metadata: Json
+          new_value: Json | null
+          old_value: Json | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["admin_audit_action"]
+          actor_user_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["admin_audit_entity_type"]
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          old_value?: Json | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["admin_audit_action"]
+          actor_user_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["admin_audit_entity_type"]
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          old_value?: Json | null
+        }
+        Relationships: []
+      }
+      availability_blocked_dates: {
+        Row: {
+          beautician_profile_id: string
+          blocked_date: string
+          created_at: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          beautician_profile_id: string
+          blocked_date: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          beautician_profile_id?: string
+          blocked_date?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_blocked_dates_beautician_profile_id_fkey"
+            columns: ["beautician_profile_id"]
+            isOneToOne: false
+            referencedRelation: "beautician_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_settings: {
         Row: {
           accepting_bookings: boolean
           advance_booking_days: number | null
+          appointment_type: string
           beautician_profile_id: string
           created_at: string
           id: string
           minimum_notice_hours: number | null
           timezone: string
+          travel_available: boolean
+          travel_charge_amount: number | null
+          travel_charge_enabled: boolean
+          travel_charge_type: string | null
+          travel_radius_km: number | null
           updated_at: string
+          working_hours: Json | null
           working_hours_note: string | null
         }
         Insert: {
           accepting_bookings?: boolean
           advance_booking_days?: number | null
+          appointment_type?: string
           beautician_profile_id: string
           created_at?: string
           id?: string
           minimum_notice_hours?: number | null
           timezone?: string
+          travel_available?: boolean
+          travel_charge_amount?: number | null
+          travel_charge_enabled?: boolean
+          travel_charge_type?: string | null
+          travel_radius_km?: number | null
           updated_at?: string
+          working_hours?: Json | null
           working_hours_note?: string | null
         }
         Update: {
           accepting_bookings?: boolean
           advance_booking_days?: number | null
+          appointment_type?: string
           beautician_profile_id?: string
           created_at?: string
           id?: string
           minimum_notice_hours?: number | null
           timezone?: string
+          travel_available?: boolean
+          travel_charge_amount?: number | null
+          travel_charge_enabled?: boolean
+          travel_charge_type?: string | null
+          travel_radius_km?: number | null
           updated_at?: string
+          working_hours?: Json | null
           working_hours_note?: string | null
         }
         Relationships: [
@@ -60,6 +149,7 @@ export type Database = {
       }
       beautician_profiles: {
         Row: {
+          about_highlights: string[]
           address: string | null
           bio: string | null
           bio_secondary: string | null
@@ -74,7 +164,9 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_demo: boolean
+          is_featured: boolean
           is_published: boolean | null
+          is_verified: boolean
           latitude: number | null
           locality: string | null
           longitude: number | null
@@ -96,11 +188,13 @@ export type Database = {
           updated_at: string
           website_url: string | null
           whatsapp_number: string | null
+          why_choose_points: string[]
           working_hours: string | null
           years_experience: number | null
           youtube_url: string | null
         }
         Insert: {
+          about_highlights?: string[]
           address?: string | null
           bio?: string | null
           bio_secondary?: string | null
@@ -115,7 +209,9 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_demo?: boolean
+          is_featured?: boolean
           is_published?: boolean | null
+          is_verified?: boolean
           latitude?: number | null
           locality?: string | null
           longitude?: number | null
@@ -137,11 +233,13 @@ export type Database = {
           updated_at?: string
           website_url?: string | null
           whatsapp_number?: string | null
+          why_choose_points?: string[]
           working_hours?: string | null
           years_experience?: number | null
           youtube_url?: string | null
         }
         Update: {
+          about_highlights?: string[]
           address?: string | null
           bio?: string | null
           bio_secondary?: string | null
@@ -156,7 +254,9 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_demo?: boolean
+          is_featured?: boolean
           is_published?: boolean | null
+          is_verified?: boolean
           latitude?: number | null
           locality?: string | null
           longitude?: number | null
@@ -178,6 +278,7 @@ export type Database = {
           updated_at?: string
           website_url?: string | null
           whatsapp_number?: string | null
+          why_choose_points?: string[]
           working_hours?: string | null
           years_experience?: number | null
           youtube_url?: string | null
@@ -379,6 +480,147 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["lead_activity_type"]
+          body: string | null
+          channel: Database["public"]["Enums"]["lead_activity_channel"] | null
+          created_at: string
+          created_by: string | null
+          direction:
+            | Database["public"]["Enums"]["lead_activity_direction"]
+            | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+          next_followup_at: string | null
+          occurred_at: string
+          outcome: string | null
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["lead_activity_type"]
+          body?: string | null
+          channel?: Database["public"]["Enums"]["lead_activity_channel"] | null
+          created_at?: string
+          created_by?: string | null
+          direction?:
+            | Database["public"]["Enums"]["lead_activity_direction"]
+            | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+          next_followup_at?: string | null
+          occurred_at?: string
+          outcome?: string | null
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["lead_activity_type"]
+          body?: string | null
+          channel?: Database["public"]["Enums"]["lead_activity_channel"] | null
+          created_at?: string
+          created_by?: string | null
+          direction?:
+            | Database["public"]["Enums"]["lead_activity_direction"]
+            | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+          next_followup_at?: string | null
+          occurred_at?: string
+          outcome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_inquiries: {
+        Row: {
+          budget: number | null
+          created_at: string
+          event_date: string | null
+          event_type: string | null
+          id: string
+          lead_id: string
+          location_type: string | null
+          num_persons: number | null
+          requirement: string | null
+          special_requirements: string | null
+          updated_at: string
+          venue_area: string | null
+        }
+        Insert: {
+          budget?: number | null
+          created_at?: string
+          event_date?: string | null
+          event_type?: string | null
+          id?: string
+          lead_id: string
+          location_type?: string | null
+          num_persons?: number | null
+          requirement?: string | null
+          special_requirements?: string | null
+          updated_at?: string
+          venue_area?: string | null
+        }
+        Update: {
+          budget?: number | null
+          created_at?: string
+          event_date?: string | null
+          event_type?: string | null
+          id?: string
+          lead_id?: string
+          location_type?: string | null
+          num_persons?: number | null
+          requirement?: string | null
+          special_requirements?: string | null
+          updated_at?: string
+          venue_area?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_inquiries_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_inquiry_services: {
+        Row: {
+          created_at: string
+          id: string
+          inquiry_id: string
+          service_tag: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inquiry_id: string
+          service_tag: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inquiry_id?: string
+          service_tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_inquiry_services_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "lead_inquiries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           beautician_profile_id: string
@@ -386,12 +628,17 @@ export type Database = {
           email: string | null
           event_date: string | null
           id: string
+          last_contacted_at: string | null
           location: string | null
           message: string | null
           name: string | null
+          next_followup_at: string | null
+          next_followup_reason: string | null
+          notes: string | null
           package_id: string | null
           phone: string | null
           service_id: string | null
+          service_requested: string | null
           source: string | null
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
@@ -402,12 +649,17 @@ export type Database = {
           email?: string | null
           event_date?: string | null
           id?: string
+          last_contacted_at?: string | null
           location?: string | null
           message?: string | null
           name?: string | null
+          next_followup_at?: string | null
+          next_followup_reason?: string | null
+          notes?: string | null
           package_id?: string | null
           phone?: string | null
           service_id?: string | null
+          service_requested?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
@@ -418,12 +670,17 @@ export type Database = {
           email?: string | null
           event_date?: string | null
           id?: string
+          last_contacted_at?: string | null
           location?: string | null
           message?: string | null
           name?: string | null
+          next_followup_at?: string | null
+          next_followup_reason?: string | null
+          notes?: string | null
           package_id?: string | null
           phone?: string | null
           service_id?: string | null
+          service_requested?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
@@ -950,6 +1207,7 @@ export type Database = {
           is_primary: boolean
           latitude: number | null
           longitude: number | null
+          postal_code: string | null
           sort_order: number
           state: string | null
           updated_at: string
@@ -965,6 +1223,7 @@ export type Database = {
           is_primary?: boolean
           latitude?: number | null
           longitude?: number | null
+          postal_code?: string | null
           sort_order?: number
           state?: string | null
           updated_at?: string
@@ -980,6 +1239,7 @@ export type Database = {
           is_primary?: boolean
           latitude?: number | null
           longitude?: number | null
+          postal_code?: string | null
           sort_order?: number
           state?: string | null
           updated_at?: string
@@ -1163,7 +1423,22 @@ export type Database = {
         Returns: boolean
       }
       is_published_profile: { Args: { _bp_id: string }; Returns: boolean }
+      log_admin_action: {
+        Args: {
+          _action: Database["public"]["Enums"]["admin_audit_action"]
+          _entity_id: string
+          _entity_type: Database["public"]["Enums"]["admin_audit_entity_type"]
+          _metadata?: Json
+          _new_value?: Json
+          _old_value?: Json
+        }
+        Returns: string
+      }
       owns_beautician_profile: { Args: { _bp_id: string }; Returns: boolean }
+      owns_beautician_profile_by_slug: {
+        Args: { _slug: string }
+        Returns: boolean
+      }
       record_portfolio_event: {
         Args: {
           _device_type?: string
@@ -1185,6 +1460,7 @@ export type Database = {
           _package_id?: string
           _phone: string
           _service_id?: string
+          _service_requested?: string
           _slug: string
           _source?: string
         }
@@ -1192,13 +1468,36 @@ export type Database = {
       }
     }
     Enums: {
+      admin_audit_action:
+        | "profile_status_changed"
+        | "verification_changed"
+        | "featured_changed"
+        | "admin_role_granted"
+        | "admin_role_revoked"
+        | "review_moderated"
+        | "review_deleted"
+      admin_audit_entity_type: "beautician_profile" | "user_role" | "review"
       app_role: "beautician" | "admin"
       before_after_image_type: "before" | "after"
+      lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual"
+      lead_activity_direction: "inbound" | "outbound"
+      lead_activity_type:
+        | "call"
+        | "whatsapp"
+        | "sms"
+        | "email"
+        | "note"
+        | "status_change"
+        | "follow_up"
+        | "booking"
       lead_status:
         | "new"
         | "contacted"
         | "qualified"
+        | "quoted"
+        | "negotiation"
         | "booked"
+        | "completed"
         | "lost"
         | "archived"
       portfolio_status: "draft" | "published" | "unpublished" | "suspended"
@@ -1331,13 +1630,38 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_audit_action: [
+        "profile_status_changed",
+        "verification_changed",
+        "featured_changed",
+        "admin_role_granted",
+        "admin_role_revoked",
+        "review_moderated",
+        "review_deleted",
+      ],
+      admin_audit_entity_type: ["beautician_profile", "user_role", "review"],
       app_role: ["beautician", "admin"],
       before_after_image_type: ["before", "after"],
+      lead_activity_channel: ["phone", "whatsapp", "sms", "email", "manual"],
+      lead_activity_direction: ["inbound", "outbound"],
+      lead_activity_type: [
+        "call",
+        "whatsapp",
+        "sms",
+        "email",
+        "note",
+        "status_change",
+        "follow_up",
+        "booking",
+      ],
       lead_status: [
         "new",
         "contacted",
         "qualified",
+        "quoted",
+        "negotiation",
         "booked",
+        "completed",
         "lost",
         "archived",
       ],
