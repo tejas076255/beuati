@@ -30,6 +30,7 @@ import {
   resolveServiceSlug,
 } from "@/lib/seo-helpers";
 import { absoluteUrl } from "@/lib/site-url";
+import { safeJsonLd } from "@/lib/json-ld";
 import type { ServicePageBundle } from "@/data/service-page-query.server";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -176,7 +177,7 @@ function buildHead(bundle: ServicePageBundle) {
         // as an unused destructure while keeping it available for the
         // dashboard eligibility list, which calls evaluateServiceIndexability
         // independently server-side.
-        children: JSON.stringify({
+        children: safeJsonLd({
           "@context": "https://schema.org",
           "@graph": [
             {

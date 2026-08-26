@@ -32,6 +32,7 @@ import {
   evaluatePortfolioIndexability,
 } from "@/lib/seo-helpers";
 import { absoluteUrl } from "@/lib/site-url";
+import { safeJsonLd } from "@/lib/json-ld";
 import { getVideoEmbedSource } from "@/lib/video-embed";
 import { AnalyticsEvent, useTrackedPageView } from "@/lib/analytics";
 import type { Json, Tables } from "@/integrations/supabase/types";
@@ -296,7 +297,7 @@ function buildHead(
         // reviews, FAQ, breadcrumbs) shares one @context and can reference
         // each other by @id instead of forming disconnected JSON-LD
         // islands — Phase 3F.3 §3/§23.
-        children: JSON.stringify({
+        children: safeJsonLd({
           "@context": "https://schema.org",
           "@graph": [
             {
