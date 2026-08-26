@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/form";
 import type { Database, Tables } from "@/integrations/supabase/types";
 import type { VideoInput } from "@/data/dashboard/videos.server";
+import { isSafeExternalVideoUrl } from "@/lib/video-embed";
 
 export const Route = createFileRoute("/dashboard/videos")({
   component: VideosPage,
@@ -119,11 +120,11 @@ const videoSchema = z
           message: "Upload a video file",
         });
       }
-    } else if (!z.string().url().safeParse(values.video_url).success) {
+    } else if (!isSafeExternalVideoUrl(values.video_url, values.platform)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["video_url"],
-        message: "Enter a valid video URL",
+        message: "Enter a valid HTTPS video URL.",
       });
     }
   });
