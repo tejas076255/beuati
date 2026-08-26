@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.8 Content Quality &amp; Readiness</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .states { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0; }
+  .states .s { border-radius: 10px; padding: 10px 12px; font-size: 11.5px; }
+  .states .ready { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .states .needs { background: #fffbeb; border: 1px solid #fde68a; }
+  .states .not { background: #f8f5fa; border: 1px solid #eee0f7; }
+  .states .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .states .ready .lbl { color: #15803d; }
+  .states .needs .lbl { color: #b45309; }
+  .states .not .lbl { color: #6b7280; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.8</div>
+    <h1>Service Content Quality + Publishing Readiness</h1>
+    <p class="sub">A single shared, deterministic readiness helper across the dashboard, SEO page, and public routes — no arbitrary score, three plain states, save/publish/search kept as three distinct concepts. Zero database schema changes; found and closed a real gap: no UI existed to unpublish a service.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>New write path</strong>is_active (Show on portfolio)</div>
+      <div><strong>Score shown</strong>None — 3 states only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">New DB columns/tables</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Shared readiness helper</div></div>
+    <div class="card"><div class="n">7</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">7/7</div><div class="l">Routes smoke-tested OK</div></div>
+  </div>
+
+  <h2>1–2. Existing Audit &amp; Save/Publish/Search Model</h2>
+  <p style="font-size:11.5px;">Read every relevant file before coding. Found robust save validation (Phase 3F.6 price/duration integrity) enforced only in the browser — no server-side check existed. <code>evaluateServiceIndexability()</code> was already the single source of truth for robots/sitemap. The SEO dashboard's service list silently dropped inactive services. Most notably: <b>no UI anywhere let a beautician unpublish a service</b> — <code>services.is_active</code> was a real, RLS-covered column with zero write path.</p>
+  <div class="states">
+    <div class="s not"><div class="lbl">Save validation</div>Does the data satisfy business rules? e.g. fixed price needs a positive number.</div>
+    <div class="s needs"><div class="lbl">Publication</div>Is the service active + visible on the portfolio? Independent of search quality.</div>
+    <div class="s ready"><div class="lbl">Search readiness</div>Does the page have enough real content to justify index, follow?</div>
+  </div>
+
+  <h2>3–4. Files Changed &amp; Database Changes</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>lib/service-limits.ts</code> (new)</td><td>Shared client+server thresholds — 12 list items, 1000-char prep notes</td></tr>
+    <tr><td><code>lib/seo-helpers.ts</code></td><td><code>evaluateServiceIndexability</code> gains <code>hasPersistedSlug</code>; new <code>evaluateServiceContentReadiness()</code> + label helpers</td></tr>
+    <tr><td><code>services.server.ts</code></td><td><code>is_active</code> added to <code>ServiceInput</code>; server-side <code>validateServiceContent</code>; batched <code>listOwnServicesWithReadiness</code></td></tr>
+    <tr><td><code>seo.server.ts</code></td><td><code>servicePages</code> uses the shared readiness function, now includes inactive services</td></tr>
+    <tr><td><code>dashboard.services.tsx</code></td><td>is_active toggle, readiness panel, char count, guidance text, list caps</td></tr>
+    <tr><td><code>dashboard.seo.tsx</code></td><td>3-state service list rendering</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: zero, confirmed.</b> <code>is_active</code> already existed with a <code>true</code> default and full RLS coverage — this phase only added its first write path.</p>
+
+  <div class="page-break"></div>
+
+  <h2>5–6. Shared Readiness Logic &amp; Description Quality</h2>
+  <div class="verified">
+    One function, <code>evaluateServiceContentReadiness()</code>, used identically by <code>/dashboard/services</code>, <code>/dashboard/seo</code>, and (via the unchanged <code>evaluateServiceIndexability()</code> it wraps) the public route's robots directive and the sitemap. Live-verified: real "HD Bridal Makeup" stayed <code>index, follow</code> and sitemap-included after the slug-persistence check was added.
+  </div>
+  <p style="font-size:11.5px;">The existing 40-character description threshold was preserved exactly (internal only, never shown as a number to the user). Verified against real production data: Nail Art (0 chars) and Sider makeup (1 char) correctly fail; Airbrush/Party &amp; Sangeet/HD Bridal (65–75 chars) correctly pass.</p>
+
+  <h2>7–8. List/Preparation Validation &amp; Silent-Default Audit</h2>
+  <p style="font-size:11.5px;">Added a 12-item cap for What's Included / Suitable For and a 1000-character cap for preparation notes — enforced identically client-side (disabled "+ Add item" past 12) and server-side (throws). Confirmed real user-entered content ("Hd make up", "Pls wash you hair before 4 hours for dry") is preserved verbatim — no rewriting, no grammar correction. Price/duration silent-default protections from Phase 3F.6 remain untouched.</p>
+
+  <h2>9–11. Dashboard UX — Cards, Edit Dialog, SEO Page</h2>
+  <ul>
+    <li>Service cards: compact readiness badge ("Ready for search" / "Needs details" / "Not indexed"), "Hidden" badge when inactive, up to 2 top reasons when not ready</li>
+    <li>Edit dialog: new "Service page readiness" panel — Required and Recommended checklists visually separated, "Ready" or "Needs N required improvements" summary, Profile deep-link when city is missing</li>
+    <li>SEO dashboard: "Service Search Pages" now lists every service including unpublished ones, using the same 3-state label</li>
+  </ul>
+
+  <h2>12–13. Public/Indexability Behavior &amp; Sitemap Consistency</h2>
+  <div class="verified">
+    <b>Live-verified end-to-end:</b> toggling Nail Art's <code>is_active</code> off removed it from <code>/sitemap.xml</code> and its direct URL returned 404 immediately; toggling back on restored both (200, sitemap entry present) — confirming dashboard, robots, and sitemap can never disagree.
+  </div>
+
+  <h2>14–17. Regression, Profile Guidance, RLS, Performance</h2>
+  <p style="font-size:11.5px;"><b>Price/duration:</b> server-side <code>validateServiceContent</code> now mirrors the client rules exactly, closing a real gap where only the browser enforced them. <b>Profile dependency:</b> a missing-city readiness failure links directly to <code>/dashboard/profile</code>. <b>RLS:</b> no new ownership model — the batched readiness query composes only existing owner-scoped functions. <b>Performance:</b> confirmed no N+1 — 6 fixed batched queries per <code>/dashboard/services</code> load regardless of service count.</p>
+
+  <h2>18. Automated Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span> (1 prettier auto-fix pass)</td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>7 required routes</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>19–21. Manual Tests, Limitations, Next Phase</h2>
+  <p style="font-size:11.5px;"><b>Manual tests performed:</b> description-length pass/fail against real production services, is_active toggle → 404 + sitemap exclusion → revert → restored, robots directive unaffected by the new slug-persistence check.</p>
+  <div class="flag">
+    <b>Known limitation:</b> server-side price/duration blocking (TEST F/G) was verified by code review, not a live authenticated HTTP call — no browser session was available in this environment. The server logic is a direct mirror of the already-proven client zod rules.
+  </div>
+  <p style="font-size:12px;"><b>Recommended next phase:</b> none proposed. Per the STOP condition — AI content writing, AI SEO, service × area pages, city directories, marketplace features, blog, Search Console, GBP, rank tracking, production deployment, hosting, and cover-hero A/B testing all remain out of scope. Awaiting manual approval.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.8 Content Quality + Publishing Readiness Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

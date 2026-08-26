@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.5 Security Verification</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 24px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 18px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .rejected { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:10px; font-weight:700; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .pill.reject { background:#fee2e2; color:#b91c1c; }
+  .test-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .test-grid .t { border:1px solid #eee0f7; border-radius:8px; padding:8px 10px; font-size:11px; }
+  .test-grid .t .id { font-weight:700; color:#6d28d9; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.5</div>
+    <h1>Final Security Verification</h1>
+    <p class="sub">Ownership-protection trigger applied to the confirmed live database, then a full A–I test suite executed directly against real data — same-profile linking, forged cross-profile attempts, deletion behavior, and data-integrity checks.</p>
+    <div class="meta">
+      <div><strong>Project verified</strong>ivbujlyilzmlublqzalu</div>
+      <div><strong>Migration</strong>Applied</div>
+      <div><strong>Tests</strong>9 of 9 passed</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">2</div><div class="l">Triggers live</div></div>
+    <div class="card"><div class="n">9/9</div><div class="l">Tests passed</div></div>
+    <div class="card"><div class="n">2</div><div class="l">Forged attempts rejected</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Stray data left behind</div></div>
+  </div>
+
+  <h2>1–4. Project, Migration, Triggers, Tables Protected</h2>
+  <table>
+    <tr><th>Item</th><th>Result</th></tr>
+    <tr><td>Project reference</td><td><code>ivbujlyilzmlublqzalu</code> — reconfirmed live via a stored Storage URL before any write</td></tr>
+    <tr><td>Migration applied</td><td><span class="pill pass">YES</span> — via the verified Lovable MCP connection only</td></tr>
+    <tr><td>Trigger 1</td><td><code>trg_portfolio_items_service_ownership</code> (BEFORE INSERT/UPDATE)</td></tr>
+    <tr><td>Trigger 2</td><td><code>trg_before_after_items_service_ownership</code> (BEFORE INSERT/UPDATE)</td></tr>
+    <tr><td>Tables protected</td><td><code>portfolio_items</code>, <code>before_after_items</code></td></tr>
+  </table>
+
+  <h2>A–I Test Results</h2>
+  <div class="test-grid">
+    <div class="t"><span class="id">A</span> — Same-profile Gallery link<br/><span class="pill pass">PASS</span></div>
+    <div class="t"><span class="id">B</span> — Same-profile Before/After link<br/><span class="pill pass">PASS</span></div>
+    <div class="t"><span class="id">C</span> — Reset to NULL<br/><span class="pill pass">PASS</span></div>
+    <div class="t"><span class="id">D</span> — Forged Gallery cross-profile<br/><span class="pill reject">REJECTED</span></div>
+    <div class="t"><span class="id">E</span> — Forged Before/After cross-profile<br/><span class="pill reject">REJECTED</span></div>
+    <div class="t"><span class="id">F</span> — Rename linked service<br/><span class="pill pass">PASS</span></div>
+    <div class="t"><span class="id">G</span> — Delete linked service<br/><span class="pill pass">PASS</span></div>
+    <div class="t"><span class="id">H</span> — Hide linked media<br/><span class="pill pass">PASS</span></div>
+    <div class="t"><span class="id">I</span> — Existing data integrity<br/><span class="pill pass">PASS</span></div>
+  </div>
+
+  <h2>5. Cross-Profile Forged Test Result</h2>
+  <div class="rejected">
+    Both Test D and Test E attempted to link Dharti's real media to a temporary service planted under Janvi's profile — both rejected instantly with:<br/>
+    <code>P0001: service_id must belong to the same beautician profile as this item</code><br/>
+    Both left zero trace — the temporary services and the forged links were confirmed gone afterward.
+  </div>
+
+  <h2>6. Same-Profile Test Result</h2>
+  <div class="verified">
+    Tests A, B, and F all succeeded exactly as expected: same-profile Gallery link, same-profile Before/After link, and a service rename that left the relationship (<code>service_id</code>) completely unchanged while the join query correctly picked up the new name.
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>7. SET NULL Delete Behavior</h2>
+  <p style="font-size:11.5px;">Test G confirmed: deleting a linked service automatically set the media's <code>service_id</code> to <code>NULL</code>; the media row itself was untouched. Verified inside a controlled, rolled-back transaction so the real "Nail Art" service was never actually lost — Postgres fires FK actions during the transaction regardless of whether it's later committed or rolled back, so this is a faithful test of the real code path with zero permanent risk.</p>
+
+  <h2>8. Existing Data Integrity</h2>
+  <div class="verified">
+    Final state matches the pre-test baseline exactly: all 5 real services present with original names/slugs, both gallery items and the one before/after item back to <code>service_id: null</code> / <code>is_published: true</code>, no stray test rows anywhere. The only observed difference from baseline is <code>portfolio_items.updated_at</code> advancing on the one row legitimately written to during Tests A/C/F — an expected, correct side effect of the pre-existing <code>set_updated_at</code> trigger, not an unintended change.
+  </div>
+
+  <h2>9. Build/Test Results</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill pass">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill pass">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill pass">Succeeds</span></td></tr>
+    <tr><td>5 required routes smoke-tested</td><td><span class="pill pass">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>10. Manual Tests Still Required</h2>
+  <p style="font-size:12px;"><b>None</b> from the security-verification suite — A through I are all complete and passed. The dashboard's "Related service" dropdowns are ready for real use, with the database-level protection now live underneath them.</p>
+
+  <div class="note">
+    <b>Phase 3F.5 is fully closed.</b> No further phase was started.
+  </div>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.5 Final Security Verification Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

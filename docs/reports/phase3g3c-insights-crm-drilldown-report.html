@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.3C Insights Drill-Down</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.6px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .file-list { font-size: 11px; }
+  .file-list li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.3C</div>
+    <h1>Insights → CRM Drill-Down</h1>
+    <p class="sub">Clicking any Insights row (source, UTM channel, campaign, service, CTA) now switches to the CRM List view filtered to exactly the customers whose enquiries match — enquiry-aware, deduplicated per customer, date-range preserved. Zero schema changes.</p>
+    <div class="meta">
+      <div><strong>Drill-down types</strong>5 (source, UTM, campaign, service, CTA)</div>
+      <div><strong>Database changes</strong>0</div>
+      <div><strong>Live matches verified</strong>All predicates cross-checked via SQL</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">5</div><div class="l">Clickable insight types</div></div>
+    <div class="card"><div class="n">2</div><div class="l">Pooja Singh's matching enquiries → 1 row</div></div>
+    <div class="card"><div class="n">7</div><div class="l">Unknown/historical customers (verified)</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Schema changes</div></div>
+  </div>
+
+  <h2>1–4. Architecture &amp; Semantics</h2>
+  <p style="font-size:11.5px;">Audited the existing CRM filters — all local React state, no URL params. The new drill-down filter follows the exact same pattern: one more <code>useState</code>, intersected into the existing filtered-list logic as one additional constraint. Every predicate reads enquiry-level columns (<code>lead_inquiries.source/utm_*/cta_location</code>, <code>lead_inquiry_services.service_tag</code>) — never the customer-level <code>leads.source</code>/<code>leads.service_id</code> snapshot fields. A shared <code>fetchOwnInquiriesInRange()</code> helper is now used by both the Insights rollup and this drill-down so the two can never disagree.</p>
+
+  <h2>5–6. Deduplication &amp; Matched-Enquiry Context</h2>
+  <div class="verified">
+    Matches are grouped by <code>lead_id</code> server-side before reaching the CRM list. <b>Live-verified:</b> customer "Pooja Singh" has 2 enquiries both linked to "HD Bridal Makeup" — confirmed to collapse into exactly one result row with <code>matchCount: 2</code>, never a duplicated row.<br/>
+    Restructuring the lead detail dialog into a full multi-enquiry history view was explicitly deferred (a larger change, per the phase's own instruction). Instead, a small banner — "Matched via Insights · N matching enquiries · most recent: X, received Y" — was added to the existing dialog, satisfying the "at minimum" requirement without a redesign.
+  </div>
+
+  <h2>7–11. Range, Filters, Indicator, Back/Clear</h2>
+  <p style="font-size:11.5px;">The drill-down always reuses the exact <code>insightsRange</code> active when the row was clicked — no separate "locked range" state, no silent expansion to all-time. A dedicated banner shows the active insight filter, matching-customer count, and range, with its own Clear action — independent of the pre-existing status/attention-filter chips, which remain fully functional alongside it. Switching back to the Insights tab does not clear the drill-down filter, so a user can go back and forth without losing context.</p>
+
+  <div class="page-break"></div>
+
+  <h2>Live Verification — All 5 Drill-Down Types</h2>
+  <table>
+    <tr><th>Filter clicked</th><th>Matching customers (SQL-verified)</th></tr>
+    <tr><td>Source · Portfolio</td><td>2</td></tr>
+    <tr><td>Campaign · bridal_test</td><td>1</td></tr>
+    <tr><td>CTA · service_detail_hero</td><td>1</td></tr>
+    <tr><td>Service · HD Bridal Makeup</td><td>3 (incl. Pooja Singh with 2 matching enquiries)</td></tr>
+    <tr><td>Source · Unknown / historical</td><td>7</td></tr>
+  </table>
+  <p style="font-size:10.5px; color:#6b7280;">All five counts were independently computed via direct SQL against the live database and matched the server-side grouping logic exactly — 2 + 7 = 9, the full unique-customer count from Phase 3G.3B.</p>
+
+  <h2>12–13. Query Architecture &amp; Security</h2>
+  <div class="verified">
+    One query per drill-down, reusing the identical <code>lead_inquiries</code> + <code>leads!inner(beautician_profile_id)</code> + <code>lead_inquiry_services</code> join shape as the 3G.3B rollup — no N+1, no second full-lead fetch (the already-loaded lead list is filtered client-side against the returned matching-ID set). Profile scoping is explicit (<code>beautician_profile_id = bpId</code>) on top of unchanged RLS — identical security posture to 3G.3B, live-verified to only ever reflect the one test profile's own data.
+  </div>
+
+  <h2>14. Files Changed</h2>
+  <ul class="file-list">
+    <li><code>src/data/lead-insights.server.ts</code> — shared fetch helper extracted; InsightFilter/DrilldownMatch types + getInsightDrilldownMatches()</li>
+    <li><code>src/components/leads/lead-insights-view.tsx</code> — every breakdown row is now a real, keyboard-accessible &lt;button&gt;</li>
+    <li><code>src/components/leads/lead-detail-dialog.tsx</code> — optional matchContext banner</li>
+    <li><code>src/routes/dashboard.leads.tsx</code> — drill-down state, server fn, filter integration, active-filter banner</li>
+    <li><code>src/lib/analytics.ts</code> — optional insight_drilldown event added</li>
+  </ul>
+
+  <h2>15–17. Database, Analytics &amp; Accessibility</h2>
+  <p style="font-size:11.5px;"><b>Database changes: zero.</b> <b>Analytics:</b> implemented the optional <code>insight_drilldown</code> event (drilldown_type/value/date_range only, never customer data) — fits the existing 3G.3 taxonomy cleanly. <b>Accessibility:</b> every clickable row is a real <code>&lt;button type="button"&gt;</code>, never a div — keyboard-reachable via Tab, activatable via Enter/Space, with visible hover/focus-ring states.</p>
+
+  <h2>18. Quality Gates</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td>Clean</td></tr>
+    <tr><td>ESLint</td><td>0 errors after autofix</td></tr>
+    <tr><td><code>npm run build</code></td><td>Succeeded</td></tr>
+    <tr><td>Route smoke tests</td><td>All 200: /dashboard/leads, /portfolio/dharti-panchal, service page, /sitemap.xml, /robots.txt</td></tr>
+  </table>
+
+  <h2>19. Test Matrix Results</h2>
+  <table>
+    <tr><th>Test</th><th>Result</th></tr>
+    <tr><td>A — Source (Portfolio)</td><td><span class="pill pass">PASS</span> 2 customers, SQL-verified</td></tr>
+    <tr><td>B — Campaign (bridal_test)</td><td><span class="pill pass">PASS</span> 1 customer, the real 3G.3A test enquiry</td></tr>
+    <tr><td>C — Service (HD Bridal Makeup)</td><td><span class="pill pass">PASS</span> 3 customers</td></tr>
+    <tr><td>D — CTA (service_detail_hero)</td><td><span class="pill pass">PASS</span> 1 customer</td></tr>
+    <tr><td>E — Unique customer, multiple matches</td><td><span class="pill pass">PASS</span> Pooja Singh: 2 enquiries → 1 row, matchCount=2</td></tr>
+    <tr><td>F — Date range</td><td><span class="pill pass">PASS</span> reuses verified 7d/30d/90d/all cutoffs from 3G.3B</td></tr>
+    <tr><td>G — Clear filter</td><td>Code-verified — fully removes the constraint</td></tr>
+    <tr><td>H — Historical (Unknown)</td><td><span class="pill pass">PASS</span> source IS NULL matches exactly 7 customers</td></tr>
+    <tr><td>I — Open Lead</td><td>Code-verified — matchContext banner renders when present</td></tr>
+    <tr><td>J — Security</td><td>Code-verified — identical explicit profile scoping as 3G.3B</td></tr>
+    <tr><td>K — Mobile</td><td>Not browser-tested — manual check required</td></tr>
+  </table>
+
+  <h2>20–22. Manual Checks, Limitations &amp; Next Phase</h2>
+  <div class="flag">
+    <b>Manual checks needed:</b> open Leads → Insights, click "Portfolio" and confirm List shows exactly 2 customers with the filter banner visible; click Clear; click "HD Bridal Makeup" and open Pooja Singh to confirm the "2 matching enquiries" banner; check mobile tap targets.<br/>
+    <b>Known limitations:</b> no URL persistence for the drill-down filter (matches the pre-existing local-state-only CRM architecture); landing/conversion-page drill-down not implemented (deliberate scope decision); the lead detail dialog still shows only the latest inquiry as its main summary, with the match-context banner as an additive callout rather than a full history browser.<br/>
+    <b>Recommended next phase (not started):</b> a full multi-enquiry history view inside the lead detail dialog — correctly deferred as a larger dialog restructuring, out of this phase's "keep it small" scope.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's explicit STOP condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.3C Insights → CRM Drill-Down Report</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

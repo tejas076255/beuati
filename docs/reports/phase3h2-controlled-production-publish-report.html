@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3H.2 Publish Gate</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.6px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verdict { background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; padding: 16px 20px; margin: 14px 0; }
+  .verdict h3 { margin: 0 0 4px; color: #b91c1c; font-size: 15px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fef2f2; border-left: 4px solid #dc2626; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .pill.nogo { background:#fee2e2; color:#b91c1c; }
+  .pill.manual { background:#fef9c3; color:#854d0e; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3H.2 · Production Deployment Phase</div>
+    <h1>Controlled Production Publish — Gate Check</h1>
+    <p class="sub">Pre-publish gates were run against the real Lovable project and live backend. Publish was NOT performed — a critical sync gap was discovered between this session's built code and Lovable's own project state, and the phase's own safety rule required stopping rather than improvising past it.</p>
+    <div class="meta">
+      <div><strong>Publish performed</strong>NO</div>
+      <div><strong>DNS changed</strong>NO</div>
+      <div><strong>Database changed</strong>NO</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h3>⛔ NO-GO — Publish halted at Gate 6</h3>
+    <p style="margin:0; font-size:12px;">Lovable's own cloud project does not contain the code built across Phases 3D–3H.1. Publishing now would deploy a stale, incomplete version to production — not the application that has been extensively built and verified this entire engagement.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">5/6</div><div class="l">Pre-publish gates passed</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Commit in local git history</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Session files found in Lovable's project</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Destructive actions taken</div></div>
+  </div>
+
+  <h2>Gate Results</h2>
+  <table>
+    <tr><th>Gate</th><th>Result</th><th>Evidence</th></tr>
+    <tr><td>1 — Backend identity</td><td><span class="pill pass">PASS</span></td><td>Live query confirmed ivbujlyilzmlublqzalu — 9 leads, "dharti-panchal" profile present, matching every prior phase's verified data</td></tr>
+    <tr><td>2 — Production env vars</td><td><span class="pill pass">PASS (indirect)</span></td><td>Local .env correct; Lovable's own injection panel not directly inspectable from this session</td></tr>
+    <tr><td>3 — Migration safety</td><td><span class="pill pass">PASS</span></td><td>Policy already documented in backend-portability.md §32; no migration planned</td></tr>
+    <tr><td>4 — Backup/PITR</td><td><span class="pill manual">MANUAL CHECK REQUIRED</span></td><td>No tool exposes this; unchanged from Phase 3H.1</td></tr>
+    <tr><td>5 — Build</td><td><span class="pill pass">PASS</span></td><td>tsc clean, 0 functional ESLint errors, build succeeded (after clearing a stray leftover wrangler process from earlier phase testing that was locking the output directory)</td></tr>
+    <tr><td>6 — Pre-publish code diff</td><td><span class="pill nogo">NO-GO</span></td><td>See finding below</td></tr>
+  </table>
+
+  <h2>The Critical Finding</h2>
+  <div class="flag">
+    <b>Lovable's cloud project state does not contain this session's work.</b> Directly confirmed: reading <code>src/lib/attribution.ts</code> (built in Phase 3G.3A) from Lovable's project via its own read_file API returned <code>404 file_not_found</code>. The local git repository has exactly one commit — "first commit," dated 2026-08-14 — and every file from Phase 3D onward (the entire CRM, leads system, multi-enquiry workspace, attribution, Insights, drill-down, dashboard routes, admin panel) exists only as uncommitted local changes. It was never pushed to the linked GitHub remote (<code>rikeshjpanchal-svg/beautyfolio-launch-main</code>), and therefore never synced back into Lovable's own project — which is what <code>deploy_project</code> would actually publish.
+  </div>
+  <p style="font-size:11px; color:#6b7280;">A secondary corroborating signal: Lovable's own cached project screenshot shows a generic SaaS marketing mockup completely unlike the real BeautyFolio application tested throughout this engagement — consistent with Lovable rendering its stale, pre-3D state.</p>
+
+  <h2>What Was Verified Before Stopping</h2>
+  <ul>
+    <li>Backend identity confirmed live: correct project, correct data, matches every prior phase</li>
+    <li>tsc / ESLint / production build all pass cleanly on the current local code</li>
+    <li>No migration is pending or required for this deployment</li>
+    <li>No destructive action, publish, DNS change, or database write was performed</li>
+  </ul>
+
+  <h2>Path Forward (Not Executed — Requires Your Decision)</h2>
+  <ol>
+    <li>Commit the current working tree and push it to the linked GitHub repo, so Lovable can sync and rebuild from the actual current code.</li>
+    <li>Confirm Lovable's project reflects the current code (e.g. re-check that a known 3G.3A+ file like src/lib/attribution.ts now exists in Lovable's project state).</li>
+    <li>Resume Phase 3H.2 from Gate 6 onward once sync is confirmed.</li>
+  </ol>
+  <p style="font-size:11px; color:#6b7280;">Committing/pushing this scale of change to a real repository was not performed automatically — it requires your explicit go-ahead, consistent with this session's established practice of not taking large, hard-to-reverse actions without direct authorization.</p>
+
+  <p style="font-size:12px;"><b>No publish was performed. No DNS was changed. No database data was modified. No migrations were applied.</b></p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3H.2 Controlled Production Publish Gate Report</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

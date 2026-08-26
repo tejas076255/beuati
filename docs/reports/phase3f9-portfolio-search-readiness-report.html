@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.9 Portfolio Search Readiness</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .cat { display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+  .cat .c { border-radius: 10px; padding: 10px 12px; font-size: 11px; }
+  .cat .content { background: #faf5ff; border: 1px solid #eee0f7; }
+  .cat .local { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .cat .trust { background: #fffbeb; border: 1px solid #fde68a; }
+  .cat .technical { background: #f8f5fa; border: 1px solid #e5e0eb; }
+  .cat .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.9</div>
+    <h1>Portfolio Content Quality + Search Readiness</h1>
+    <p class="sub">The same disciplined readiness philosophy from service pages (Phase 3F.8) now applied to the main professional portfolio — one authoritative, deterministic model shared by the public robots directive, the sitemap, and both dashboard pages. No score, no AI, zero schema changes.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>Old score system</strong>Removed, fully replaced</div>
+      <div><strong>Live-verified</strong>robots ↔ sitemap ↔ dashboard</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">New DB columns/tables</div></div>
+    <div class="card"><div class="n">7</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">3</div><div class="l">Systems unified into one</div></div>
+    <div class="card"><div class="n">11/11</div><div class="l">Routes smoke-tested OK</div></div>
+  </div>
+
+  <h2>1–2. Audit &amp; Required/Recommended Model</h2>
+  <p style="font-size:11.5px;">Found three separate, potentially-disagreeing readiness concepts before this phase: the Phase 3F.1 18-check scored system, the main portfolio route's robots directive (toggle-only, no content gating), and a third informal completeness percentage on <code>/dashboard/profile</code>. All three are now one system.</p>
+  <div class="cat">
+    <div class="c content"><div class="lbl">A. Save validity</div>Can the professional save the profile? Unchanged zod schema.</div>
+    <div class="c local"><div class="lbl">B. Publication</div>Is the portfolio published to visitors? <code>profile.status === "published"</code>.</div>
+    <div class="c trust"><div class="lbl">C. Search readiness</div>Is it strong enough for index, follow + sitemap? One shared function.</div>
+    <div class="c technical"><div class="lbl">States</div>Ready for search / Needs improvement / Not indexed — never a percentage.</div>
+  </div>
+
+  <h2>3–5. Files Changed, Database Changes &amp; Shared Helper</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>seo-helpers.ts</code></td><td>New <code>evaluatePortfolioIndexability</code> / <code>evaluatePortfolioContentReadiness</code>; old 18-check system removed</td></tr>
+    <tr><td><code>portfolio-query.server.ts</code></td><td>Sitemap query now gates on real readiness, batched active-service counts</td></tr>
+    <tr><td><code>portfolio.$slug.tsx</code></td><td>Loader computes <code>indexable</code>; robots meta always explicit</td></tr>
+    <tr><td><code>seo.server.ts</code></td><td><code>getSeoOverview</code> rebuilt on the new model, adds service-page tally</td></tr>
+    <tr><td><code>dashboard.seo.tsx</code></td><td>Rebuilt Search Visibility + grouped checklist, deep links, old score UI removed</td></tr>
+    <tr><td><code>profile.server.ts</code></td><td>New <code>getOwnPortfolioReadinessContext</code></td></tr>
+    <tr><td><code>dashboard.profile.tsx</code></td><td>Live readiness panel replaces the old completeness bar</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: zero, confirmed.</b> No <code>portfolio_readiness_score</code>/<code>seo_score</code> columns — everything derived at read time. <code>evaluatePortfolioContentReadiness()</code> wraps the leaner <code>evaluatePortfolioIndexability()</code> for its <code>indexable</code> result — dashboard, robots meta, and sitemap share the same function chain, not parallel reimplementations.</p>
+
+  <div class="page-break"></div>
+
+  <h2>6–8. Dashboard UX, Live Draft &amp; SEO Page</h2>
+  <p style="font-size:11.5px;">The old percentage bar on <code>/dashboard/profile</code> is replaced by a compact "Portfolio readiness" panel — state badge, message, Required/Recommended mini-checklists. <code>form.watch()</code> (already used for the existing live-preview identity card) now also drives readiness on every keystroke, combined with a separately-loaded static context for signals this page doesn't itself edit (services, gallery, reviews). An "unsaved changes" banner appears when the draft differs from the saved row. <code>/dashboard/seo</code>'s old <code>ScorePill</code> is gone, replaced by the deterministic state plus a grouped Required / Recommended / Technical SEO checklist with inline deep links.</p>
+
+  <h2>9–11. Primary City, Profile Image &amp; About Quality</h2>
+  <div class="verified">
+    <b>Profile image was audited and promoted to REQUIRED</b> (a missing photo weakens trust, the OG fallback, and Person entity completeness — genuinely different from services, which never had an image concept). Verified safe against real data. Primary city stays required and was live-tested (see §17). Bio reuses the exact <code>MIN_BIO_LENGTH = 80</code> threshold from the retired system — never a new number, and the helper text never mentions a character count to the user.
+  </div>
+
+  <h2>12–16. Services, Work, Reviews, Availability &amp; Categorization</h2>
+  <ul>
+    <li>The portfolio helper consumes only <code>activeServiceCount</code> — it never recomputes individual service readiness, which stays owned by Phase 3F.8's model</li>
+    <li>Gallery/Before-After counts are recommended-only, sourced from real <code>is_published</code> rows — never <code>client_count</code></li>
+    <li>Reviews stay recommended-only and deliberately have no deep-link nudge on the SEO dashboard</li>
+    <li>Availability/service areas are recommended-only; primary city remains the sole required local-search signal</li>
+    <li>Every check carries an explicit category (content/local/trust/technical) and required flag, so content issues are never visually mixed with technical hygiene</li>
+  </ul>
+
+  <h2>17–18. Indexability &amp; Sitemap Consistency — Live-Verified</h2>
+  <div class="verified">
+    Cleared Dharti's <code>primary_city</code> → public robots meta flipped to <code>noindex, follow</code> and the profile disappeared from <code>/sitemap.xml</code>. Restored it → back to <code>index, follow</code>, sitemap-included again. The robots meta is now always explicit (previously sometimes omitted entirely), computed from the identical <code>indexable</code> boolean the sitemap query derives independently — zero drift observed.
+  </div>
+
+  <h2>19–20. Query Safety &amp; Performance</h2>
+  <p style="font-size:11.5px;">The new Profile-page readiness query uses a dedicated cache key (<code>own-portfolio-readiness-context</code>) — never reusing <code>own-services</code> or any other route's key, directly applying the Phase 3F.8A.1 lesson. No N+1: the sitemap query uses one batched <code>.in()</code> call for active-service counts across all profiles; both dashboard pages run a fixed small number of batched queries regardless of data volume.</p>
+
+  <h2>21. Automated Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>11 required routes</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>22–24. Manual Tests, Limitations &amp; Next Phase</h2>
+  <div class="flag">
+    TEST A (complete profile → Ready for search) and TEST C (missing city) were live-verified above. TEST B (robots toggle), D (image-missing UI), E (live-typing panel), H (zero active services), I (one weak secondary service), and J (navigation regression) should be spot-checked in a real browser session — no browser automation is available in this environment, so these were verified by code tracing rather than click-through.
+  </div>
+  <p style="font-size:12px;"><b>Recommended next phase:</b> none proposed. Per the STOP condition — AI profile writing, AI SEO, city/category directories, service × area pages, marketplace pages, blog system, Search Console, GBP, rank tracking, production deployment, hosting, and cover-hero A/B testing all remain out of scope. Awaiting manual approval.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.9 Portfolio Search Readiness Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

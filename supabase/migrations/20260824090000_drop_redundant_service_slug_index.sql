@@ -1,0 +1,20 @@
+-- Phase 3F.4A.1: remove the redundant partial unique index added by
+-- 20260823180000_service_slugs.sql.
+--
+-- Audit finding (Phase 3F.4A): `services` already had a full
+-- `UNIQUE (beautician_profile_id, slug)` constraint since the very first
+-- migration (20260814053705, inline in the CREATE TABLE statement),
+-- auto-named `services_beautician_profile_id_slug_key`. A plain UNIQUE
+-- constraint on a nullable column already treats every NULL as distinct
+-- from every other NULL (standard SQL semantics) — so it already allowed
+-- unlimited NULL slugs while rejecting duplicate non-null (profile, slug)
+-- pairs, identical behavior to the partial index added in Phase 3F.4.
+--
+-- `idx_services_bp_slug` therefore added zero real behavior beyond what
+-- already existed. Verified before dropping (in a rolled-back transaction)
+-- that `services_beautician_profile_id_slug_key` alone still correctly
+-- rejects a duplicate slug within the same profile.
+--
+-- services_slug_format (the format CHECK) and every existing service slug
+-- are untouched by this migration.
+DROP INDEX IF EXISTS public.idx_services_bp_slug;

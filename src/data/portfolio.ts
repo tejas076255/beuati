@@ -11,26 +11,45 @@ import portrait from "@/assets/dharti-portrait.jpg";
    Every portfolio page renders from a profile object of this shape.
 ---------------------------------------------------------------- */
 
-export type GalleryCategory =
-  | "bridal"
-  | "party"
-  | "hd"
-  | "hair"
-  | "nails"
-  | "before-after";
+export type GalleryCategory = "bridal" | "party" | "hd" | "hair" | "nails" | "before-after";
 
 export interface GalleryItem {
   src: string;
   /** Short human label used to build descriptive alt text. */
   label: string;
   category: GalleryCategory;
+  /** Final, ready-to-render alt text (real photographer-authored text when
+   * set, otherwise a deterministic per-image fallback) — computed once in
+   * portfolio-mapper.ts via src/lib/media-alt-text.ts. Optional so the
+   * static demo profile below (which predates this field) still type-checks;
+   * components fall back to the legacy imageAlt() helper when absent. */
+  alt?: string;
+  /** Real upload timestamp from portfolio_images.created_at — used only for
+   * structured data (ImageObject.dateCreated); never fabricated when absent. */
+  createdAt?: string;
 }
 
 export interface ServiceItem {
+  /** Real services.id — lets the availability form pass a genuine
+   * service_id (not just free text) into submit_lead() (Phase 3F.6 §9).
+   * Optional so the static demo profile still type-checks. */
+  id?: string;
   name: string;
   duration: string;
   detail: string;
   price: string;
+  /** Raw price fields for structured-data Offer semantics (Phase 3F.3) —
+   * `price` above is the human-readable formatted string; these carry the
+   * real underlying value/type so a JSON-LD Offer never misrepresents a
+   * "starting from" or "custom quote" service as a fixed price. Optional so
+   * the static demo profile still type-checks. */
+  priceValue?: number | null;
+  priceType?: "fixed" | "starting_from" | "custom_quote";
+  currency?: string;
+  /** Real or computed-fallback service slug (Phase 3F.4 §3) — used to link
+   * this card to its /portfolio/{slug}/services/{serviceSlug} SEO landing
+   * page. Optional so the static demo profile still type-checks. */
+  slug?: string;
 }
 
 export interface ServiceGroup {
@@ -45,16 +64,32 @@ export interface BeauticianProfile {
   specialty: string;
   headline: string;
   positioning: string;
-  portrait: string;
+  /** Real `profile_image_url` only — `null` when the professional hasn't
+   * uploaded one (or has removed it, Phase 3F.9A). Never a fabricated
+   * fallback photo; components render a genuine no-photo state instead. */
+  portrait: string | null;
   city: string;
   primaryCity: string;
   region: string;
   country: string;
-  rating: number;
+  /** Real average of published reviews only, computed the same way as the
+   * public JSON-LD AggregateRating (Phase 3F.3A) — never the legacy
+   * `beautician_profiles.rating` column. `null` when there are no published
+   * reviews yet; callers must not fabricate a 0/default rating in that
+   * case. */
+  rating: number | null;
+  /** Real count of published reviews — same source as `rating`. */
   reviewCount: number;
   experience: string;
-  looksDelivered: string;
-  clients: string;
+  /** Real count of published gallery/portfolio items — a system-calculated,
+   * always-accurate trust signal used in place of the unverifiable legacy
+   * `client_count` metric (Phase 3F.3A §5/§6). */
+  publishedWorkCount: number;
+  /** Admin-managed verification flag (`beautician_profiles.is_verified`) —
+   * distinct from `metrics_verified`, which only gates legacy demo-profile
+   * stat display and is unrelated to professional verification. See
+   * docs/BEAUTYFOLIO-PHASE3F3A-TRUST-METRICS.md §10. */
+  isVerified: boolean;
   specializations: string[];
   areas: string[];
   travelNote: string;
@@ -65,6 +100,14 @@ export interface BeauticianProfile {
   hours: string;
   mapQuery: string;
   trustBar: { label: string; value: string }[];
+  /** Real `business_name`, when the beautician has entered one — used only
+   * for structured data, never fabricated. Optional so the static demo
+   * profile still type-checks. */
+  businessName?: string | null;
+  /** Validated real social/website URLs the beautician entered on their
+   * Profile page (Phase 3F.3 §12) — schema.org `sameAs` source, never
+   * invented. Optional so the static demo profile still type-checks. */
+  sameAs?: string[];
   about: { intro: string; second: string; highlights: string[] };
   whyChoose: string[];
   gallery: GalleryItem[];
@@ -73,6 +116,10 @@ export interface BeauticianProfile {
     after: string;
     service: string;
     occasion: string;
+    /** See GalleryItem.alt — same reuse-real-text-else-fallback contract,
+     * computed per side so before/after never share identical wording. */
+    beforeAlt?: string;
+    afterAlt?: string;
   }[];
   serviceGroups: ServiceGroup[];
   packages: {
@@ -82,6 +129,11 @@ export interface BeauticianProfile {
     bestFor: string;
     featured?: boolean;
     includes: string[];
+    /** See ServiceItem — same real-price-semantics contract for packages. */
+    priceValue?: number | null;
+    priceType?: "fixed" | "starting_from" | "custom_quote";
+    currency?: string;
+    description?: string | null;
   }[];
   reviews: {
     name: string;
@@ -91,8 +143,30 @@ export interface BeauticianProfile {
     date?: string;
     verified?: boolean;
   }[];
-  videos: { title: string; length: string; thumb: string; category: string; blurb: string }[];
+  videos: {
+    title: string;
+    length: string;
+    thumb: string;
+    category: string;
+    blurb: string;
+    platform: "youtube" | "instagram" | "uploaded" | "other";
+    videoUrl: string | null;
+    storagePath: string | null;
+    /** See GalleryItem.alt — videos have no manual override field, so this
+     * is always a generated fallback from title/category/profile context. */
+    thumbnailAlt?: string;
+    createdAt?: string;
+    durationSeconds?: number | null;
+  }[];
   faqs: { q: string; a: string }[];
+  availability: {
+    acceptingBookings: boolean;
+    minimumNoticeHours: number | null;
+    advanceBookingDays: number | null;
+    appointmentType: "studio" | "client_location" | "both";
+    travelAvailable: boolean;
+    blockedDates: string[];
+  };
 }
 
 export const dhartiProfile: BeauticianProfile = {
@@ -108,11 +182,14 @@ export const dhartiProfile: BeauticianProfile = {
   primaryCity: "Ahmedabad",
   region: "Gujarat",
   country: "IN",
-  rating: 4.9,
-  reviewCount: 214,
+  // Matches the 4 five-star reviews in the static `reviews` array below —
+  // kept internally consistent since this demo object isn't run through
+  // computeAggregateRating() at runtime (Phase 3F.3A §1).
+  rating: 5,
+  reviewCount: 4,
   experience: "8+ years",
-  looksDelivered: "500+ bridal looks",
-  clients: "600+",
+  publishedWorkCount: 8,
+  isVerified: true,
   specializations: ["Bridal Makeup", "HD Makeup", "Airbrush Makeup", "Wedding Makeup"],
   areas: [
     "Ahmedabad",
@@ -134,8 +211,8 @@ export const dhartiProfile: BeauticianProfile = {
   mapQuery: "Satellite, Ahmedabad, Gujarat",
   trustBar: [
     { label: "Experience", value: "8+ Years" },
-    { label: "Bridal looks", value: "500+" },
-    { label: "Rating", value: "4.9★" },
+    { label: "Rating", value: "5★" },
+    { label: "Reviews", value: "4" },
     { label: "Based in", value: "Ahmedabad & nearby" },
   ],
   about: {
@@ -336,6 +413,9 @@ export const dhartiProfile: BeauticianProfile = {
       blurb: "Full prep-to-finish bridal look shot on a real wedding morning in Ahmedabad.",
       length: "3:42",
       thumb: gallery4,
+      platform: "other",
+      videoUrl: null,
+      storagePath: null,
     },
     {
       title: "HD Bridal Look for Humid Weather",
@@ -343,6 +423,9 @@ export const dhartiProfile: BeauticianProfile = {
       blurb: "The airbrush base routine I use when the mandap is outdoors.",
       length: "2:15",
       thumb: gallery5,
+      platform: "other",
+      videoUrl: null,
+      storagePath: null,
     },
     {
       title: "Wedding Reception Makeup",
@@ -350,8 +433,19 @@ export const dhartiProfile: BeauticianProfile = {
       blurb: "Evening reception glam and hair styling done in 45 minutes.",
       length: "4:08",
       thumb: gallery6,
+      platform: "other",
+      videoUrl: null,
+      storagePath: null,
     },
   ],
+  availability: {
+    acceptingBookings: true,
+    minimumNoticeHours: 48,
+    advanceBookingDays: 180,
+    appointmentType: "both",
+    travelAvailable: true,
+    blockedDates: [],
+  },
   faqs: [
     {
       q: "How much does bridal makeup cost in Ahmedabad?",

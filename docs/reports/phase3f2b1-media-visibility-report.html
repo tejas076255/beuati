@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.2B.1 Media Visibility</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 26px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 17px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.none { background:#f3f4f6; color:#6b7280; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.2B.1</div>
+    <h1>Gallery + Before/After Media Visibility Controls</h1>
+    <p class="sub">Closes a pre-existing UX gap: Gallery and Before &amp; After items had no way to hide/publish from the dashboard, even though the public query already filtered on <code>is_published</code>. Zero database changes, zero redesign, no SEO logic touched.</p>
+    <div class="meta">
+      <div><strong>Module</strong>Media Visibility</div>
+      <div><strong>Database changes</strong>None</div>
+      <div><strong>Scope</strong>Gallery + Before &amp; After only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">Schema changes</div></div>
+    <div class="card"><div class="n">4</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">2</div><div class="l">New dashboard Switch controls</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Public query changes needed</div></div>
+  </div>
+
+  <h2>1. Existing Visibility Architecture Discovered</h2>
+  <p style="font-size:11.5px;"><code>portfolio_items.is_published</code> and <code>before_after_items.is_published</code> already existed (item/pair-level, not per-image), defaulted to <code>true</code>, and the public query in <code>portfolio-query.server.ts</code> was <b>already filtering on both</b> — identical to how <code>portfolio_videos</code> was already filtered. The entire gap was UI-only: nothing in the dashboard ever set these columns to <code>false</code>. No duplicate visibility column (<code>visible</code>/<code>active</code>/<code>is_visible</code>) was needed or created.</p>
+
+  <h2>2–3. Files Changed &amp; Database Changes</h2>
+  <table>
+    <tr><th>File</th><th>Status</th><th>Detail</th></tr>
+    <tr><td><code>gallery.server.ts</code></td><td><span class="pill done">Modified</span></td><td><code>createPortfolioItemWithImages</code> / <code>updatePortfolioItem</code> accept optional <code>isPublished</code></td></tr>
+    <tr><td><code>before-after.server.ts</code></td><td><span class="pill done">Modified</span></td><td><code>createBeforeAfterPair</code> / <code>updateBeforeAfterItem</code> accept optional <code>isPublished</code></td></tr>
+    <tr><td><code>dashboard.gallery.tsx</code></td><td><span class="pill done">Modified</span></td><td>New Switch control, Hidden badge, All/Published/Hidden filter</td></tr>
+    <tr><td><code>dashboard.before-after.tsx</code></td><td><span class="pill done">Modified</span></td><td>Same pattern, pair-level switch</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: none.</b> Reused <code>is_published</code> on both tables exactly as it already existed.</p>
+
+  <h2>4. Gallery Visibility Implementation</h2>
+  <p style="font-size:11.5px;">A real <code>Switch</code> component (not a checkbox/radio, per spec) labeled <b>"Show on my portfolio"</b>, with contextual copy — <i>"Visible to visitors on your public page"</i> when on, <i>"Hidden from your public page. Still saved and editable here"</i> when off. Defaults to on for new items; preloads the item's current value when editing.</p>
+
+  <h2>5. Before &amp; After Visibility Implementation</h2>
+  <p style="font-size:11.5px;">One switch per pair — <b>"Show this transformation on my portfolio"</b> — matching the schema's pair-level storage. Because there is only one flag for both images, the "before visible, after hidden" inconsistent state the spec warned against is structurally impossible.</p>
+
+  <h2>6. Public Rendering Behaviour</h2>
+  <p style="font-size:11.5px;">Unchanged code path — <code>getPublishedPortfolioBySlug()</code> was already excluding <code>is_published: false</code> rows before this task, so a hidden item simply stops being fetched server-side. It never reaches the mapper, the public page, or triggers an empty-section render (sections already only render when non-empty).</p>
+
+  <h2>7. Structured-Data Exclusion Behaviour</h2>
+  <p style="font-size:11.5px;">Automatic, no code change required: <code>buildImageObjects</code>/<code>buildVideoObjects</code> in <code>portfolio.$slug.tsx</code> only iterate <code>profile.gallery</code>/<code>profile.transformations</code>, which are built from the already-filtered bundle. A hidden item cannot appear in <code>ImageObject</code> JSON-LD because it never enters the mapped profile at all.</p>
+
+  <div class="page-break"></div>
+
+  <h2>8. RLS Verification</h2>
+  <p style="font-size:11.5px;"><code>updatePortfolioItem</code>/<code>updateBeforeAfterItem</code> write through the same <code>owns_beautician_profile()</code>-gated RLS policies already verified in Phase 3F.2B. No new write path was introduced — publish/hide is just another field on an already owner-scoped update, so cross-user visibility changes are rejected identically to any other field.</p>
+
+  <h2>9. Tests</h2>
+  <ul>
+    <li><code>tsc --noEmit</code> — clean</li>
+    <li>ESLint (all 4 changed files) — clean</li>
+    <li>Production build — succeeds</li>
+    <li>Smoke test: <code>/dashboard/gallery</code>, <code>/dashboard/before-after</code>, <code>/portfolio/dharti-panchal</code> — all 200 OK</li>
+  </ul>
+
+  <h2>10. Manual Tests For You To Perform</h2>
+  <div class="flag">
+    I don't hold your dashboard login or a service-role key, so I verified the code paths and the pre-existing filter logic but couldn't click through a live toggle myself. Please check:
+    <ol style="margin:6px 0;">
+      <li>Hide a Gallery image → refresh → it disappears from <code>/portfolio/dharti-panchal</code> but stays editable in the dashboard</li>
+      <li>Publish a hidden Gallery image → it reappears publicly</li>
+      <li>Hide a Before/After pair → disappears publicly; publish it → reappears</li>
+      <li>Confirm your saved photo description is still intact after toggling visibility</li>
+      <li>With an item hidden, view the public page source and confirm its <code>ImageObject</code> entry is gone from the JSON-LD</li>
+      <li>Refresh / log out and back in — hidden state persists</li>
+      <li>Upload, edit, and delete still work normally on both pages</li>
+    </ol>
+  </div>
+
+  <h2>11. Known Limitations</h2>
+  <ul>
+    <li>The All/Published/Hidden filter is a simple client-side filter over already-loaded items — no server-side pagination change</li>
+    <li>Videos' existing visibility control (a Checkbox) was intentionally left untouched, so it now looks slightly different from the new Switch-based Gallery/Before &amp; After controls — flagged, not fixed, since only the Gallery/Before &amp; After gap was in scope</li>
+  </ul>
+
+  <div class="verified">
+    No redesign, no Media SEO logic change, no storage architecture change, no public layout change. Stopped after this task — no further phase begun automatically.
+  </div>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.2B.1 Media Visibility Report</span>
+    <span>Generated 23 Aug 2026</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.4 Launch Readiness Audit</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.5px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verdict { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 16px 20px; margin: 14px 0; }
+  .verdict h3 { margin: 0 0 4px; color: #15803d; font-size: 15px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.ready { background:#dcfce7; color:#15803d; }
+  .pill.minor { background:#fef9c3; color:#854d0e; }
+  .pill.p2 { background:#fef3c7; color:#92400e; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.4 · Read-Only Audit</div>
+    <h1>End-to-End Conversion + CRM Launch Readiness Audit</h1>
+    <p class="sub">A full system-level audit of the public conversion chain and CRM built across Phases 3G.1–3G.3D — classified by severity, cross-verified against live data. Zero code changes, zero database writes, zero migrations applied.</p>
+    <div class="meta">
+      <div><strong>P0 blockers found</strong>0</div>
+      <div><strong>P1 must-fix found</strong>0</div>
+      <div><strong>Verdict</strong>READY TO CLOSE 3G</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h3>✓ VERDICT: PHASE 3G READY TO CLOSE</h3>
+    <p style="margin:0; font-size:12px;">No P0 or P1 issues found across public conversion, lead capture, CRM, attribution, or Insights. Only 3 P2 display/filter-consistency items and already-documented known limitations remain — none block launch.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">P0 launch blockers</div></div>
+    <div class="card"><div class="n">0</div><div class="l">P1 must-fix issues</div></div>
+    <div class="card"><div class="n">3</div><div class="l">P2 should-fix items</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Orphan/duplicate records</div></div>
+  </div>
+
+  <h2>P2 Findings (should fix soon — does not block launch)</h2>
+  <table>
+    <tr><th>ID</th><th>Finding</th></tr>
+    <tr><td><span class="pill p2">P2-1</span></td><td>CRM List/Cards/Pipeline toolbar Source/Service filters read only <code>leads.source</code> (first-ever) and the latest enquiry's services — not enquiry-aware across all enquiries, unlike the Insights drill-down (3G.3C). Concrete case: filtering by "Hair Styling" misses Jay Jogiya in the main List even though he has that enquiry, while Insights drill-down correctly finds him.</td></tr>
+    <tr><td><span class="pill p2">P2-2</span></td><td>"Services"/"Source" columns in List/Cards/Pipeline show latest/first-touch snapshot with no visual qualifier — could be misread as complete history now that 3G.3D established genuine multi-enquiry customers.</td></tr>
+    <tr><td><span class="pill p2">P2-3</span></td><td><code>leads.source</code> is literally "first-ever source," never updated on repeat enquiries, but the UI label just says "Source" with no "(original)" qualifier.</td></tr>
+  </table>
+  <p style="font-size:10.5px; color:#6b7280;">All three are display/filter-layer only — no data loss, no security risk, full history remains visible in the 3G.3D multi-enquiry workspace either way.</p>
+
+  <h2>Known Limitations (already accepted — not launch blockers)</h2>
+  <ul>
+    <li><code>leads.source</code>/<code>service_id</code>/<code>event_date</code> intentionally remain customer-level "current snapshot" fields (documented 3G.3A §19/§22, 3G.3D §21)</li>
+    <li><code>lead_activities</code> has no <code>inquiry_id</code> — activities remain customer-level only (documented 3G.3D)</li>
+    <li>No multi-touch attribution, revenue/LTV, Google Ads/Meta integration, or Customer Growth OS — explicitly out of scope</li>
+    <li>"Kavya" / phone "Shukla" (invalid, non-numeric) and "Navya Panchal" / "989898989" — pre-existing known test-like records, confirmed unmodified</li>
+  </ul>
+
+  <div class="page-break"></div>
+
+  <h2>Live Data Integrity (read-only, verified)</h2>
+  <table>
+    <tr><th>Table</th><th>Count</th></tr>
+    <tr><td>leads</td><td>9</td></tr>
+    <tr><td>lead_inquiries</td><td>15</td></tr>
+    <tr><td>lead_inquiry_services</td><td>15</td></tr>
+    <tr><td>lead_activities</td><td>27</td></tr>
+  </table>
+  <div class="verified">
+    Orphan inquiries: 0 · Orphan inquiry-services: 0 · Orphan activities: 0 · Duplicate customer groups (same profile + phone): 0 · Leads with zero inquiries: 0 · Invalid-phone leads: 1 (known "Kavya" record)
+  </div>
+
+  <h2>System Verification Highlights</h2>
+  <div class="verified">
+    <b>WhatsApp integrity:</b> exactly one unique wa.me number across the entire live portfolio page — no hardcoded/mismatched numbers.<br/>
+    <b>SEO:</b> canonical, robots (index,follow), title, and 1 JSON-LD block all confirmed intact on the live page — zero regression from any 3G.3/3G.3A–D work.<br/>
+    <b>GTM:</b> zero analytics script present with VITE_GTM_ID unset — confirmed live, no network dependency.<br/>
+    <b>Trust/claims:</b> no fabricated guarantee/scarcity/government-verification language found; success state explicitly says "not a confirmed booking."<br/>
+    <b>Data-loss risk:</b> searched every <code>.delete()</code> call in the data layer — the only one touching lead data (service-tag replace on edit) never cascades to inquiries/leads. No UI path exists anywhere that can delete a lead or inquiry row.<br/>
+    <b>RLS/Security:</b> every CRM table (leads, lead_inquiries, lead_inquiry_services, lead_activities) has an active owner-scoped policy chained through owns_beautician_profile(). The one cross-profile query found (admin leads view) is correctly gated by an explicit assertIsAdmin() role check.<br/>
+    <b>Deduplication/idempotency:</b> zero duplicate customer groups live; 5-minute idempotency window and enquiry-level attribution independence both re-confirmed against the 3G.3A live test evidence.
+  </div>
+
+  <h2>Route Smoke-Test Matrix</h2>
+  <table>
+    <tr><th>Route</th><th>Result</th></tr>
+    <tr><td>/</td><td><span class="pill pass">200</span></td></tr>
+    <tr><td>/portfolio/dharti-panchal</td><td><span class="pill pass">200</span></td></tr>
+    <tr><td>service page</td><td><span class="pill pass">200</span></td></tr>
+    <tr><td>/dashboard/profile, services, gallery, before-after, videos, packages, faqs, reviews, availability</td><td><span class="pill pass">200 (all)</span></td></tr>
+    <tr><td>/dashboard/service-areas</td><td>404 — naming mismatch only; real route <code>/dashboard/areas</code> confirmed <span class="pill pass">200</span></td></tr>
+    <tr><td>/dashboard/leads</td><td><span class="pill pass">200</span></td></tr>
+    <tr><td>/sitemap.xml, /robots.txt</td><td><span class="pill pass">200 (both)</span></td></tr>
+  </table>
+
+  <h2>Build / Type / Lint</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td>Clean</td></tr>
+    <tr><td><code>npm run build</code></td><td>Succeeded</td></tr>
+    <tr><td>ESLint functional errors</td><td>0</td></tr>
+    <tr><td>ESLint formatting debt</td><td>115 pre-existing prettier issues, all outside 3G scope (home-page marketing components), not a regression</td></tr>
+    <tr><td>Warnings</td><td>7 dev-only react-refresh warnings, 6 in vendor shadcn/ui files</td></tr>
+  </table>
+
+  <h2>Launch-Readiness Scorecard</h2>
+  <table>
+    <tr><th>Area</th><th>Status</th></tr>
+    <tr><td>Public portfolio reliability</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Service-page reliability</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Conversion CTA reliability</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Lead capture</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Customer deduplication</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>CRM integrity</td><td><span class="pill minor">READY WITH MINOR ISSUES</span> (P2-1/2/3)</td></tr>
+    <tr><td>Multi-enquiry model</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Follow-up workflow</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Attribution</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Insights</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Mobile</td><td><span class="pill minor">READY WITH MINOR ISSUES</span> (code-reviewed only, not device-tested)</td></tr>
+    <tr><td>Security/RLS</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>SEO regression</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Performance/build</td><td><span class="pill ready">READY</span></td></tr>
+  </table>
+
+  <h2>Minimum Fixes Required Before Closure</h2>
+  <div class="verified"><b>NONE.</b> No blocking correction plan is needed to close Phase 3G.</div>
+
+  <h2>Items Explicitly Deferred After Launch</h2>
+  <ul>
+    <li>P2-1/2/3 — CRM List/Cards/Pipeline filter enquiry-awareness and snapshot-labeling clarity (recommended first small follow-up phase, not urgent)</li>
+    <li>Live mobile/device browser testing (no browser automation available at any point in this engagement)</li>
+    <li><code>lead_activities.inquiry_id</code> — a genuine small schema change, correctly not applied without explicit approval</li>
+    <li>Customer Growth OS, billing, LTV, Google Ads/Meta integration, revenue analytics, automation — explicitly out of scope per this phase's own instructions</li>
+  </ul>
+
+  <p style="font-size:12px;"><b>No code was modified. No database data was modified. No migrations were applied</b>, per this phase's read-only constraint.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.4 End-to-End Conversion + CRM Launch Readiness Audit</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

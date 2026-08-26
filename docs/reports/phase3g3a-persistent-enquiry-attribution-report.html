@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.3A Enquiry Attribution</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.6px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .file-list { font-size: 11px; }
+  .file-list li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.3A</div>
+    <h1>Persistent Enquiry Attribution</h1>
+    <p class="sub">Attribution now belongs to the enquiry, not the customer — 10 new nullable columns on lead_inquiries, a centralized session helper, and full server-side sanitization. Verified live: a repeat customer's second enquiry gets its own, independent attribution snapshot.</p>
+    <div class="meta">
+      <div><strong>Schema change</strong>10 nullable columns, 0 backfill</div>
+      <div><strong>RPC updated</strong>submit_lead() +9 params</div>
+      <div><strong>Historical rows affected</strong>0 (all still NULL)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">10</div><div class="l">New lead_inquiries columns</div></div>
+    <div class="card"><div class="n">10</div><div class="l">Live attribution tests run</div></div>
+    <div class="card"><div class="n">0</div><div class="l">PII fields persisted</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Live source bug fixed</div></div>
+  </div>
+
+  <h2>1–4. Audit &amp; Architecture Decision</h2>
+  <p style="font-size:11.5px;">Live-inspected <code>lead_inquiries</code>/<code>leads</code>/<code>lead_inquiry_services</code>/<code>lead_activities</code> — zero attribution columns existed anywhere. <code>leads.source</code> was the only source-like field, customer-level only. <b>Found a live bug during the audit</b>: the "legacy" value <code>availability_request</code> — documented in <code>lead-config.ts</code> as pre-dating the canonical vocabulary — was still being actively written by the public form on every submission, instead of the canonical <code>portfolio</code> value. Fixed as part of this phase.</p>
+  <p style="font-size:11.5px;">Attribution was placed on <code>lead_inquiries</code>, not <code>leads</code> — a customer can submit many enquiries from different channels over time, and <code>leads</code>' top-level fields are documented customer-identity/latest-snapshot fields never overwritten on reuse (Phase 3G.1A/3G.2A). Verified live: same phone, two campaigns, two independently-attributed inquiry rows (Test F).</p>
+
+  <h2>5–7. Columns, Migration &amp; Backfill</h2>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Max length (server-enforced)</th></tr>
+    <tr><td><code>source</code></td><td>text, nullable</td><td>50</td></tr>
+    <tr><td><code>utm_source</code> / <code>utm_medium</code></td><td>text, nullable</td><td>120</td></tr>
+    <tr><td><code>utm_campaign</code> / <code>utm_content</code> / <code>utm_term</code></td><td>text, nullable</td><td>200</td></tr>
+    <tr><td><code>landing_path</code> / <code>conversion_path</code></td><td>text, nullable</td><td>500</td></tr>
+    <tr><td><code>referrer_host</code></td><td>text, nullable</td><td>253</td></tr>
+    <tr><td><code>cta_location</code></td><td>text, nullable</td><td>80</td></tr>
+  </table>
+  <div class="verified">Applied via the verified Lovable MCP connection (backend <code>ivbujlyilzmlublqzalu</code>). Post-migration check confirmed all <b>13 pre-existing</b> inquiry rows have every new column NULL — zero fabricated backfill, per the phase's explicit instruction.</div>
+
+  <h2>8–13. Session Helper &amp; Capture Behavior</h2>
+  <p style="font-size:11.5px;"><code>src/lib/attribution.ts</code> (new) — pure sessionStorage read/write, no UI logic. <code>initAttribution()</code> runs once per real page load (root mount, never on internal SPA navigation): a recognized UTM present → new campaign touch, overwrites utm_*/landing_path/referrer_host and clears any stale CTA; no UTM + nothing stored → captures landing/referrer only; no UTM + already stored → no-op, preserved. <code>landing_path</code>/<code>conversion_path</code> store pathname only, never query strings. <code>referrer_host</code> captures only an external hostname, never the full URL.</p>
+
+  <h2>14–19. CTA Origin, submit_lead(), Manual Add Lead, leads.source</h2>
+  <p style="font-size:11.5px;"><code>recordCtaClick(ctaLocation, profileSlug)</code> is called from the existing shared CTA trackers on both the portfolio and service-detail pages — one integration point. Scoped by profile slug so a CTA click on one professional's page can never attribute an enquiry submitted on a different professional's page later in the same session (a correctness case surfaced during the audit, not explicit in the spec). Falls back to <code>availability_section</code> when no CTA preceded submission — never invents one.</p>
+  <p style="font-size:11.5px;"><code>submit_lead()</code> gained 9 new optional parameters, all server-side sanitized (control characters stripped, length-capped, blanks nulled). Phone validation / customer dedup / 5-minute idempotency / cross-profile isolation are byte-for-byte unchanged. Manual Add Lead's <code>insertInquiry()</code> now writes <code>source</code> from the existing dropdown on all 3 call sites; UTM/landing/referrer/CTA stay NULL for manual entries, since none of that is genuinely known. <code>leads.source</code> is completely untouched.</p>
+
+  <div class="page-break"></div>
+
+  <h2>29. Live Attribution Test Matrix</h2>
+  <table>
+    <tr><th>Test</th><th>Scenario</th><th>Result</th></tr>
+    <tr><td>A</td><td>Organic/direct visit</td><td><span class="pill pass">PASS</span> utm_* NULL, source=portfolio, paths populated</td></tr>
+    <tr><td>B</td><td>Google CPC, landing→service conversion</td><td><span class="pill pass">PASS</span> utm_source=google, utm_medium=cpc, utm_campaign=bridal_test</td></tr>
+    <tr><td>D</td><td>service_detail_hero CTA</td><td><span class="pill pass">PASS</span> cta_location correctly recorded</td></tr>
+    <tr><td>E</td><td>mobile_sticky CTA</td><td><span class="pill pass">PASS</span> cta_location correctly recorded</td></tr>
+    <tr><td>F</td><td>Repeat customer, new campaign</td><td><span class="pill pass">PASS</span> same lead, 2 inquiries, 2 distinct attribution snapshots</td></tr>
+    <tr><td>G</td><td>Validation failure (invalid phone)</td><td><span class="pill pass">PASS</span> RPC exception, zero rows created</td></tr>
+    <tr><td>H</td><td>Idempotent duplicate submission</td><td><span class="pill pass">PASS</span> same lead ID, zero additional inquiry rows</td></tr>
+    <tr><td>J</td><td>No PII in attribution columns</td><td><span class="pill pass">PASS</span> only path/source/UTM metadata found</td></tr>
+  </table>
+  <p style="font-size:11px; color:#6b7280;">All test leads created during verification were deleted in a checked transaction afterward — row counts confirmed back to the exact 7 leads / 13 inquiries / 13 services / 25 activities baseline. Tests C (internal navigation) and I (manual Add Lead) were code-verified rather than SQL-testable — see Manual Browser Tests below.</p>
+
+  <h2>20–28. Privacy, Security, RLS, CRM Display, Click-IDs</h2>
+  <div class="verified">
+    No customer name/phone/email/message/venue/address is ever written to an attribution column — confirmed by inspecting every test row. All 9 new RPC parameters are sanitized server-side (control characters stripped, length-capped, blanks nulled) before storage — never trusted from the browser alone.<br/>
+    <b>RLS:</b> the single <code>lead_inquiries_owner_all</code> policy is row-level (via lead_id → beautician_profile_id), not column-level — the 10 new columns inherit it automatically. No policy change needed or made.<br/>
+    <b>CRM display:</b> added one compact, read-only "Attribution" block to the lead detail dialog — shown only when at least one field has a value, each line conditional. No dashboard, no charts.<br/>
+    <b>Click-IDs:</b> confirmed zero gclid/gbraid/wbraid/fbclid handling anywhere — audited only, not implemented, per instruction.
+  </div>
+
+  <h2>26. Files Changed</h2>
+  <ul class="file-list">
+    <li><code>supabase/migrations/20260825220000_lead_inquiries_attribution.sql</code> <span class="pill done">NEW</span></li>
+    <li><code>src/lib/attribution.ts</code> <span class="pill done">NEW</span> — session attribution helper</li>
+    <li><code>src/routes/__root.tsx</code> — initAttribution() wired into root mount</li>
+    <li><code>src/components/portfolio/portfolio-sections.tsx</code> — CTA tracker + form submission + source fix</li>
+    <li><code>src/routes/portfolio.$slug_.services.$serviceSlug.tsx</code> — CTA tracker wired to recordCtaClick</li>
+    <li><code>src/data/leads-query.server.ts</code> — insertInquiry() writes source on all 3 call sites</li>
+    <li><code>src/components/leads/lead-detail-dialog.tsx</code> — compact read-only Attribution section</li>
+    <li><code>src/integrations/supabase/types.ts</code> — lead_inquiries + submit_lead types updated</li>
+  </ul>
+
+  <h2>28. Regression &amp; Quality Gates</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td>Clean</td></tr>
+    <tr><td>ESLint</td><td>0 errors (1 pre-existing style warning, unrelated)</td></tr>
+    <tr><td><code>npm run build</code></td><td>Succeeded</td></tr>
+    <tr><td>Route smoke tests</td><td>All 200: /portfolio/dharti-panchal, service page, /dashboard/leads, /dashboard/services, /sitemap.xml, /robots.txt</td></tr>
+  </table>
+
+  <h2>30–32. Manual Tests, Limitations &amp; Next Phase</h2>
+  <div class="flag">
+    <b>Manual browser tests needed:</b> open a portfolio URL with real UTM params, navigate to a service page, click a tracked CTA, submit the form, then confirm the dashboard's Attribution block shows the right channel/campaign/landing/CTA. Also verify the manual Add Lead dialog end-to-end.<br/>
+    <b>Known limitations:</b> CTA attribution is only as fresh as the last recorded click per profile (truthful fallback otherwise); referrer host is the raw hostname, not reduced to eTLD+1; no gclid/fbclid capture (by design); sessionStorage naturally resets per browser session, which is the correct behavior for independent enquiry attribution, not a bug.<br/>
+    <b>Recommended next phase (not started):</b> a lightweight CRM channel-performance rollup using the now-populated attribution columns — explicitly not Google Ads/Meta Pixel setup or a Customer Growth OS.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's explicit STOP condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.3A Persistent Enquiry Attribution Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

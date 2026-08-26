@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3H.2A Code Sync</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.5px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verdict { background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; padding: 16px 20px; margin: 14px 0; }
+  .verdict h3 { margin: 0 0 4px; color: #b91c1c; font-size: 15px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fef2f2; border-left: 4px solid #dc2626; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .pill.fail { background:#fee2e2; color:#b91c1c; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3H.2A</div>
+    <h1>Local → GitHub → Lovable Code Sync</h1>
+    <p class="sub">The verified local codebase (Phases 3D–3H.1) was committed and pushed to the linked GitHub repository. Local↔GitHub sync is fully verified. Lovable's own cloud project has not yet picked up the push — a manual platform check is required before Phase 3H.2 can resume.</p>
+    <div class="meta">
+      <div><strong>Commit</strong>6d04104</div>
+      <div><strong>GitHub push</strong>Verified, HEAD parity confirmed</div>
+      <div><strong>Lovable sync</strong>NOT YET REFLECTED</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h3>⛔ CODE SYNC NOT VERIFIED — DO NOT PUBLISH / DO NOT RESUME 3H.2</h3>
+    <p style="margin:0; font-size:12px;">Local → GitHub is fully done and verified. GitHub → Lovable has not happened yet, even after waiting — Lovable's project state is unchanged (same commit sha, same 404 on src/lib/attribution.ts). This requires a manual check inside Lovable's own web UI; no MCP tool can trigger it from this session.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">189</div><div class="l">Files in checkpoint commit</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Secrets found in staged changes</div></div>
+    <div class="card"><div class="n">✓</div><div class="l">GitHub HEAD parity confirmed</div></div>
+    <div class="card"><div class="n">✗</div><div class="l">Lovable project still stale</div></div>
+  </div>
+
+  <h2>1–7. Pre-Commit Gates</h2>
+  <div class="verified">
+    <b>Git audit:</b> branch main, remote correctly rikeshjpanchal-svg/beautyfolio-launch-main, 10 modified + 1 deleted + ~73 untracked paths, no merge conflicts.<br/>
+    <b>Secret/env audit:</b> .env's only change is one added VITE_SITE_URL line — no key/token changed. No .dev.vars anywhere. Every "service_role" grep hit was a standard Postgres GRANT role reference in migration SQL, not a secret value. Safe to commit.<br/>
+    <b>Exclusions:</b> added one narrow .gitignore entry for supabase/.temp/ (CLI version cache, not project content) — no broad rewrite.<br/>
+    <b>Scope:</b> application code, 17 migration files (history only, none applied), documentation (docs/architecture, phase docs, docs/reports), generated types, one unrun tooling script, package-lock.json.<br/>
+    <b>Build gate:</b> tsc clean, 0 functional ESLint errors (115 pre-existing formatting issues outside scope, unchanged), production build succeeded.
+  </div>
+
+  <h2>8–11. Commit &amp; Push</h2>
+  <table>
+    <tr><th>Step</th><th>Result</th></tr>
+    <tr><td>Commit created</td><td><span class="pill pass">YES</span> — "BeautyFolio launch-ready application through Phase 3H.1"</td></tr>
+    <tr><td>Commit hash</td><td><code>6d041046e04953875296cb14db544adb1e8f596d</code></td></tr>
+    <tr><td>Commit contents</td><td>189 files, 45,551 insertions, 1,501 deletions — all 7 mandatory representative files confirmed present</td></tr>
+    <tr><td>GitHub push</td><td><span class="pill pass">SUCCEEDED</span> — normal push, 187f49a..6d04104, no force, no divergence</td></tr>
+    <tr><td>Local/remote HEAD parity</td><td><span class="pill pass">EXACT MATCH</span> — both resolve to 6d04104...</td></tr>
+  </table>
+
+  <h2>12–15. Lovable Sync — Not Yet Reflected</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>latest_commit_sha (Lovable project)</td><td><span class="pill fail">Still d86105bb... (2026-08-23)</span></td></tr>
+    <tr><td>read_file(src/lib/attribution.ts)</td><td><span class="pill fail">Still 404 file_not_found</span> — checked twice, before and after a 60-second wait, plus once more on a later follow-up check</td></tr>
+    <tr><td>Lovable preview screenshot</td><td>Unchanged metadata — same stale screenshot as Phase 3H.2</td></tr>
+  </table>
+
+  <div class="page-break"></div>
+
+  <h2>16–20. Unaffected Systems &amp; No Production Actions</h2>
+  <div class="verified">
+    Backend re-verified unaffected: still ivbujlyilzmlublqzalu, 9 leads, dharti-panchal profile present. <b>Zero database or migration actions performed</b> — read-only verification only. <b>No production publish performed.</b> No DNS changed. No GTM configured.
+  </div>
+
+  <h2>The Exact Remaining Problem</h2>
+  <div class="flag">
+    Pushing to GitHub did not update Lovable's own project state, even after waiting. Lovable's GitHub connection for this project is either not configured for automatic pull-on-push sync, or isn't actively enabled in that direction — and no MCP tool exists to trigger or force it from this session.
+    <br/><br/>
+    <b>Manual action required:</b> open the project in Lovable's web UI (lovable.dev/projects/57a20777-d6f4-466c-9e84-03d4b6818b81) and check the GitHub integration/settings panel to either confirm the repo connection and manually trigger a sync/pull from main, reconnect/enable GitHub sync if inactive, or use whatever mechanism Lovable's own UI offers for pulling in this commit.
+  </div>
+
+  <h2>Final Verdict</h2>
+  <p style="font-size:13px; font-weight:600; color:#b91c1c;">B — CODE SYNC NOT VERIFIED. Phase 3H.2 (production Publish) must not resume until Lovable's project reflects commit 6d04104 — verifiable by re-checking that src/lib/attribution.ts no longer 404s from Lovable's own project state.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3H.2A Local → GitHub → Lovable Code Sync Report</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.3 Conversion Analytics</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.8px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .file-list { font-size: 11px; }
+  .file-list li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.3</div>
+    <h1>Conversion Analytics + Lead Attribution Foundation</h1>
+    <p class="sub">A minimal, vendor-neutral event layer — zero hardcoded provider IDs, zero PII, zero database changes — instrumenting portfolio/service views, availability CTAs, WhatsApp clicks, and the full availability-form funnel across the public portfolio and service detail pages.</p>
+    <div class="meta">
+      <div><strong>Schema/code changes</strong>0 DB, 5 files</div>
+      <div><strong>Analytics SDK installed</strong>None — dataLayer only</div>
+      <div><strong>Provider configured today</strong>No (VITE_GTM_ID unset)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">7</div><div class="l">Events in taxonomy</div></div>
+    <div class="card"><div class="n">10</div><div class="l">CTA-location values</div></div>
+    <div class="card"><div class="n">0</div><div class="l">PII fields in any event</div></div>
+    <div class="card"><div class="n">0</div><div class="l">DB / schema changes</div></div>
+  </div>
+
+  <h2>1–5. Audit &amp; Architecture</h2>
+  <p style="font-size:11.5px;">Grepped the entire repo for gtag/dataLayer/GTM/GA4/Meta Pixel before writing anything — <b>none existed</b>, confirming a genuinely new foundation. Chose <code>window.dataLayer</code> — the standard interface both GTM and GA4/gtag.js already consume, and that Meta's CAPI tooling can be pointed at later via a GTM trigger. No SDK installed, no script loaded unless a real <code>VITE_GTM_ID</code> is configured — currently unset, so the app ships with zero analytics network calls today.</p>
+
+  <h2>6–7. Event Taxonomy</h2>
+  <table>
+    <tr><th>Event</th><th>Fires when</th></tr>
+    <tr><td><code>portfolio_view</code></td><td>Portfolio page loads (deduped per profile slug)</td></tr>
+    <tr><td><code>service_view</code></td><td>Service detail page loads (deduped per service path)</td></tr>
+    <tr><td><code>availability_cta_click</code></td><td>Any "Check availability" CTA is clicked</td></tr>
+    <tr><td><code>availability_form_start</code></td><td>First field interaction in the availability form (once per form instance)</td></tr>
+    <tr><td><code>availability_form_submit</code></td><td>Form submitted (right after preventDefault)</td></tr>
+    <tr><td><code>availability_form_success</code></td><td>Only after the submit_lead RPC actually succeeds</td></tr>
+    <tr><td><code>whatsapp_click</code></td><td>Any WhatsApp link is clicked</td></tr>
+  </table>
+  <p style="font-size:11px; color:#6b7280;"><code>service_cta_click</code>/<code>package_cta_click</code> were deliberately excluded — audited as redundant with <code>service_view</code> + <code>whatsapp_click</code>/<code>availability_cta_click</code> already carrying <code>cta_location</code>.</p>
+
+  <h2>8–17. Configuration, Privacy &amp; Dedup Discipline</h2>
+  <div class="verified">
+    <b>Env convention:</b> <code>VITE_GTM_ID</code>, following the exact pattern of <code>src/lib/site-url.ts</code> — trimmed, empty-string fallback, never hardcoded.<br/>
+    <b>No-PII rule:</b> <code>availability_form_success</code> carries only profile_slug, page_path, service_id, service_name, event_date_present (boolean), lead_source — never name/phone/message/location text. No call site anywhere passes free-text customer input to trackEvent.<br/>
+    <b>Dedup:</b> <code>useTrackedPageView</code> fires at most once per key via a useRef guard — survives SSR, hydration, and React Strict Mode's dev double-invoke, while still firing again on genuine navigation to a different profile/service. Form-start uses a single onChangeCapture handler on the &lt;form&gt; element, not one per field.<br/>
+    <b>WhatsApp honesty:</b> event is named <code>whatsapp_click</code>, never <code>whatsapp_message_sent</code> — no delivery claim.<br/>
+    <b>CTA-location vocabulary:</b> one shared typed set (hero, hero_card, service_card, package_card, availability_section, final_cta, mobile_sticky, floating_whatsapp, service_detail_header, service_detail_hero) — never free text.
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>18–20. Lead-Source, UTM &amp; Referrer Audit</h2>
+  <p style="font-size:11.5px;"><b>Lead-source architecture:</b> <code>leads.source</code> (channel-level) plus the <code>beautician_profile_id</code> FK already answers "which professional." There is <b>no</b> persisted per-inquiry CTA-location or service-page attribution in the CRM — the new analytics events answer that, but only in the analytics layer, deliberately not the CRM (zero-schema-change scope for this phase).</p>
+  <p style="font-size:11.5px;"><b>UTM audit:</b> confirmed zero UTM capture anywhere in the repo (grep for utm_source/utm_campaign/URLSearchParams — no matches). No migration applied. Persistent CRM-level UTM attribution would need a new column — flagged as future work per the phase's own STOP-and-report instruction, not implemented now.</p>
+  <p style="font-size:11.5px;"><b>Referrer audit:</b> confirmed zero <code>document.referrer</code> capture. Feasible as a non-invasive analytics-only property later; out of this phase's minimum-foundation scope.</p>
+
+  <h2>21–23. Future-Readiness &amp; Debug Safety</h2>
+  <p style="font-size:11.5px;">No Google Ads/Meta conversion or pixel IDs invented anywhere — everything routes through <code>dataLayer</code> so a real GTM container can wire these up later with zero app code changes. No internal lead UUID is ever passed to trackEvent. Debug output is <code>console.debug</code>, gated on <code>import.meta.env.DEV</code> only — never production, never a dashboard.</p>
+
+  <h2>26. Files Changed</h2>
+  <ul class="file-list">
+    <li><code>src/lib/analytics.ts</code> <span class="pill done">NEW</span> — core event layer, taxonomy, CTA-location vocabulary, useTrackedPageView hook</li>
+    <li><code>src/routes/__root.tsx</code> — conditional GTM loader script + noscript fallback, only when VITE_GTM_ID is set</li>
+    <li><code>src/routes/portfolio.$slug.tsx</code> <span class="pill done">NEW</span> — portfolio_view tracking</li>
+    <li><code>src/components/portfolio/portfolio-sections.tsx</code> — full CTA instrumentation: hero, service rows, packages, availability form funnel, final CTA, mobile sticky, floating WhatsApp</li>
+    <li><code>src/routes/portfolio.$slug_.services.$serviceSlug.tsx</code> <span class="pill done">NEW</span> — service_view tracking + independent header/hero/final/mobile-sticky CTA instrumentation</li>
+  </ul>
+
+  <h2>27–30. Regression &amp; Quality Gates</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>Performance (blocking scripts)</td><td>None — GTM loader async, zero network cost while unconfigured</td></tr>
+    <tr><td>SEO regression</td><td>Zero — no head/JSON-LD metadata touched</td></tr>
+    <tr><td>CRM regression</td><td>Zero — no CRM write paths touched</td></tr>
+    <tr><td><code>tsc --noEmit</code></td><td>Clean</td></tr>
+    <tr><td>ESLint</td><td>0 errors (1 pre-existing style warning, not introduced here)</td></tr>
+    <tr><td><code>npm run build</code></td><td>Succeeded</td></tr>
+    <tr><td>Route smoke tests</td><td>All 200: /portfolio/dharti-panchal, /dashboard/leads, /dashboard/services, /portfolio/dharti-panchal/services/sider-makeup, /sitemap.xml, /robots.txt</td></tr>
+  </table>
+
+  <h2>31. Event Verification Matrix</h2>
+  <table>
+    <tr><th>Trigger</th><th>Event</th><th>Key properties</th><th>PII</th><th>Duplicate protection</th></tr>
+    <tr><td>Portfolio page load</td><td><code>portfolio_view</code></td><td>profile_slug, page_path</td><td>No</td><td>ref-guard by slug key</td></tr>
+    <tr><td>Service page load</td><td><code>service_view</code></td><td>profile_slug, service_id, service_name, page_path</td><td>No</td><td>ref-guard by service path key</td></tr>
+    <tr><td>"Check availability" click</td><td><code>availability_cta_click</code></td><td>cta_location, service_name?, page_path</td><td>No</td><td>click-driven, none needed</td></tr>
+    <tr><td>First form field interaction</td><td><code>availability_form_start</code></td><td>page_path</td><td>No</td><td>single onChangeCapture handler</td></tr>
+    <tr><td>Form submit</td><td><code>availability_form_submit</code></td><td>page_path</td><td>No</td><td>fires once per real submit</td></tr>
+    <tr><td>RPC success</td><td><code>availability_form_success</code></td><td>service_id, event_date_present, lead_source</td><td>No</td><td>only reached after server confirms</td></tr>
+    <tr><td>WhatsApp link click</td><td><code>whatsapp_click</code></td><td>cta_location, service_name?, page_path</td><td>No</td><td>click-driven, none needed</td></tr>
+  </table>
+
+  <h2>32. Manual Browser Test Steps (Not Executed)</h2>
+  <div class="flag">
+    No browser automation is available in this environment (consistent with this entire session). Steps A–J were documented but not run: (A) load portfolio, confirm one portfolio_view debug line; (B) navigate away/back, confirm it fires again; (C) click a CTA, confirm availability_cta_click with correct cta_location; (D–E) type into the form, confirm exactly one form_start; (F) submit, confirm submit then success events with no PII; (G) click WhatsApp, confirm whatsapp_click; (H–I) visit a service page, confirm service_view and its own CTA locations; (J) set/unset VITE_GTM_ID, confirm the GTM script and noscript iframe appear/disappear accordingly.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's explicit STOP condition — no further phase started automatically.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.3 Conversion Analytics + Lead Attribution Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

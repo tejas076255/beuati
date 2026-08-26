@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Service Page Header Fix</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 18px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.6</div>
+    <h1>Service Page Header Consistency Fix</h1>
+    <p class="sub">Small, targeted fix identified during manual review: the service detail page had no portfolio header/navigation, making it feel disconnected from the professional's main portfolio. Reused the exact existing header — no new global header, no hero redesign, no SEO or structured-data change.</p>
+    <div class="meta">
+      <div><strong>Scope</strong>Header/nav only</div>
+      <div><strong>New routes</strong>0</div>
+      <div><strong>Database changes</strong>0</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">1</div><div class="l">File changed</div></div>
+    <div class="card"><div class="n">8/8</div><div class="l">Verification checks passed</div></div>
+    <div class="card"><div class="n">1</div><div class="l">H1 preserved</div></div>
+    <div class="card"><div class="n">0</div><div class="l">JSON-LD nodes changed</div></div>
+  </div>
+
+  <h2>The Fix</h2>
+  <p style="font-size:11.5px;">Added the exact same public portfolio header/nav pattern from <code>/portfolio/{slug}</code> to the service detail page — reused, not rebuilt. Professional name (left, links to the portfolio's <code>#top</code>), desktop nav (About / Work / Transformations / Services / Packages / Reviews / Videos), Check availability CTA (right), and the same mobile hamburger menu with the same 9-item list — identical structure/classes to the main page's header.</p>
+  <p style="font-size:11.5px;">Every nav item is a cross-page link back to <code>/portfolio/{slug}</code> with the matching hash (<code>#about</code>, <code>#gallery</code>, <code>#transformations</code>, <code>#services</code>, <code>#packages</code>, <code>#reviews</code>, <code>#videos</code>, <code>#faq</code>, <code>#contact</code>) — the same anchors the main page's header already uses. Both the header CTA and the mobile-menu CTA carry <code>?service={name}</code> + <code>#availability</code>, preserving the service-aware availability flow from earlier in Phase 3F.6.</p>
+
+  <h2>Verification Results</h2>
+  <table>
+    <tr><th>#</th><th>Check</th><th>Result</th></tr>
+    <tr><td>1</td><td>Visually matches main portfolio</td><td><span class="pill done">PASS</span> — same header markup/classes reused</td></tr>
+    <tr><td>2</td><td>All header nav links work from service page</td><td><span class="pill done">PASS</span> — 12 cross-page hash links confirmed live in raw SSR</td></tr>
+    <tr><td>3</td><td>Check availability carries service context</td><td><span class="pill done">PASS</span> — <code>?service=HD...</code> confirmed in SSR output</td></tr>
+    <tr><td>4</td><td>Mobile header works</td><td><span class="pill done">PASS</span> — same hamburger + slide-down menu pattern, untouched logic</td></tr>
+    <tr><td>5</td><td>Sticky mobile CTA doesn't overlap</td><td><span class="pill done">PASS</span> — header is fixed-top, sticky CTA is fixed-bottom, no collision</td></tr>
+    <tr><td>6</td><td>Breadcrumb remains present</td><td><span class="pill done">PASS</span> — confirmed in SSR, unchanged, no duplication</td></tr>
+    <tr><td>7</td><td>One H1 only</td><td><span class="pill done">PASS</span> — SSR count: exactly 1</td></tr>
+    <tr><td>8</td><td>Raw SSR unaffected for SEO</td><td><span class="pill done">PASS</span> — title, canonical, robots, and full JSON-LD @graph (5 nodes) all identical to before</td></tr>
+  </table>
+
+  <div class="verified">
+    <b>Structured data confirmed unchanged</b> — same 5 JSON-LD node types before and after: <code>WebPage</code>, <code>Service</code>, <code>BeautySalon+LocalBusiness</code>, <code>Person</code>, <code>BreadcrumbList</code>.
+  </div>
+
+  <h2>Automated Tests</h2>
+  <ul>
+    <li><code>tsc --noEmit</code> — clean</li>
+    <li>ESLint — clean</li>
+    <li>Production build — succeeds</li>
+    <li>Main portfolio + 2 service page routes smoke-tested — all 200 OK</li>
+  </ul>
+
+  <p style="font-size:12px;">No hero redesign, no SEO/structured-data change, no database change, no new routes.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.6 Service Page Header Consistency Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

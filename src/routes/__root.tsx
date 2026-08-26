@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { getGtmId, isAnalyticsConfigured } from "../lib/analytics";
+import { initAttribution } from "../lib/attribution";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -101,6 +104,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
+    // Phase 3G.3 §4/§5/§27 — only injected when a real container ID is
+    // configured (VITE_GTM_ID); never hardcoded. Standard async GTM loader
+    // snippet — doesn't block rendering. Local dev / any deployment without
+    // this env var renders with zero analytics scripts at all.
+    scripts: isAnalyticsConfigured()
+      ? [
+          {
+            children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${getGtmId()}');`,
+          },
+        ]
+      : [],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -109,13 +123,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const gtmId = getGtmId();
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
+        {/* Phase 3G.3 §4/§5 — GTM's standard <noscript> fallback, only
+            rendered alongside the loader script above when a real
+            container is configured. */}
+        {gtmId && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+              title="gtm"
+            />
+          </noscript>
+        )}
         {children}
+        <Toaster />
         <Scripts />
       </body>
     </html>
@@ -124,6 +154,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Phase 3G.3A §9/§10 — runs once per real page load (root mounts once
+  // per browser navigation, never on internal TanStack Router Link
+  // navigation), which is exactly what "capture on landing, preserve
+  // through internal browsing" requires without any route-change tracking.
+  useEffect(() => {
+    initAttribution();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

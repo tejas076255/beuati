@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { absoluteUrl } from "@/lib/site-url";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Hero } from "@/components/home/hero";
@@ -30,12 +31,12 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
+      { property: "og:url", content: absoluteUrl("/") },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: absoluteUrl("/") }],
     scripts: [
       {
         type: "application/ld+json",
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "BeautyFolio",
-          url: "/",
+          url: absoluteUrl("/"),
           description,
           areaServed: "IN",
           sameAs: [],
@@ -66,9 +67,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "/" },
-          ],
+          itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "/" }],
         }),
       },
     ],

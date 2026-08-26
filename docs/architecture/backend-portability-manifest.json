@@ -1,0 +1,102 @@
+{
+  "generated": "2026-08-24",
+  "phase": "3F.4A.1",
+  "backend": {
+    "provider": "Lovable Cloud (managed Supabase)",
+    "project_ref": "ivbujlyilzmlublqzalu",
+    "project_ref_verified_via": ["local .env", "supabase MCP get_project_url", "live DB stored absolute storage URL"],
+    "access_path": "Lovable MCP query_database, project_id 57a20777-d6f4-466c-9e84-03d4b6818b81"
+  },
+  "tables": [
+    "audit_logs", "availability_blocked_dates", "availability_settings",
+    "beautician_profiles", "beautician_specializations", "before_after_images",
+    "before_after_items", "faqs", "lead_activities", "lead_inquiries",
+    "lead_inquiry_services", "leads", "package_services", "packages",
+    "portfolio_events", "portfolio_images", "portfolio_items", "portfolio_seo",
+    "portfolio_videos", "profiles", "reviews", "service_areas",
+    "service_categories", "services", "specializations", "user_roles"
+  ],
+  "enums": [
+    "admin_audit_action", "admin_audit_entity_type", "app_role",
+    "before_after_image_type", "lead_activity_channel", "lead_activity_direction",
+    "lead_activity_type", "lead_status", "portfolio_status", "price_type",
+    "video_platform"
+  ],
+  "rpcs": [
+    { "name": "has_role", "security": "definer", "used_by_app_code": false, "used_by_rls": true },
+    { "name": "owns_beautician_profile", "security": "definer", "used_by_app_code": false, "used_by_rls": true },
+    { "name": "owns_beautician_profile_by_slug", "security": "definer", "used_by_app_code": false, "used_by_storage_rls": true },
+    { "name": "is_published_profile", "security": "definer", "used_by_app_code": false, "used_by_rls": true },
+    { "name": "guard_beautician_profile_flags", "security": "definer", "kind": "trigger" },
+    { "name": "guard_review_verification", "security": "definer", "kind": "trigger" },
+    { "name": "set_updated_at", "security": "invoker", "kind": "trigger" },
+    { "name": "handle_new_user", "security": "definer", "kind": "trigger", "trigger_table": "auth.users" },
+    { "name": "log_admin_action", "security": "definer", "used_by_app_code": true },
+    { "name": "submit_lead", "security": "definer", "used_by_app_code": true, "callable_by": "anon" },
+    { "name": "record_portfolio_event", "security": "definer", "used_by_app_code": false, "status": "dormant" }
+  ],
+  "storage_buckets": [
+    {
+      "name": "portfolio-media",
+      "public": true,
+      "mime_restriction": null,
+      "size_limit": null,
+      "path_convention": "profiles/{beauticianSlug}/{gallery|before-after|videos|profile}/{timestamp}-{filename}",
+      "policies": [
+        "portfolio_media_public_read",
+        "portfolio_media_owner_insert",
+        "portfolio_media_owner_update",
+        "portfolio_media_owner_delete"
+      ]
+    }
+  ],
+  "critical_triggers": [
+    { "table": "auth.users", "trigger": "on_auth_user_created", "function": "handle_new_user" },
+    { "table": "beautician_profiles", "trigger": "trg_beautician_profiles_flags", "function": "guard_beautician_profile_flags" },
+    { "table": "reviews", "trigger": "trg_reviews_verification", "function": "guard_review_verification" }
+  ],
+  "critical_indexes": [
+    { "table": "services", "name": "services_beautician_profile_id_slug_key", "note": "original UNIQUE(beautician_profile_id, slug), base migration" },
+    { "table": "services", "name": "idx_services_bp_slug", "status": "REMOVED", "note": "Phase 3F.4 addition, confirmed functionally redundant with services_beautician_profile_id_slug_key, dropped in Phase 3F.4A.1 (migration 20260824090000_drop_redundant_service_slug_index.sql)" },
+    { "table": "packages", "name": "packages_beautician_profile_id_slug_key", "note": "original UNIQUE(beautician_profile_id, slug), base migration" },
+    { "table": "beautician_profiles", "name": "beautician_profiles_slug_key", "note": "global unique portfolio slug" }
+  ],
+  "environment_variables": [
+    { "name": "VITE_SUPABASE_URL", "scope": "frontend_public", "changes_on_migration": true },
+    { "name": "VITE_SUPABASE_PUBLISHABLE_KEY", "scope": "frontend_public", "changes_on_migration": true },
+    { "name": "VITE_SUPABASE_PROJECT_ID", "scope": "frontend_public", "changes_on_migration": true },
+    { "name": "SUPABASE_URL", "scope": "server_only", "changes_on_migration": true },
+    { "name": "SUPABASE_PUBLISHABLE_KEY", "scope": "server_only", "changes_on_migration": true },
+    { "name": "SUPABASE_PROJECT_ID", "scope": "server_only", "changes_on_migration": true },
+    { "name": "SUPABASE_SERVICE_ROLE_KEY", "scope": "server_only_secret", "in_repo_env": false, "injected_by": "Lovable Cloud runtime", "currently_used": false, "changes_on_migration": true },
+    { "name": "VITE_SITE_URL", "scope": "frontend_and_server", "changes_on_migration": false }
+  ],
+  "storage_url_portability": [
+    { "column": "portfolio_images.storage_path", "classification": "PORTABLE" },
+    { "column": "before_after_images.storage_path", "classification": "PORTABLE" },
+    { "column": "portfolio_videos.storage_path", "classification": "PORTABLE" },
+    { "column": "portfolio_videos.video_url", "classification": "PORTABLE", "note": "external platform URL for youtube/instagram, not backend-specific" },
+    { "column": "beautician_profiles.profile_image_url", "classification": "REQUIRES_URL_REWRITE", "rewrite_tooling": "supabase/tooling/rewrite-storage-origin.sql (not executed)" },
+    { "column": "beautician_profiles.cover_image_url", "classification": "REQUIRES_URL_REWRITE", "rewrite_tooling": "supabase/tooling/rewrite-storage-origin.sql (not executed)" },
+    { "column": "portfolio_videos.thumbnail_url", "classification": "REQUIRES_URL_REWRITE", "rewrite_tooling": "supabase/tooling/rewrite-storage-origin.sql (not executed)" }
+  ],
+  "lovable_specific_dependencies": [
+    { "name": "@lovable.dev/vite-tanstack-config", "location": "vite.config.ts (npm dependency)", "classification": "D_backend_infrastructure_dependency", "note": "build-only; replaceable with standard Vite/TanStack config" },
+    { "name": "window.__lovableEvents / __lovableReportRuntimeError", "location": "src/lib/lovable-error-reporting.ts", "classification": "A_development_only" },
+    { "name": "SUPABASE_SERVICE_ROLE_KEY injection", "location": "Lovable Cloud runtime env", "classification": "D_backend_infrastructure_dependency", "note": "currently unused by any working feature" }
+  ],
+  "risk_matrix": {
+    "database_schema": "GREEN",
+    "migration_history": "AMBER",
+    "rls": "GREEN",
+    "functions_rpc": "GREEN",
+    "triggers": "GREEN",
+    "auth": "AMBER",
+    "storage": "AMBER",
+    "environment_variables": "GREEN",
+    "lovable_specific_dependencies": "AMBER",
+    "application_code": "GREEN",
+    "seo_infrastructure": "GREEN",
+    "crm_data": "GREEN"
+  }
+}

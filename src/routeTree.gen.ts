@@ -10,43 +10,342 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PortfolioDhartiPanchalRouteImport } from './routes/portfolio.dharti-panchal'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
+import { Route as AdminProfilesRouteImport } from './routes/admin.profiles'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
+import { Route as AdminServicesRouteImport } from './routes/admin.services'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as DashboardAreasRouteImport } from './routes/dashboard.areas'
+import { Route as DashboardAvailabilityRouteImport } from './routes/dashboard.availability'
+import { Route as DashboardBeforeAfterRouteImport } from './routes/dashboard.before-after'
+import { Route as DashboardFaqsRouteImport } from './routes/dashboard.faqs'
+import { Route as DashboardGalleryRouteImport } from './routes/dashboard.gallery'
+import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
+import { Route as DashboardPackagesRouteImport } from './routes/dashboard.packages'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardReviewsRouteImport } from './routes/dashboard.reviews'
+import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
+import { Route as DashboardServicesRouteImport } from './routes/dashboard.services'
+import { Route as DashboardVideosRouteImport } from './routes/dashboard.videos'
+import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
+import { Route as PortfolioSlugServicesServiceSlugRouteImport } from './routes/portfolio.$slug_.services.$serviceSlug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PortfolioDhartiPanchalRoute = PortfolioDhartiPanchalRouteImport.update({
-  id: '/portfolio/dharti-panchal',
-  path: '/portfolio/dharti-panchal',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLeadsRoute = AdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfilesRoute = AdminProfilesRouteImport.update({
+  id: '/profiles',
+  path: '/profiles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminServicesRoute = AdminServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const DashboardAreasRoute = DashboardAreasRouteImport.update({
+  id: '/areas',
+  path: '/areas',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAvailabilityRoute = DashboardAvailabilityRouteImport.update({
+  id: '/availability',
+  path: '/availability',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBeforeAfterRoute = DashboardBeforeAfterRouteImport.update({
+  id: '/before-after',
+  path: '/before-after',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFaqsRoute = DashboardFaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardGalleryRoute = DashboardGalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPackagesRoute = DashboardPackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardReviewsRoute = DashboardReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSeoRoute = DashboardSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardServicesRoute = DashboardServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardVideosRoute = DashboardVideosRouteImport.update({
+  id: '/videos',
+  path: '/videos',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
+  id: '/portfolio/$slug',
+  path: '/portfolio/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioSlugServicesServiceSlugRoute =
+  PortfolioSlugServicesServiceSlugRouteImport.update({
+    id: '/portfolio/$slug_/services/$serviceSlug',
+    path: '/portfolio/$slug/services/$serviceSlug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/portfolio/dharti-panchal': typeof PortfolioDhartiPanchalRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/leads': typeof AdminLeadsRoute
+  '/admin/profiles': typeof AdminProfilesRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/dashboard/areas': typeof DashboardAreasRoute
+  '/dashboard/availability': typeof DashboardAvailabilityRoute
+  '/dashboard/before-after': typeof DashboardBeforeAfterRoute
+  '/dashboard/faqs': typeof DashboardFaqsRoute
+  '/dashboard/gallery': typeof DashboardGalleryRoute
+  '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/packages': typeof DashboardPackagesRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/reviews': typeof DashboardReviewsRoute
+  '/dashboard/seo': typeof DashboardSeoRoute
+  '/dashboard/services': typeof DashboardServicesRoute
+  '/dashboard/videos': typeof DashboardVideosRoute
+  '/portfolio/$slug': typeof PortfolioSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/portfolio/dharti-panchal': typeof PortfolioDhartiPanchalRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/leads': typeof AdminLeadsRoute
+  '/admin/profiles': typeof AdminProfilesRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/dashboard/areas': typeof DashboardAreasRoute
+  '/dashboard/availability': typeof DashboardAvailabilityRoute
+  '/dashboard/before-after': typeof DashboardBeforeAfterRoute
+  '/dashboard/faqs': typeof DashboardFaqsRoute
+  '/dashboard/gallery': typeof DashboardGalleryRoute
+  '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/packages': typeof DashboardPackagesRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/reviews': typeof DashboardReviewsRoute
+  '/dashboard/seo': typeof DashboardSeoRoute
+  '/dashboard/services': typeof DashboardServicesRoute
+  '/dashboard/videos': typeof DashboardVideosRoute
+  '/portfolio/$slug': typeof PortfolioSlugRoute
+  '/admin': typeof AdminIndexRoute
+  '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/portfolio/dharti-panchal': typeof PortfolioDhartiPanchalRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/leads': typeof AdminLeadsRoute
+  '/admin/profiles': typeof AdminProfilesRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/dashboard/areas': typeof DashboardAreasRoute
+  '/dashboard/availability': typeof DashboardAvailabilityRoute
+  '/dashboard/before-after': typeof DashboardBeforeAfterRoute
+  '/dashboard/faqs': typeof DashboardFaqsRoute
+  '/dashboard/gallery': typeof DashboardGalleryRoute
+  '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/packages': typeof DashboardPackagesRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/reviews': typeof DashboardReviewsRoute
+  '/dashboard/seo': typeof DashboardSeoRoute
+  '/dashboard/services': typeof DashboardServicesRoute
+  '/dashboard/videos': typeof DashboardVideosRoute
+  '/portfolio/$slug': typeof PortfolioSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/portfolio/$slug_/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/portfolio/dharti-panchal'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/signup'
+    | '/admin/audit-logs'
+    | '/admin/leads'
+    | '/admin/profiles'
+    | '/admin/reviews'
+    | '/admin/services'
+    | '/admin/users'
+    | '/dashboard/areas'
+    | '/dashboard/availability'
+    | '/dashboard/before-after'
+    | '/dashboard/faqs'
+    | '/dashboard/gallery'
+    | '/dashboard/leads'
+    | '/dashboard/packages'
+    | '/dashboard/profile'
+    | '/dashboard/reviews'
+    | '/dashboard/seo'
+    | '/dashboard/services'
+    | '/dashboard/videos'
+    | '/portfolio/$slug'
+    | '/admin/'
+    | '/portfolio/$slug/services/$serviceSlug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/portfolio/dharti-panchal'
-  id: '__root__' | '/' | '/portfolio/dharti-panchal'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/signup'
+    | '/admin/audit-logs'
+    | '/admin/leads'
+    | '/admin/profiles'
+    | '/admin/reviews'
+    | '/admin/services'
+    | '/admin/users'
+    | '/dashboard/areas'
+    | '/dashboard/availability'
+    | '/dashboard/before-after'
+    | '/dashboard/faqs'
+    | '/dashboard/gallery'
+    | '/dashboard/leads'
+    | '/dashboard/packages'
+    | '/dashboard/profile'
+    | '/dashboard/reviews'
+    | '/dashboard/seo'
+    | '/dashboard/services'
+    | '/dashboard/videos'
+    | '/portfolio/$slug'
+    | '/admin'
+    | '/portfolio/$slug/services/$serviceSlug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/signup'
+    | '/admin/audit-logs'
+    | '/admin/leads'
+    | '/admin/profiles'
+    | '/admin/reviews'
+    | '/admin/services'
+    | '/admin/users'
+    | '/dashboard/areas'
+    | '/dashboard/availability'
+    | '/dashboard/before-after'
+    | '/dashboard/faqs'
+    | '/dashboard/gallery'
+    | '/dashboard/leads'
+    | '/dashboard/packages'
+    | '/dashboard/profile'
+    | '/dashboard/reviews'
+    | '/dashboard/seo'
+    | '/dashboard/services'
+    | '/dashboard/videos'
+    | '/portfolio/$slug'
+    | '/admin/'
+    | '/portfolio/$slug_/services/$serviceSlug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PortfolioDhartiPanchalRoute: typeof PortfolioDhartiPanchalRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  DashboardRoute: typeof DashboardRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
+  PortfolioSlugRoute: typeof PortfolioSlugRoute
+  PortfolioSlugServicesServiceSlugRoute: typeof PortfolioSlugServicesServiceSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,19 +357,248 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/portfolio/dharti-panchal': {
-      id: '/portfolio/dharti-panchal'
-      path: '/portfolio/dharti-panchal'
-      fullPath: '/portfolio/dharti-panchal'
-      preLoaderRoute: typeof PortfolioDhartiPanchalRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit-logs': {
+      id: '/admin/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/admin/audit-logs'
+      preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/leads': {
+      id: '/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/profiles': {
+      id: '/admin/profiles'
+      path: '/profiles'
+      fullPath: '/admin/profiles'
+      preLoaderRoute: typeof AdminProfilesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/services': {
+      id: '/admin/services'
+      path: '/services'
+      fullPath: '/admin/services'
+      preLoaderRoute: typeof AdminServicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/dashboard/areas': {
+      id: '/dashboard/areas'
+      path: '/areas'
+      fullPath: '/dashboard/areas'
+      preLoaderRoute: typeof DashboardAreasRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/availability': {
+      id: '/dashboard/availability'
+      path: '/availability'
+      fullPath: '/dashboard/availability'
+      preLoaderRoute: typeof DashboardAvailabilityRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/before-after': {
+      id: '/dashboard/before-after'
+      path: '/before-after'
+      fullPath: '/dashboard/before-after'
+      preLoaderRoute: typeof DashboardBeforeAfterRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/faqs': {
+      id: '/dashboard/faqs'
+      path: '/faqs'
+      fullPath: '/dashboard/faqs'
+      preLoaderRoute: typeof DashboardFaqsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/gallery': {
+      id: '/dashboard/gallery'
+      path: '/gallery'
+      fullPath: '/dashboard/gallery'
+      preLoaderRoute: typeof DashboardGalleryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/leads': {
+      id: '/dashboard/leads'
+      path: '/leads'
+      fullPath: '/dashboard/leads'
+      preLoaderRoute: typeof DashboardLeadsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/packages': {
+      id: '/dashboard/packages'
+      path: '/packages'
+      fullPath: '/dashboard/packages'
+      preLoaderRoute: typeof DashboardPackagesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/profile': {
+      id: '/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/reviews': {
+      id: '/dashboard/reviews'
+      path: '/reviews'
+      fullPath: '/dashboard/reviews'
+      preLoaderRoute: typeof DashboardReviewsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/seo': {
+      id: '/dashboard/seo'
+      path: '/seo'
+      fullPath: '/dashboard/seo'
+      preLoaderRoute: typeof DashboardSeoRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/services': {
+      id: '/dashboard/services'
+      path: '/services'
+      fullPath: '/dashboard/services'
+      preLoaderRoute: typeof DashboardServicesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/videos': {
+      id: '/dashboard/videos'
+      path: '/videos'
+      fullPath: '/dashboard/videos'
+      preLoaderRoute: typeof DashboardVideosRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/portfolio/$slug': {
+      id: '/portfolio/$slug'
+      path: '/portfolio/$slug'
+      fullPath: '/portfolio/$slug'
+      preLoaderRoute: typeof PortfolioSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio/$slug_/services/$serviceSlug': {
+      id: '/portfolio/$slug_/services/$serviceSlug'
+      path: '/portfolio/$slug/services/$serviceSlug'
+      fullPath: '/portfolio/$slug/services/$serviceSlug'
+      preLoaderRoute: typeof PortfolioSlugServicesServiceSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminLeadsRoute: typeof AdminLeadsRoute
+  AdminProfilesRoute: typeof AdminProfilesRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminServicesRoute: typeof AdminServicesRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminLeadsRoute: AdminLeadsRoute,
+  AdminProfilesRoute: AdminProfilesRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
+  AdminServicesRoute: AdminServicesRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface DashboardRouteChildren {
+  DashboardAreasRoute: typeof DashboardAreasRoute
+  DashboardAvailabilityRoute: typeof DashboardAvailabilityRoute
+  DashboardBeforeAfterRoute: typeof DashboardBeforeAfterRoute
+  DashboardFaqsRoute: typeof DashboardFaqsRoute
+  DashboardGalleryRoute: typeof DashboardGalleryRoute
+  DashboardLeadsRoute: typeof DashboardLeadsRoute
+  DashboardPackagesRoute: typeof DashboardPackagesRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardReviewsRoute: typeof DashboardReviewsRoute
+  DashboardSeoRoute: typeof DashboardSeoRoute
+  DashboardServicesRoute: typeof DashboardServicesRoute
+  DashboardVideosRoute: typeof DashboardVideosRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAreasRoute: DashboardAreasRoute,
+  DashboardAvailabilityRoute: DashboardAvailabilityRoute,
+  DashboardBeforeAfterRoute: DashboardBeforeAfterRoute,
+  DashboardFaqsRoute: DashboardFaqsRoute,
+  DashboardGalleryRoute: DashboardGalleryRoute,
+  DashboardLeadsRoute: DashboardLeadsRoute,
+  DashboardPackagesRoute: DashboardPackagesRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
+  DashboardReviewsRoute: DashboardReviewsRoute,
+  DashboardSeoRoute: DashboardSeoRoute,
+  DashboardServicesRoute: DashboardServicesRoute,
+  DashboardVideosRoute: DashboardVideosRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PortfolioDhartiPanchalRoute: PortfolioDhartiPanchalRoute,
+  AdminRoute: AdminRouteWithChildren,
+  DashboardRoute: DashboardRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
+  PortfolioSlugRoute: PortfolioSlugRoute,
+  PortfolioSlugServicesServiceSlugRoute: PortfolioSlugServicesServiceSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

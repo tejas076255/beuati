@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.3 Semantic SEO</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 25px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .critical { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.fixed { background:#fee2e2; color:#b91c1c; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .before-after { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .before-after .box { border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .before-after .before { background: #fef2f2; border: 1px solid #fecaca; }
+  .before-after .after { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .before-after .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .before-after .before .lbl { color: #b91c1c; }
+  .before-after .after .lbl { color: #15803d; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.3</div>
+    <h1>Semantic + Local SEO Authority</h1>
+    <p class="sub">Combines existing profile, service, review, media, and location data into one coherent Person + LocalBusiness structured-data entity graph — and fixes two critical fabricated-data bugs found during audit. Zero database changes, zero landing pages, zero AI SEO.</p>
+    <div class="meta">
+      <div><strong>Module</strong>Semantic SEO</div>
+      <div><strong>Database changes</strong>None</div>
+      <div><strong>Scope</strong>Structured data only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">2</div><div class="l">Critical fabrication bugs fixed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Schema changes</div></div>
+    <div class="card"><div class="n">7</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">12</div><div class="l">@graph nodes live-verified</div></div>
+  </div>
+
+  <div class="critical">
+    <b>Critical finding, fixed this phase:</b> <code>aggregateRating</code> was built from static <code>beautician_profiles.rating</code>/<code>review_count</code> columns with no dashboard field and no sync to the real reviews table — live-verified showing <b>4.9 / 214 reviews</b> while the actual published <code>review[]</code> array contained only <b>3</b> reviews averaging <b>4.33</b>. This is exactly the kind of mismatch Google's Rich Results policy flags. Now computed live from real review rows.
+  </div>
+
+  <h2>1. Existing Semantic Architecture Discovered</h2>
+  <p style="font-size:11.5px;">JSON-LD was a flat array of independent objects with no shared <code>@id</code> — <code>founder</code>, <code>creator</code>, and <code>provider</code> each re-declared a duplicate inline Person object instead of referencing one entity. <code>sameAs</code> was never populated despite real Instagram/Facebook/YouTube/website URL fields already existing on the Profile page. <code>areaServed</code> vs. primary location were already correctly distinguished — no fix needed there. Homepage canonical/<code>og:url</code> were present but relative, not absolute.</p>
+
+  <h2>2. Primary Entity Decision</h2>
+  <p style="font-size:11.5px;"><b>Hybrid model: Person + LocalBusiness, connected as two nodes</b> — not collapsed into one type. A profile always carries individual data (bio, experience, portrait) <i>and</i> business-like data (address, hours, service catalog); dropping either would lose real information. Kept the existing <code>["BeautySalon","LocalBusiness"]</code> type as-is — not swapped for a different type "because it sounds better."</p>
+
+  <h2>3. Canonical Entity @id Strategy</h2>
+  <table>
+    <tr><th>Entity</th><th>@id</th></tr>
+    <tr><td>Business</td><td><code>https://beautyfolio.in/portfolio/{slug}#business</code></td></tr>
+    <tr><td>Person</td><td><code>https://beautyfolio.in/portfolio/{slug}#person</code></td></tr>
+  </table>
+  <p style="font-size:11.5px;">Every service <code>provider</code>, every media <code>creator</code>, and the mutual <code>founder</code>/<code>worksFor</code> link reference these two ids — no entity is duplicated inline anywhere in the graph.</p>
+
+  <h2>4–5. Files Changed &amp; Database Changes</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>seo-helpers.ts</code></td><td>Added <code>buildSameAs()</code>, <code>computeAggregateRating()</code>, <code>buildOfferPricing()</code>, 2 new readiness checks</td></tr>
+    <tr><td><code>portfolio.ts</code> / <code>portfolio-mapper.ts</code></td><td>Carry <code>businessName</code>/<code>sameAs</code>/raw price fields through</td></tr>
+    <tr><td><code>portfolio.$slug.tsx</code></td><td>Rebuilt JSON-LD into one <code>@graph</code>; fixed rating + price bugs</td></tr>
+    <tr><td><code>index.tsx</code></td><td>Homepage canonical/og:url now absolute</td></tr>
+    <tr><td><code>seo.server.ts</code> / <code>dashboard.seo.tsx</code></td><td>"Related portfolio context" UI</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: none.</b> Every field used already existed.</p>
+
+  <div class="page-break"></div>
+
+  <h2>6–7. Services &amp; Packages — Price Semantics Fixed</h2>
+  <p style="font-size:11.5px;">Previously: <code>Offer.price</code> was regex-stripped from a formatted display string — "Custom quote" produced an empty price; "From ₹5,000" was asserted as a single fixed price. Now:</p>
+  <table>
+    <tr><th>price_type</th><th>Structured data</th></tr>
+    <tr><td><code>fixed</code></td><td><code>Offer.price</code> + <code>priceCurrency</code></td></tr>
+    <tr><td><code>starting_from</code></td><td><code>Offer.priceSpecification.minPrice</code> (never a fixed price)</td></tr>
+    <tr><td><code>custom_quote</code></td><td><b>No Offer emitted at all</b> — page content unchanged, only the fake price is removed</td></tr>
+  </table>
+  <p style="font-size:11.5px;">Packages reuse the identical builder rather than a separate <code>OfferCatalog</code> — same real name/description/price shape, no new schema type needed. Documented decision, not forced structure.</p>
+
+  <h2>8. Review / AggregateRating — Before &amp; After</h2>
+  <div class="before-after">
+    <div class="box before">
+      <div class="lbl">Before this phase</div>
+      <code>{"ratingValue": 4.9, "reviewCount": 214}</code><br/>
+      Static column, unrelated to real reviews.
+    </div>
+    <div class="box after">
+      <div class="lbl">After this phase</div>
+      <code>{"ratingValue": 4.7, "reviewCount": 3}</code><br/>
+      Matches the 3 real published reviews (avg of 4, 5, 5), live-verified.
+    </div>
+  </div>
+  <p style="font-size:11.5px;">Visible marketing copy on the public hero ("600+ clients" etc.) was <b>not</b> changed — only the structured-data claim, which search engines can cross-check against the visible reviews, was corrected.</p>
+
+  <h2>9–13. FAQ / Media / sameAs / Opening Hours / Primary Service</h2>
+  <ul>
+    <li><b>FAQ:</b> already correctly scoped to published rows — no code change needed</li>
+    <li><b>Media:</b> <code>ImageObject</code>/<code>VideoObject.creator</code> now reference the Person <code>@id</code> instead of a duplicate inline object; no keyword-based service inference added, as instructed</li>
+    <li><b>sameAs:</b> validates real Instagram/Facebook/YouTube/website URLs only — live-verified correctly omitted on a profile with none entered</li>
+    <li><b>Opening hours:</b> unchanged, now lives inside the graph</li>
+    <li><b>Primary service:</b> unchanged single deterministic rule (featured → first active → null)</li>
+  </ul>
+
+  <h2>14. SEO Readiness Changes</h2>
+  <p style="font-size:11.5px;">Added <b>"Valid social link added"</b> (recommended) and <b>"Video content present"</b> (enhancement) — same deterministic weighting as every existing check, no score inflation.</p>
+
+  <h2>15. Trust-Metric Audit Findings</h2>
+  <table>
+    <tr><th>Metric</th><th>Classification</th><th>Action</th></tr>
+    <tr><td><code>rating</code> / <code>review_count</code></td><td>Not reconciled with real reviews — no dashboard field, no sync trigger found</td><td>Removed from structured data; flagged for product cleanup</td></tr>
+    <tr><td><code>client_count</code></td><td>Read-only everywhere, no write path found</td><td>Was never in structured data; same product-cleanup flag applies to its hero display</td></tr>
+    <tr><td><code>years_experience</code></td><td>Database-backed, user-entered</td><td>Legitimate, not touched</td></tr>
+    <tr><td>Reviews, Services/Packages pricing</td><td>Database-backed, real rows</td><td>Used as-is / with corrected semantics</td></tr>
+  </table>
+
+  <h2>16. Semantic HTML Findings</h2>
+  <p style="font-size:11.5px;">Audited: exactly one <code>&lt;h1&gt;</code> (hero, professional's name), consistent <code>&lt;h2&gt;</code> section headings, reasonable <code>&lt;h3&gt;</code> card titles. Already correct — no change made.</p>
+
+  <h2>17. Final JSON-LD Graph — Live Verified</h2>
+  <div class="verified">
+    One <code>&lt;script type="application/ld+json"&gt;</code> with <code>{"@context": "...", "@graph": [...]}</code>. Fetched raw SSR output for <code>/portfolio/dharti-panchal</code> and confirmed:
+    <ul style="margin:6px 0;">
+      <li><code>BeautySalon+LocalBusiness</code> #business, <code>Person</code> #person — cross-referenced via founder/worksFor</li>
+      <li><code>FAQPage</code>, <code>BreadcrumbList</code></li>
+      <li>5× <code>ImageObject</code>, 3× <code>VideoObject</code> — creator referencing #person</li>
+      <li>8 <code>Offer</code> entries (5 services + 3 packages) — correct price semantics per type</li>
+    </ul>
+  </div>
+
+  <h2>18–19. Performance &amp; RLS/Multi-Tenancy</h2>
+  <p style="font-size:11.5px;">No new query added — every field was already fetched by the existing single-batch query. No new write path — every newly-surfaced field is a column on the same already-profile-scoped table, protected by the same existing RLS.</p>
+
+  <h2>20. Homepage Canonical Fix</h2>
+  <p style="font-size:11.5px;">Canonical, <code>og:url</code>, and JSON-LD <code>url</code> were relative (<code>"/"</code>) — now absolute via <code>absoluteUrl()</code>. Live-verified: both render as <code>https://beautyfolio.in/</code>.</p>
+
+  <h2>21. Automated Tests</h2>
+  <ul>
+    <li><code>tsc --noEmit</code> — clean</li>
+    <li>ESLint — clean</li>
+    <li>Production build — succeeds</li>
+    <li>13 routes smoke-tested (/, portfolio, all dashboard SEO-adjacent pages, sitemap, robots) — all 200 OK</li>
+  </ul>
+
+  <h2>22. Manual Tests For You To Perform</h2>
+  <div class="flag">
+    <ol style="margin:6px 0;">
+      <li>Add an Instagram or website URL on your Profile page, confirm <code>sameAs</code> appears on the Person node</li>
+      <li>Add a "Contact for quote" service, confirm it does <b>not</b> appear in <code>makesOffer</code> while still showing normally on the public Services section</li>
+      <li>Review the new "Related portfolio context" chips on <code>/dashboard/seo</code> for accuracy</li>
+    </ol>
+  </div>
+
+  <h2>23. Known Limitations</h2>
+  <ul>
+    <li><code>client_count</code>/<code>rating</code>/<code>review_count</code> remain unaddressed at the product level (still shown as marketing copy in the public hero) — flagged, not fixed, per "don't silently overwrite user content"</li>
+    <li>Person node omits phone/email (kept only on Business) to avoid duplicating public contact info across two entities</li>
+  </ul>
+
+  <h2>24. Recommended Next SEO Phase</h2>
+  <p style="font-size:11.5px;">Address the <code>rating</code>/<code>review_count</code>/<code>client_count</code> trust-metric gap at the product level (real-time sync trigger from <code>reviews</code>, or remove the unverified figures) — a data-integrity fix, not a new SEO feature, explicitly out of scope for this phase.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.3 Semantic + Local SEO Authority Report</span>
+    <span>Generated 23 Aug 2026</span>
+  </div>
+
+</body>
+</html>

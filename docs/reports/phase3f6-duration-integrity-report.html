@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Duration Data Integrity</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.kept { background:#dbeafe; color:#1d4ed8; }
+  .pill.risk { background:#fef3c7; color:#b45309; }
+  .pill.clean { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.6</div>
+    <h1>Duration Data Integrity Check</h1>
+    <p class="sub">Audit of "Typical duration: 60 mins" on the public service page — is it a genuine stored value, or a hardcoded/defaulted claim? No code changed; the field is genuine, but a real dashboard-form risk was found and flagged.</p>
+    <div class="meta">
+      <div><strong>Code changed</strong>None</div>
+      <div><strong>Field</strong>services.duration_minutes</div>
+      <div><strong>Verdict</strong>Genuine, kept — risk flagged</div>
+    </div>
+  </div>
+
+  <h2>1–3. Source, User-Entered, Hardcoded?</h2>
+  <table>
+    <tr><th>Question</th><th>Answer</th></tr>
+    <tr><td>Which field supplies it?</td><td><code>services.duration_minutes</code> — real column, base migration, <code>CHECK (duration_minutes &gt; 0)</code></td></tr>
+    <tr><td>User-entered real data?</td><td><span class="pill clean">YES</span> — editable in <code>/dashboard/services</code>, service-scoped</td></tr>
+    <tr><td>Hardcoded on the public page?</td><td><span class="pill clean">NO</span> — reads the column verbatim, no fallback, only renders when the value exists</td></tr>
+  </table>
+
+  <h2>Live Data — All 5 of Dharti's Services</h2>
+  <table>
+    <tr><th>Service</th><th>duration_minutes</th><th>Assessment</th></tr>
+    <tr><td>HD Bridal Makeup</td><td>180</td><td>Clearly deliberate</td></tr>
+    <tr><td>Airbrush Bridal Makeup</td><td>210</td><td>Clearly deliberate</td></tr>
+    <tr><td>Party &amp; Sangeet Makeup</td><td>90</td><td>Clearly deliberate</td></tr>
+    <tr><td>Nail Art</td><td>60</td><td><span class="pill risk">Ambiguous</span> — matches the form's default exactly</td></tr>
+    <tr><td>Sider makeup</td><td>60</td><td><span class="pill risk">Ambiguous</span> — matches the form's default exactly</td></tr>
+  </table>
+
+  <div class="flag">
+    <b>Real risk found (adjacent to the display, not on it):</b> <code>dashboard.services.tsx</code> lines 114 and 161 silently pre-fill/default duration to <b>60</b> both for a brand-new service and when editing an existing service whose stored value is <code>null</code>. A beautician could save "60 minutes" without ever deliberately choosing it. Live data shows exactly 2 of 5 services at precisely 60 — the other 3 are clearly deliberate, non-default values. This can't be resolved from stored data alone.
+  </div>
+
+  <h2>Decision</h2>
+  <div class="verified">
+    Per the stated rule, a genuine stored, user-editable, service-scoped field is <b>kept, not removed</b>. This is a dashboard <b>form-default risk</b>, not a public-page fabrication — the page itself never guesses or falls back. Fixing the form's silent default is a separate, more invasive change (no new field, no redesign, out of scope for this audit).
+  </div>
+
+  <h2>Other Service-Page Facts Checked</h2>
+  <ul>
+    <li>Price — real, correct fixed/starting-from/quote semantics</li>
+    <li>Appointment type — real, from <code>availability_settings</code>, <code>null</code> when unset, no fallback claim</li>
+    <li>Rating/reviews — computed live from real published rows</li>
+    <li>Service areas, "Other services" — all real, service/profile-scoped queries</li>
+  </ul>
+  <p style="font-size:12px;"><b>No other hardcoded/defaulted facts found.</b></p>
+
+  <h2>Outcome</h2>
+  <ul>
+    <li><span class="pill kept">No code changed</span> — duration display kept as-is</li>
+    <li>SEO metadata and structured data untouched</li>
+    <li>No new database field added</li>
+  </ul>
+
+  <h2>Flag For You</h2>
+  <p style="font-size:11.5px;">Consider a future small fix to <code>dashboard.services.tsx</code> so a new/edited service's duration field starts empty rather than pre-filled with 60 — that removes the ambiguity at the source instead of on the display side.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Duration Data Integrity Check</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

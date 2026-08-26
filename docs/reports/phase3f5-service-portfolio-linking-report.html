@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.5 Work Linking</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 24px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 18px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pending { background: #fef2f2; border: 2px solid #fca5a5; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; margin: 12px 0; color: #991b1b; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.pending { background:#fee2e2; color:#b91c1c; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.5</div>
+    <h1>Service ↔ Portfolio Work Linking</h1>
+    <p class="sub">Lets a beautician explicitly connect Gallery and Before & After work to one real service, activating the previously-empty "Relevant Work" section on service landing pages. No AI matching, no keyword inference — explicit user selection only.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0 columns (already existed)</div>
+      <div><strong>DB write</strong>1 trigger prepared</div>
+      <div><strong>Live status</strong>Pending reconnect</div>
+    </div>
+  </div>
+
+  <div class="pending">
+    <b>One item not yet applied live:</b> the database-level ownership-protection trigger (§6) is written and ready (<code>supabase/migrations/20260825100000_guard_media_service_ownership.sql</code>), but the Lovable Cloud connection — the only sanctioned write path — was unavailable when this phase completed. No other project or credential was used as a workaround, per your explicit rule. Everything else in this report is complete and live-verified.
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">New columns (already existed)</div></div>
+    <div class="card"><div class="n">6</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Real gap found &amp; fixed</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Security gap found, migration ready</div></div>
+  </div>
+
+  <h2>1. Existing FK Architecture Discovered</h2>
+  <p style="font-size:11.5px;"><code>portfolio_items.service_id</code> / <code>before_after_items.service_id</code> already existed: nullable, <code>ON DELETE SET NULL</code>, item/pair-level (no per-image relationship). <code>portfolio_videos</code> has <b>no</b> <code>service_id</code> column at all.</p>
+  <div class="flag">
+    <b>Real ownership gap found:</b> neither the RLS owner-write policy nor the foreign key validates that a linked <code>service_id</code> belongs to the <i>same</i> profile as the item — only that the item itself is owned and the service exists <i>somewhere</i>. A forged request could technically link Profile A's media to Profile B's service.
+  </div>
+
+  <h2>2. Database Changes</h2>
+  <p style="font-size:11.5px;">Zero changes to existing columns. One new migration prepared, mirroring the existing <code>guard_beautician_profile_flags()</code>/<code>guard_review_verification()</code> trigger pattern rather than inventing a new authorization mechanism — a <code>BEFORE INSERT/UPDATE</code> trigger on both tables rejecting any <code>service_id</code> not belonging to the row's own profile.</p>
+
+  <h2>3–5. Files Changed &amp; Relationship UI</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>gallery.server.ts</code> / <code>before-after.server.ts</code></td><td>Accept and persist <code>serviceId</code> on create/update</td></tr>
+    <tr><td><code>dashboard.gallery.tsx</code></td><td>New "Related service" dropdown (own services only) + "Linked: X" card indicator</td></tr>
+    <tr><td><code>dashboard.before-after.tsx</code></td><td>Same pattern — one dropdown per pair, never per-side</td></tr>
+    <tr><td><code>portfolio.$slug_.services.$serviceSlug.tsx</code></td><td>Fixed a real gap: before/after transformations were built into JSON-LD but never rendered visibly on the page</td></tr>
+  </table>
+  <p style="font-size:11.5px;">Both dropdowns: optional, default "No specific service", helper text exactly as specified, populated only from the beautician's own services (server-fetched, never client-filtered).</p>
+
+  <div class="page-break"></div>
+
+  <h2>6. Service Ownership Protection</h2>
+  <p style="font-size:11.5px;">Confirmed gap (§1), fixed via the prepared trigger — smallest DB-level protection consistent with existing architecture. <span class="pill pending">Not yet applied live</span> — see the notice above.</p>
+
+  <h2>7. Service Deletion Behavior</h2>
+  <div class="verified">
+    Confirmed directly from the base migration SQL: <code>service_id UUID REFERENCES public.services(id) ON DELETE SET NULL</code> on both <code>portfolio_items</code> and <code>before_after_items</code>. Deleting a service <b>never</b> deletes Gallery or Before/After media — it only clears the link.
+  </div>
+
+  <h2>8–11. Public Relevant Work, Visibility, Structured Data, Performance</h2>
+  <ul>
+    <li>The RLS-scoped, visibility-respecting, N+1-free query already existed from Phase 3F.4 — it was only waiting for real data</li>
+    <li><b>Real gap fixed:</b> before/after items weren't visually rendered on the service page (gallery-only) — now both sections render, both correctly omit themselves entirely when empty</li>
+    <li>Visibility already correctly enforced (<code>is_published = true</code> + profile <code>status = 'published'</code>) — no change needed</li>
+    <li>Structured data already correct from Phase 3F.4 (explicit <code>service_id</code>-only, <code>@id</code>-referenced creator) — no change needed</li>
+    <li>No new query added — reuses the existing single batched query, no client-only fetch</li>
+  </ul>
+
+  <h2>12. Videos Relationship Finding</h2>
+  <p style="font-size:11.5px;">Confirmed <b>no</b> <code>service_id</code> column exists on <code>portfolio_videos</code>. Per instruction, no new schema was added for videos this phase — scope not expanded for consistency.</p>
+
+  <h2>13. Tests Performed</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>7 required routes smoke-tested</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>14. Manual Tests For You To Perform</h2>
+  <div class="flag">
+    Tests A–F, H, I (linking, changing links, unlink, hide/unpublish, rename, delete) all use the dashboard UI now in place — please try them once the migration below is confirmed live. <b>Test G (forged cross-profile assignment)</b> specifically validates the new trigger — recommend re-running it right after the migration applies.
+  </div>
+
+  <h2>15. Known Limitations</h2>
+  <p style="font-size:11.5px;">The ownership trigger is written but not yet live — blocked on the Lovable connection being temporarily unavailable, not a code issue. The dashboard dropdown itself already prevents any UI path to cross-profile linking, so this is a defense-in-depth gap, not an exploitable UI bug today.</p>
+
+  <h2>16. Recommended Next Phase</h2>
+  <p style="font-size:12px;">None started. Once the trigger is confirmed live and Test G passes, this phase is fully closed.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.5 Service ↔ Portfolio Work Linking Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.8A Live Readiness UX</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.8A</div>
+    <h1>Live Service Readiness Preview + Actionable Guidance</h1>
+    <p class="sub">Three targeted UX corrections on top of Phase 3F.8's working readiness engine: the Add/Edit Service checklist now updates live as you type, unsaved state is always visually distinct from saved state, and failing checks link straight to the page that fixes them. No new readiness algorithm, no schema change.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>New algorithm</strong>None — same evaluateServiceContentReadiness()</div>
+      <div><strong>Scope</strong>Frontend / shared-logic only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">New DB columns/tables</div></div>
+    <div class="card"><div class="n">3</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">3</div><div class="l">UX corrections addressed</div></div>
+    <div class="card"><div class="n">8/8</div><div class="l">Routes smoke-tested OK</div></div>
+  </div>
+
+  <h2>1–2. Files Changed &amp; Database Changes</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>lib/seo-helpers.ts</code></td><td><code>serviceReadinessMessage</code> gains an <code>isPreview</code> param (wording only) — core readiness logic untouched</td></tr>
+    <tr><td><code>services.server.ts</code></td><td>New <code>ServiceReadinessContext</code> type; <code>OwnServiceWithReadiness</code> now also carries <code>linkedWorkCount</code>; price error wording updated</td></tr>
+    <tr><td><code>dashboard.services.tsx</code></td><td>Live in-dialog readiness computation, unsaved-state indicator, actionable deep-links, price error wording</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: zero, confirmed.</b> This was entirely a frontend/shared-logic correction.</p>
+
+  <h2>3. Draft/Live Readiness Architecture</h2>
+  <div class="verified">
+    No second algorithm was written. The Add/Edit dialog calls the exact same <code>evaluateServiceContentReadiness()</code> the server uses, fed <code>form.watch()</code> values, the local included/suitable-for arrays, and the visibility toggle in place of the persisted row — combined with a <code>readinessContext</code> (profile published, indexing enabled, primary city, review count, service-area count) loaded once per page visit, plus a per-service <code>linkedWorkCount</code> from the same batched query.
+  </div>
+
+  <h2>4. Unsaved-State Behavior</h2>
+  <p style="font-size:11.5px;">A <code>hasUnsavedChanges</code> flag (dirty form, or the visibility/list state differs from the persisted row) drives an amber "Preview based on unsaved changes — save to apply these to your public service page" banner, and the summary message becomes "Will be ready for search once you save" instead of implying the page is already live. Closing without saving and reopening correctly restores the persisted checklist.</p>
+
+  <h2>5–6. Actionable Guidance</h2>
+  <ul>
+    <li>"Portfolio work linked" (when missing) now shows inline "Gallery" / "Before &amp; After" links</li>
+    <li>Missing city → "Add in Profile" (<code>/dashboard/profile</code>)</li>
+    <li>Missing service areas → "Add service areas" (<code>/dashboard/areas</code>)</li>
+    <li>Reviews deliberately has no action — stays optional guidance only, never a nudge implying reviews are required</li>
+  </ul>
+  <p style="font-size:11.5px;">No media/relationship UI was added inside the dialog — Phase 3F.5's <code>service_id</code> relationships remain the only way to actually link work.</p>
+
+  <div class="page-break"></div>
+
+  <h2>7. Price-Validation UX</h2>
+  <p style="font-size:11.5px;">Wording changed to "Enter a price greater than ₹0, or choose Custom quote" (fixed/starting_from) and "…or leave blank for Custom quote" (custom_quote with an invalid non-blank entry) — pointing at the app's actual price-type option. Validation strictness is unchanged: fixed/starting_from still require a positive price, custom_quote still allows blank, ₹0 is never displayable, and Phase 3F.3's structured-data pricing logic was not touched.</p>
+
+  <h2>8–9. Saved-State Synchronization &amp; Sitemap/Robots Consistency</h2>
+  <div class="verified">
+    Confirmed by construction: the service card list and <code>/dashboard/seo</code> read only from server-computed data, never from dialog-local state — the live preview exists solely inside the open dialog instance. Live-verified: <code>hd-bridal-makeup</code> and <code>nail-art</code> (both already improved to meaningful descriptions) resolve <code>index, follow</code> and remain sitemap-included — nothing about this correction altered the saved-data indexability chain.
+  </div>
+
+  <h2>10. Automated Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>8 required routes</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>11. Manual Checks Required</h2>
+  <div class="flag">
+    TESTs A–F trace correctly through the code (watch → live recompute → reset-on-reopen → save → persisted state), but weren't clicked through in a live browser session — none is available in this environment. Recommended manual pass: open Sider makeup, type a longer description without saving, confirm the checklist and unsaved banner update live, close without saving to confirm it reverts, then repeat with an actual Save to confirm the card/SEO page pick it up.
+  </div>
+  <p style="font-size:12px;"><b>Stopping here per the phase's STOP condition</b> — awaiting manual approval before any further phase.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.8A Live Readiness UX Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

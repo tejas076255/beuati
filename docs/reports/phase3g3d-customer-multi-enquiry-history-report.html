@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.3D Multi-Enquiry History</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.6px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .file-list { font-size: 11px; }
+  .file-list li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.3D</div>
+    <h1>Customer Multi-Enquiry History Workspace</h1>
+    <p class="sub">The customer detail dialog now correctly shows ONE CUSTOMER → MANY ENQUIRIES — every enquiry with its own service(s), event details, source and attribution, never merged into a single latest-enquiry summary. Zero schema changes, zero additional queries.</p>
+    <div class="meta">
+      <div><strong>New queries added</strong>0 (data was already fetched)</div>
+      <div><strong>Database changes</strong>0</div>
+      <div><strong>Jay Jogiya enquiries verified</strong>6, each independent</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">6</div><div class="l">Jay Jogiya's enquiries (live-verified)</div></div>
+    <div class="card"><div class="n">2</div><div class="l">Pooja Singh's HD Bridal Makeup enquiries</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Extra DB queries needed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Schema changes</div></div>
+  </div>
+
+  <h2>1–2. Audit &amp; Field Classification</h2>
+  <p style="font-size:11.5px;">Found the exact bug this phase targets: the old "Customer &amp; inquiry summary" grid mixed customer-level fields (email, <code>leads.source</code>, <code>leads.created_at</code> labeled "Received") with latest-enquiry-only fields (event date/type/persons/location/venue/services) as if they were one coherent record. The Attribution block also only ever read the single latest inquiry. Confirmed live: <code>lead_activities</code> has no <code>inquiry_id</code> column — activities correctly remain customer-level only, not per-enquiry.</p>
+  <table>
+    <tr><th>Field</th><th>Level</th><th>Table</th></tr>
+    <tr><td>name, phone, email</td><td>Customer</td><td>leads</td></tr>
+    <tr><td>status, follow-up, notes</td><td>Customer/CRM</td><td>leads</td></tr>
+    <tr><td>event_date, services, location, venue</td><td>Enquiry</td><td>lead_inquiries / lead_inquiry_services</td></tr>
+    <tr><td>source, utm_*, landing/conversion path, CTA</td><td>Enquiry</td><td>lead_inquiries</td></tr>
+    <tr><td>activities, status changes</td><td>Customer/CRM timeline</td><td>lead_activities (no inquiry_id)</td></tr>
+  </table>
+
+  <h2>3. Query Architecture — Zero New Queries</h2>
+  <div class="verified">
+    <code>LeadWithInquiry</code> extended with <code>inquiries: LeadInquiry[]</code> (newest first) alongside the existing <code>inquiry</code> field. The underlying query already fetched every inquiry via the join — the mapping function simply stopped discarding everything past index 0. No new server function, no N+1, fully backward-compatible with every existing List/Cards/Pipeline/Add-dialog consumer.
+  </div>
+
+  <h2>4–11. Workspace Redesign</h2>
+  <p style="font-size:11.5px;"><b>Customer header:</b> added "N enquiries · email" — genuinely customer-level facts only; <code>leads.source</code> removed entirely from the summary (previously shown as a fake permanent attribute).<br/>
+  <b>Enquiries section:</b> new accordion — newest first, "Latest enquiry" badge on the newest, collapsed by default except the latest to avoid excessive length. Each card independently shows its own service(s), event details, source, and attribution — using <code>lead_inquiry_services</code> and <code>lead_inquiries</code>, never the stale <code>leads.service_requested</code>/<code>leads.source</code> snapshot.<br/>
+  <b>Source labeling:</b> a dedicated <code>enquirySourceLabel()</code> treats NULL as "Unknown / historical" — never "Manual Entry", never "Direct" — matching the exact semantic already established in Insights (3G.3B/3G.3C).<br/>
+  <b>Attribution:</b> renders per-card only when that specific enquiry has real values — never merged across enquiries.</p>
+
+  <div class="page-break"></div>
+
+  <h2>Live Verification</h2>
+  <table>
+    <tr><th>Customer</th><th>Enquiries</th><th>Result</th></tr>
+    <tr><td>Jay Jogiya</td><td>6</td><td>Eyebrow, Airbrush Bridal Makeup, HD Bridal Makeup, Hair Cutting ×2, Hair Styling — each its own card, all source=Unknown/historical</td></tr>
+    <tr><td>Pooja Singh</td><td>2</td><td>Both HD Bridal Makeup, shown as two separate cards, not merged</td></tr>
+    <tr><td>Ravi Patel</td><td>1</td><td>The real attributed enquiry — google/cpc/bridal_test/service_detail_hero/Nail Art all correctly present</td></tr>
+  </table>
+
+  <h2>12–17. CRM Sections Preserved Unchanged</h2>
+  <p style="font-size:11.5px;">Pipeline status, follow-up (next_followup_at/reason, last_contacted_at), activity timeline, and internal notes are all completely untouched — still one customer-level value each, visually separate from the new Enquiries section. The existing "Matched via Insights" banner from 3G.3C is preserved; per-card "Matches insight" tagging was deliberately not added, since the drill-down API returns which customer matched, not which specific inquiry id(s) — a fragile heuristic was avoided per the phase's own "if excessive complexity, retain the existing banner only" instruction.</p>
+
+  <h2>18–21. Empty State, Mobile, Accessibility, Security</h2>
+  <div class="verified">
+    Empty state ("No enquiry history recorded.") guards against a zero-inquiry customer. Cards are full-width stacked blocks — no tables, no horizontal scroll risk. Accordion headers are real <code>&lt;button&gt;</code> elements with <code>aria-expanded</code>/<code>aria-controls</code> — keyboard operable. No new query surface was introduced, so security/RLS posture is unchanged from before this phase.
+  </div>
+
+  <h2>22–24. Files, Database &amp; Performance</h2>
+  <ul class="file-list">
+    <li><code>src/data/leads-query.server.ts</code> — LeadWithInquiry.inquiries added (zero new queries)</li>
+    <li><code>src/components/leads/lead-detail-dialog.tsx</code> — new EnquiriesSection/EnquiryCard, old single-inquiry blocks removed</li>
+    <li><code>src/routes/dashboard.leads.tsx</code> — added key={selectedLead.id} for correctness</li>
+  </ul>
+  <p style="font-size:11.5px;"><b>Database changes: zero.</b> Confirmed live that <code>lead_activities</code> has no <code>inquiry_id</code> — documented as an accepted limitation, not a trigger for a schema change in this phase.</p>
+
+  <h2>25. Quality Gates</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td>Clean</td></tr>
+    <tr><td>ESLint</td><td>0 errors after autofix</td></tr>
+    <tr><td><code>npm run build</code></td><td>Succeeded</td></tr>
+    <tr><td>Route smoke tests</td><td>All 200: /dashboard/leads, /portfolio/dharti-panchal, service page, /sitemap.xml, /robots.txt</td></tr>
+  </table>
+
+  <h2>26. Test Matrix Results</h2>
+  <table>
+    <tr><th>Test</th><th>Result</th></tr>
+    <tr><td>A — Jay Jogiya</td><td><span class="pill pass">PASS</span> 6 cards, 5 distinct services, all independent</td></tr>
+    <tr><td>B — Pooja Singh</td><td><span class="pill pass">PASS</span> 2 separate HD Bridal Makeup cards</td></tr>
+    <tr><td>C — Attribution (Ravi Patel)</td><td><span class="pill pass">PASS</span> full attribution on the correct single card</td></tr>
+    <tr><td>D — Manual enquiry</td><td>Code-verified — real source shown, UTM absent when null</td></tr>
+    <tr><td>E — Historical enquiry</td><td><span class="pill pass">PASS</span> "Unknown / historical", attribution section omitted</td></tr>
+    <tr><td>F — Latest enquiry</td><td>Code-verified — badge on newest card</td></tr>
+    <tr><td>G — Customer timeline</td><td>Unchanged, not touched</td></tr>
+    <tr><td>H — Status</td><td>Unchanged — one customer-level status</td></tr>
+    <tr><td>I — Insights drill-down</td><td>Code-verified — existing banner preserved</td></tr>
+    <tr><td>J — Mobile</td><td>Not browser-tested — manual check required</td></tr>
+    <tr><td>K — Security</td><td>Code-verified — no new query surface</td></tr>
+  </table>
+
+  <h2>27–29. Manual Checks, Limitations &amp; Next Phase</h2>
+  <div class="flag">
+    <b>Manual checks needed:</b> open Jay Jogiya (6 cards), Pooja Singh (2 HD Bridal Makeup cards), Ravi Patel (attribution block); resize to phone width; drill into HD Bridal Makeup from Insights and confirm the match banner on Pooja Singh.<br/>
+    <b>Known limitations:</b> per-enquiry "Matches insight" tagging not implemented (drill-down API limitation, documented trade-off); activities remain customer-level only since lead_activities has no inquiry_id.<br/>
+    <b>Recommended next phase (not started):</b> adding a nullable lead_activities.inquiry_id would resolve both limitations — a genuine small schema change, correctly deferred per this phase's zero-schema-change constraint.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's explicit STOP condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.3D Customer Multi-Enquiry History Workspace Report</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

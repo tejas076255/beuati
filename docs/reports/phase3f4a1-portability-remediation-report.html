@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.4A.1 Remediation</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 24px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 18px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .identity-box { background: #ede9fe; border: 2px solid #a78bfa; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; margin: 12px 0; color: #4c1d95; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.kept { background:#dbeafe; color:#1d4ed8; }
+  .pill.amber { background:#fef3c7; color:#b45309; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.4A.1</div>
+    <h1>Backend Portability Remediation</h1>
+    <p class="sub">Controlled cleanup of the 4 findings from Phase 3F.4A's audit — one live database write (after identity verification), two prepared-but-not-executed tooling/documentation deliverables, one deliberate no-change decision.</p>
+    <div class="meta">
+      <div><strong>Scope</strong>Controlled cleanup only</div>
+      <div><strong>DB writes</strong>1 (index drop)</div>
+      <div><strong>Project verified</strong>ivbujlyilzmlublqzalu</div>
+    </div>
+  </div>
+
+  <div class="identity-box">
+    <b>Identity verified before any write:</b> "ivbujlyilzmlublqzalu" confirmed identical across 3 independent sources — <code>.env</code> config, the Supabase MCP's <code>get_project_url</code>, and a live database row's own stored absolute Storage URL. The "iybuj..." reference in the request was a typo (iy vs iv) — matches no configuration anywhere.
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">1</div><div class="l">Redundant index dropped</div></div>
+    <div class="card"><div class="n">1</div><div class="l">File kept as-is (dormant, safe)</div></div>
+    <div class="card"><div class="n">2</div><div class="l">New tooling/doc files created</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Regressions found</div></div>
+  </div>
+
+  <h2>A. Redundant Service Slug Index — Removed</h2>
+  <p style="font-size:11.5px;"><code>services_beautician_profile_id_slug_key</code> (original, full <code>UNIQUE</code>, present since the base migration) already provided identical protection to <code>idx_services_bp_slug</code> (Phase 3F.4's addition) — standard SQL treats every <code>NULL</code> as distinct, so the original already allowed unlimited <code>NULL</code> slugs while rejecting duplicate non-null pairs. Confirmed genuinely redundant, then dropped.</p>
+  <div class="verified">
+    <b>Verified after the drop:</b> <code>services_slug_format</code> intact · all 5 existing service slugs unchanged · duplicate protection re-tested via a deliberately-failing, rolled-back insert against <code>hd-bridal-makeup</code> — correctly rejected with <code>23505 duplicate key value violates unique constraint "services_beautician_profile_id_slug_key"</code> · post-check confirmed zero stray rows (count still exactly 1).
+  </div>
+  <p style="font-size:11.5px;"><b>Matching migration created:</b> <code>supabase/migrations/20260824090000_drop_redundant_service_slug_index.sql</code></p>
+
+  <h2>B. Dormant Service-Role Client — Audited, Kept As-Is</h2>
+  <p style="font-size:11.5px;">Repo-wide search confirmed <code>supabaseAdmin</code>/<code>createSupabaseAdminClient</code> (<code>client.server.ts</code>) has <b>zero imports</b> anywhere — application code, server functions, admin actions, build scripts, tests.</p>
+  <div class="flag">
+    <b>Decision: not deleted.</b> The file is marked "automatically generated, do not edit directly" (Lovable-managed scaffold) — removing it risks silent regeneration or conflicting with Lovable's own codegen, for no real benefit: an unimported module with a lazy-init Proxy has zero runtime footprint whether or not the file exists. The actual goal — "the app doesn't depend on unused privileged code" — was already true. <code>SUPABASE_SERVICE_ROLE_KEY</code> was not rotated, exposed, or removed from Lovable Cloud.
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>C. Storage URL Migration Preparation — Created, Not Executed</h2>
+  <p style="font-size:11.5px;">New file: <code>supabase/tooling/rewrite-storage-origin.sql</code></p>
+  <ul>
+    <li>Dry-run mode first (read-only row-count + before/after value preview)</li>
+    <li>Only rewrites rows whose value currently starts with the exact old origin</li>
+    <li>Never touches <code>video_url</code> (YouTube/Instagram), <code>storage_path</code>, or any other column</li>
+    <li>Idempotent — a completed rewrite naturally excludes itself from the WHERE clause on re-run</li>
+    <li>Covers exactly the 3 columns identified in the Phase 3F.4A audit: <code>beautician_profiles.profile_image_url</code>, <code>beautician_profiles.cover_image_url</code>, <code>portfolio_videos.thumbnail_url</code></li>
+  </ul>
+  <p style="font-size:11.5px;">Not run against any database — documentation/tooling only, ready for the day a real migration is approved.</p>
+
+  <h2>D. Auth Migration Documentation — Expanded</h2>
+  <p style="font-size:11.5px;"><code>backend-portability.md</code> §11 rewritten into a full 6-step future plan:</p>
+  <ol style="font-size:11.5px;">
+    <li>Preserve user UUIDs where possible (preferred, via raw <code>auth</code> schema restore)</li>
+    <li><code>profiles.auth_user_id</code> remapping if UUIDs can't be preserved</li>
+    <li><code>user_roles.user_id</code> remapping — same old→new map, same pass</li>
+    <li><code>handle_new_user()</code> trigger interaction warning (fires again on re-signup, must be accounted for)</li>
+    <li>Explicit password-reset requirement (Supabase can't export hashes via standard API)</li>
+    <li>Post-migration validation checklist</li>
+  </ol>
+  <p style="font-size:11.5px;">No Auth change made.</p>
+
+  <h2>E. Portability Documentation — Updated</h2>
+  <ul>
+    <li><code>backend-portability.md</code> — verified project reference stated at the top, §4/§11/§13 amended, new §31 remediation record</li>
+    <li><code>backend-portability-manifest.json</code> — index status marked <code>REMOVED</code>, storage-rewrite tooling path linked, project-reference verification sources recorded</li>
+  </ul>
+
+  <h2>Validation</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span> on every file this remediation touched — 116 pre-existing errors found in a full-repo sweep are all inside Lovable-generated files never touched here</td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>Service pages / sitemap / portfolio / admin</td><td><span class="pill done">Unchanged</span> — live-verified 200s and identical sitemap slugs</td></tr>
+    <tr><td>RLS</td><td><span class="pill done">Unchanged</span> — no policy touched, only an index dropped</td></tr>
+  </table>
+
+  <h2>Remaining AMBER Risks (unchanged in level, narrowed in scope)</h2>
+  <ul>
+    <li>Migration-history visibility — no CLI-tracked table visible from this access path</li>
+    <li>Auth — Supabase-platform password-migration limitation is not fixable from this repo; now more thoroughly documented</li>
+    <li>Storage — binaries still need a separate object-copy step for a real migration; rewrite tooling now prepared</li>
+    <li>Lovable build dependency (<code>@lovable.dev/vite-tanstack-config</code>) — real but replaceable</li>
+  </ul>
+
+  <h2>Manual Actions Required</h2>
+  <p style="font-size:12px;"><b>None.</b> No migration executed, no new Supabase project, no hosting change, no Storage move, no Auth-user modification.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.4A.1 Portability Remediation Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

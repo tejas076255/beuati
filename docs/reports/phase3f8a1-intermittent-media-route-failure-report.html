@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.8A.1 Media Route Failure</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .bug { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .seq { counter-reset: step; list-style: none; padding-left: 0; }
+  .seq li { counter-increment: step; padding: 6px 0 6px 30px; position: relative; font-size: 11.5px; }
+  .seq li::before { content: counter(step); position: absolute; left: 0; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.8A.1</div>
+    <h1>Intermittent Gallery + Before/After Route Failure — Root-Cause Fix</h1>
+    <p class="sub">A real, reproducible runtime regression traced to its exact origin: a React Query cache-key collision introduced by Phase 3F.8, not an auth/session or media-data problem. Fixed at the root with distinct cache keys, plus defensive hardening so the same bug class can't recur.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>Root cause</strong>Shared cache key, divergent shapes</div>
+      <div><strong>Auth/session</strong>Confirmed not the cause</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">1</div><div class="l">Exact line-level bug found</div></div>
+    <div class="card"><div class="n">3</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">DB / RLS / trigger changes</div></div>
+    <div class="card"><div class="n">8/8</div><div class="l">Routes smoke-tested OK</div></div>
+  </div>
+
+  <h2>1. Exact Runtime Error</h2>
+  <div class="bug">
+    <code>TypeError: services.map is not a function</code> — thrown synchronously inside <code>GalleryPage</code>'s (and <code>BeforeAfterPage</code>'s) render body, at the "Related service" dropdown code. An uncaught render-time exception, caught by TanStack Router's route error boundary and shown as the generic <b>"This page didn't load. Something went wrong on our end."</b>
+  </div>
+
+  <h2>2. Reproduction Sequence</h2>
+  <ol class="seq">
+    <li>Visit <code>/dashboard/gallery</code> or <code>/dashboard/before-after</code> first in a session → works.</li>
+    <li>Visit <code>/dashboard/services</code> at any point afterward → still works (that page reads its data defensively).</li>
+    <li>Navigate back to Gallery or Before/After → crashes.</li>
+    <li>A hard reload / fresh tab "fixes" it temporarily by starting the sequence over.</li>
+  </ol>
+
+  <h2>3–4. Root Cause &amp; Why Login Temporarily Fixed It</h2>
+  <div class="verified">
+    <code>router.tsx</code> creates exactly <b>one shared <code>QueryClient</code></b> for the entire SPA session. Three independent route files — Gallery, Before/After, Services — each declared their own <code>listServicesFn</code> but cached it under the <b>identical literal key <code>["own-services"]</code></b>. Until Phase 3F.8, all three returned the same flat-array shape. Phase 3F.8 repointed the Services page's query at <code>listOwnServicesWithReadiness()</code>, returning <code>{ services, readinessContext }</code> — an object, not an array — without renamespacing its key. Once the Services page populated that shared slot with the object shape, Gallery/Before-After's next render called <code>.map()</code> directly on it.
+  </div>
+  <p style="font-size:11.5px;"><b>Why login "fixed" it:</b> a hard reload re-executes <code>getRouter()</code>, creating a brand-new, empty <code>QueryClient</code> — wiping the poisoned cache entry until the Services page is visited again in the fresh session.</p>
+
+  <h2>5. Why Gallery and Before/After Were Affected</h2>
+  <p style="font-size:11.5px;">They're the only two routes that both (a) read the shared <code>"own-services"</code> key for their "Related service" dropdown and (b) call <code>.map()</code>/<code>.find()</code> on the result unconditionally during render, with no shape guard. The Services page's own optional chaining happened to absorb a wrong-shaped value without crashing — which is exactly why it looked "unaffected."</p>
+
+  <div class="page-break"></div>
+
+  <h2>6–7. Files Changed &amp; Database Changes</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>dashboard.gallery.tsx</code></td><td>Query key renamed to <code>["own-services-for-linking"]</code>; <code>Array.isArray()</code> guard added</td></tr>
+    <tr><td><code>dashboard.before-after.tsx</code></td><td>Same key rename (intentionally shared with Gallery — same shape); same guard added</td></tr>
+    <tr><td><code>dashboard.services.tsx</code></td><td>Query key renamed to <code>["own-services-with-readiness"]</code>, used consistently by its query and both invalidations</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: zero, confirmed.</b> This was a pure client-side cache-key bug. Live-verified via Lovable MCP: both <code>trg_portfolio_items_service_ownership</code> and <code>trg_before_after_items_service_ownership</code> remain present and enabled, untouched.</p>
+
+  <h2>8. Auth/Session Fix</h2>
+  <p style="font-size:11.5px;">None needed. <code>requireSupabaseAuth</code> was read in full and is identical, per-request, and stateless across every dashboard route — confirmed never the cause, and nothing about it changed. This was never an auth/session-lifecycle bug despite superficially resembling one.</p>
+
+  <h2>9–11. Gallery, Before/After &amp; Related-Service Results</h2>
+  <ul>
+    <li>Gallery: query key no longer collides; <code>.map()</code> now always operates on a guaranteed array; add/edit/delete, multiple images, visibility, alt text, Related service, dropzone all untouched</li>
+    <li>Before/After: identical fix; add/edit/delete, before/after images, visibility, descriptions, Related service, dropzones untouched</li>
+    <li>Related service: still fully functional — Gallery and Before/After now share one correctly-shaped cache entry (a minor efficiency bonus), and a future shape mismatch elsewhere can no longer crash either route</li>
+  </ul>
+
+  <h2>12. Storage/Media Integrity</h2>
+  <div class="verified">
+    Live-verified via Lovable MCP: Dharti's profile still has 2 gallery items / 3 gallery images / 1 before-after item / 2 before-after images — unchanged from before this fix.
+  </div>
+
+  <h2>13–14. Navigation &amp; Session Tests</h2>
+  <div class="flag">
+    Not performed live — no browser automation tool (Playwright/chromium-cli) is available in this environment. The fix was verified by tracing the exact crash mechanism in code (the single shared QueryClient, the exact colliding key, the shape divergence from Phase 3F.8) and eliminating it structurally — the routes can no longer read each other's differently-shaped cache entry, regardless of navigation order or cycle count. The login/logout test wasn't needed to validate this fix either, since the bug was proven independent of auth/session state.
+  </div>
+
+  <h2>15. Automated Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>8 required routes</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>16. Remaining Manual Test For You</h2>
+  <p style="font-size:11.5px;">Please do the 20-cycle navigation walk (Gallery → Services → Before/After → SEO → Gallery → Profile → Before/After, repeated, with a hard refresh and back/forward mixed in) for a live, empirical confirmation — zero failures expected now. Also worth checking that editing/saving a service on <code>/dashboard/services</code> and then immediately opening Gallery's "Add item" dialog shows the updated service list in the Related-service dropdown.</p>
+
+  <p style="font-size:12px;"><b>Stopping here per the phase's STOP condition</b> — not starting another phase.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.8A.1 Intermittent Media Route Failure Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

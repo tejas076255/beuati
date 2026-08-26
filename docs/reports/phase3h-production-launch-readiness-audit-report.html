@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3H Launch Readiness</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.4px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.2px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verdict { background: #fff7ed; border: 2px solid #f97316; border-radius: 12px; padding: 16px 20px; margin: 14px 0; }
+  .verdict h3 { margin: 0 0 4px; color: #c2410c; font-size: 15px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.ready { background:#dcfce7; color:#15803d; }
+  .pill.minor { background:#fef9c3; color:#854d0e; }
+  .pill.notready { background:#fee2e2; color:#b91c1c; }
+  .pill.p1 { background:#fee2e2; color:#b91c1c; }
+  .pill.p2 { background:#fef3c7; color:#92400e; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3H · Read-Only Audit</div>
+    <h1>Production Launch Readiness Audit</h1>
+    <p class="sub">A full audit of the deployment path, environment configuration, backend connectivity, storage, security, and operational readiness — cross-verified by running the actual built Cloudflare Worker artifact locally. Zero deployment, zero DNS, zero code, zero database changes made.</p>
+    <div class="meta">
+      <div><strong>P0 blockers</strong>0</div>
+      <div><strong>P1 items</strong>2 (both config/process, not code)</div>
+      <div><strong>Verdict</strong>Narrowly not ready — checklist only</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h3>⚠ VERDICT: NOT READY (narrowly) — zero code defects, 2 deployment-config prerequisites outstanding</h3>
+    <p style="margin:0; font-size:12px;">The application code itself has zero P0/P1 defects — every 3G system works correctly. Two deployment-configuration items must be completed as part of the deploy process itself: (1) production env vars configured on the real host, (2) migration-tracking approach documented. Both are checklist items, doable in minutes, not code fixes.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">P0 code defects</div></div>
+    <div class="card"><div class="n">2</div><div class="l">P1 deploy prerequisites</div></div>
+    <div class="card"><div class="n">18</div><div class="l">Migration files (1 tracked live)</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Secrets hardcoded in repo</div></div>
+  </div>
+
+  <h2>P1 — Must Complete Before Deployment</h2>
+  <table>
+    <tr><th>ID</th><th>Finding</th></tr>
+    <tr><td><span class="pill p1">P1-1</span></td><td><b>Production env vars must be set on the real host.</b> Live-tested by running the actual built Cloudflare Worker (<code>.output/server/index.mjs</code>) via <code>wrangler dev</code>: without SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY/VITE_SITE_URL injected, every portfolio/service page and the dynamic sitemap return 500. This is expected — <code>.env</code> is local/Vite-only and never transfers to the deployed Worker automatically. Not a bug: the app fails safely with a clean generic error page (see below), and Lovable's own error text ("Connect Supabase in Lovable Cloud") anticipates this exact step.</td></tr>
+    <tr><td><span class="pill p1">P1-2</span></td><td><b>Migration tracking gap.</b> 18 migration files exist in the repo; only 1 is recorded in <code>supabase_migrations.schema_migrations</code> live. The live schema content is verified correct (matches all 18 files' cumulative effect, extensively tested throughout 3G) — this is untracked, not drifted. But standard Supabase CLI tooling (<code>db push</code>) could conflict with this state if used carelessly in the future.</td></tr>
+  </table>
+
+  <h2>P2 — Should Fix Soon (not launch blockers)</h2>
+  <ul>
+    <li><code>.env</code> is tracked in git (not in <code>.gitignore</code>) — no actual secret exposed today (only the public/anon key + project ID + site URL, all safe-by-design to be public), but a best-practice gap for the future.</li>
+    <li>No custom security headers configured (only asset caching in the generated <code>_headers</code> file) — not urgent since RLS + auth middleware are the real security boundary.</li>
+    <li>The build's own printed hint ("preview with <code>npx vite preview</code>") doesn't work for this project's Cloudflare/Nitro output — confirmed live; real local verification needs <code>wrangler dev</code>.</li>
+    <li>3 already-known 3G CRM P2 items (filter enquiry-awareness, snapshot labels) — reconfirmed, still not blockers.</li>
+    <li>Cosmetic: trailing whitespace in the live "Bridal Makeup Artist " title field.</li>
+  </ul>
+
+  <div class="page-break"></div>
+
+  <h2>Deployment Architecture (Verified)</h2>
+  <div class="verified">
+    TanStack Start via <code>@lovable.dev/vite-tanstack-config</code>, which wires Nitro with <b>Cloudflare as its default build target</b> — confirmed via the config file's own comment and the generated <code>wrangler.json</code>. <code>npm run build</code> produces a real Cloudflare Worker script, not a static export. <code>/sitemap.xml</code> is a genuinely dynamic, database-driven, server-executed route (custom fetch intercept in <code>src/server.ts</code>).<br/><br/>
+    <b>Recommended host: Lovable's own native publish path</b> — the entire toolchain is purpose-built for it, and the app's own error messages anticipate it. <b>Static-only hosting (plain Hostinger, static export) would break the app</b> — confirmed the dynamic sitemap and every SSR route require a live server runtime. Vercel is technically possible but would need a Nitro preset change (out of scope for a read-only audit) and is unverified.
+  </div>
+
+  <h2>Production Runtime Test — Live Evidence</h2>
+  <table>
+    <tr><th>Test</th><th>Result</th></tr>
+    <tr><td>Real Cloudflare Worker artifact, no env vars</td><td>Homepage/robots.txt 200 (static); portfolio/service/sitemap 500 (expected — see P1-1)</td></tr>
+    <tr><td>Client-facing error page content</td><td>Generic "This page didn't load / Try again / Go home" — zero stack traces, file paths, or env var names leaked</td></tr>
+    <tr><td>404 behavior (unknown slug/route)</td><td>Correct HTTP 404, real non-blank "Page not found" page (~3.4KB)</td></tr>
+    <tr><td>RLS on all 13 core tables</td><td>Confirmed <code>relrowsecurity = true</code> on every one</td></tr>
+    <tr><td>Storage bucket + profile photo URL</td><td>Live-fetched, resolved 200 image/png, correct project/bucket/path</td></tr>
+    <tr><td>Admin cross-profile query</td><td>Correctly gated by explicit <code>assertIsAdmin()</code> role check</td></tr>
+    <tr><td>Secret scan (src/, server/, supabase/)</td><td>Zero hardcoded service-role keys, tokens, or passwords found</td></tr>
+    <tr><td>http:// reference scan</td><td>Only 2 hits, both harmless XML namespace URIs — zero mixed-content risk</td></tr>
+    <tr><td>Delete-mutation audit</td><td>No UI path anywhere can delete a leads or lead_inquiries row</td></tr>
+  </table>
+
+  <h2>Environment Variable Inventory</h2>
+  <table>
+    <tr><th>Name</th><th>Required</th><th>Type</th><th>Status</th></tr>
+    <tr><td>VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY</td><td>Yes</td><td>Public</td><td>Present, correct project (ivbujlyilzmlublqzalu)</td></tr>
+    <tr><td>SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY</td><td>Yes</td><td>Server</td><td>Present locally — <b>must be confirmed on host</b> (P1-1)</td></tr>
+    <tr><td>VITE_SITE_URL</td><td>Yes</td><td>Public</td><td>Correctly set to https://beautyfolio.in</td></tr>
+    <tr><td>SUPABASE_SERVICE_ROLE_KEY</td><td>No (unused)</td><td>Server secret</td><td>Not present — dead code path only, safe</td></tr>
+    <tr><td>VITE_GTM_ID</td><td>No</td><td>Public</td><td>Unset — confirmed clean no-op, zero script injected</td></tr>
+  </table>
+
+  <h2>Launch-Readiness Scorecard</h2>
+  <table>
+    <tr><th>Area</th><th>Status</th></tr>
+    <tr><td>Deployment architecture</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Production environment variables</td><td><span class="pill notready">NOT READY</span> — must configure on host</td></tr>
+    <tr><td>Backend connectivity</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Migration consistency</td><td><span class="pill minor">MINOR ISSUES</span> — tracking gap only</td></tr>
+    <tr><td>Database health</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Storage</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Authentication</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Public portfolio / service pages</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Lead conversion</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>CRM</td><td><span class="pill minor">MINOR ISSUES</span> — known P2s only</td></tr>
+    <tr><td>Attribution</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Analytics readiness</td><td><span class="pill ready">READY</span> (safe no-op)</td></tr>
+    <tr><td>SEO</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Security/RLS</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Error handling</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Performance</td><td><span class="pill ready">READY</span></td></tr>
+    <tr><td>Mobile</td><td><span class="pill minor">MINOR ISSUES</span> — code-reviewed only</td></tr>
+    <tr><td>Backup/recovery</td><td>MANUAL PLATFORM CHECK REQUIRED</td></tr>
+    <tr><td>Rollback</td><td><span class="pill ready">READY</span> — plan defined</td></tr>
+    <tr><td>Monitoring</td><td><span class="pill minor">MINOR ISSUES</span> — platform logs only</td></tr>
+    <tr><td>Public-data cleanliness</td><td><span class="pill ready">READY</span></td></tr>
+  </table>
+
+  <h2>Exact Minimum Fixes Before Deployment</h2>
+  <ol>
+    <li>Configure SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, and VITE_SITE_URL as environment variables on the actual production host (expected automatic via Lovable's publish flow — confirm explicitly).</li>
+    <li>Document the migration-tracking approach going forward: continue applying all future schema changes via the verified Lovable MCP connection only, never a blind Supabase CLI push.</li>
+    <li>Manually confirm backup/PITR capability in the Lovable Cloud dashboard — informational, not a code change.</li>
+  </ol>
+  <p style="font-size:11px; color:#6b7280;">None of the three require a code change, redesign, or migration.</p>
+
+  <h2>Post-Launch Verification Checklist</h2>
+  <ol>
+    <li>Homepage loads, no console errors</li>
+    <li>Portfolio page: canonical/OG/JSON-LD match beautyfolio.in</li>
+    <li>Service page: pricing/duration/content correct</li>
+    <li>/sitemap.xml: valid XML, absolute production URLs</li>
+    <li>/robots.txt: correct Sitemap line</li>
+    <li>Profile/gallery/before-after media loads</li>
+    <li>Dashboard login → session persists → protected routes load</li>
+    <li>Submit a real test enquiry end-to-end, confirm it appears in CRM</li>
+    <li>WhatsApp CTA opens the correct number</li>
+    <li>CRM: List/Cards/Pipeline/Insights/drill-down/multi-enquiry all load</li>
+    <li>A UTM-tagged test visit produces expected attribution</li>
+    <li>No console/network errors anywhere above</li>
+  </ol>
+
+  <h2>Items Safely Deferred After Launch</h2>
+  <ul>
+    <li>.env git-tracking cleanup, custom security headers, 3 known CRM filter/label P2s, cosmetic title whitespace</li>
+    <li>Dedicated error-tracking vendor, live mobile/device testing, DNS/www-redirect finalization</li>
+    <li>Customer Growth OS, billing, LTV, Google Ads/Meta integration, automation — explicitly out of scope</li>
+  </ul>
+
+  <p style="font-size:12px;"><b>No production configuration was changed. No DNS was changed. No GTM was configured. No code was modified. No database data was modified. No migrations were applied.</b></p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3H Production Launch Readiness Audit</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

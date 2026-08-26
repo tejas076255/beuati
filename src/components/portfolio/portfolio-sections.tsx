@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   galleryFilters,
@@ -24,6 +25,14 @@ import {
   type BeauticianProfile,
   type GalleryCategory,
 } from "@/data/portfolio";
+import { getVideoEmbedSource } from "@/lib/video-embed";
+// Phase 3G.2A §3 — moved to a shared helper so the public form and the
+// dashboard's manual Add Lead form can never enforce divergent phone
+// rules. The RPC (submit_lead) remains the authoritative server-side
+// check for this route — this is a client-side convenience only.
+import { isValidPhone } from "@/lib/phone";
+import { AnalyticsEvent, CtaLocation, trackEvent, type CtaLocationValue } from "@/lib/analytics";
+import { getAttributionSnapshot, getConversionPath, recordCtaClick } from "@/lib/attribution";
 
 type P = { profile: BeauticianProfile };
 
@@ -35,6 +44,60 @@ export function waLink(profile: BeauticianProfile, message?: string) {
 }
 
 const telLink = (profile: BeauticianProfile) => `tel:${profile.phone.replace(/\s/g, "")}`;
+
+// Phase 3G.3 §12/§15/§17 — small shared trackers so every "Check
+// availability"/WhatsApp CTA across this file (hero, service cards,
+// packages, availability section, final CTA, mobile sticky, floating
+// button) reports the exact same event/property shape, differing only by
+// `cta_location` and (when relevant) which service the click was about.
+// Never claims a booking or a sent message — see the event names
+// themselves (§12 "this remains availability intent, NOT confirmed
+// booking"; §15 "whatsapp_click, not whatsapp_message_sent").
+function trackAvailabilityCtaClick(
+  profile: BeauticianProfile,
+  ctaLocation: CtaLocationValue,
+  extra: { service_name?: string; package_name?: string } = {},
+): void {
+  trackEvent(AnalyticsEvent.AvailabilityCtaClick, {
+    profile_slug: profile.slug,
+    cta_location: ctaLocation,
+    page_path: `/portfolio/${profile.slug}`,
+    ...extra,
+  });
+  // Phase 3G.3A §16 — preserves which CTA drove the visitor toward the
+  // form, through internal navigation, so a later successful submission
+  // can attribute the correct origin instead of always recording
+  // availability_section.
+  recordCtaClick(ctaLocation, profile.slug);
+}
+
+function trackWhatsappClick(
+  profile: BeauticianProfile,
+  ctaLocation: CtaLocationValue,
+  extra: { service_name?: string; package_name?: string } = {},
+): void {
+  trackEvent(AnalyticsEvent.WhatsappClick, {
+    profile_slug: profile.slug,
+    cta_location: ctaLocation,
+    page_path: `/portfolio/${profile.slug}`,
+    ...extra,
+  });
+}
+
+/** `mapQuery` is meant to hold either a bare Google Maps embed URL or a
+ * plain-text location to search for — but the dashboard field also accepts
+ * a full pasted <iframe> snippet and normalizes it on save. This defends
+ * the public render against any already-stored un-normalized value too, so
+ * a fix on the dashboard side doesn't require every profile to be re-saved. */
+function resolveMapEmbedSrc(mapQuery: string): string {
+  let value = mapQuery.trim();
+  if (value.includes("<iframe")) {
+    value = value.match(/src="([^"]+)"/)?.[1] ?? value;
+  }
+  return value.startsWith("https://www.google.com/maps/embed")
+    ? value
+    : `https://www.google.com/maps?q=${encodeURIComponent(value)}&output=embed`;
+}
 
 function SectionHead({
   eyebrow,
@@ -109,12 +172,19 @@ export function PortfolioHeroSection({ profile }: P) {
     >
       <div className="section-shell grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
         <div className="min-w-0">
-
           <span className="eyebrow">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {profile.specialty}
           </span>
           <h1 className="mt-4 font-display text-[34px] leading-[1.08] font-semibold sm:text-[48px] lg:text-[56px]">
             {profile.name}
+            {profile.isVerified && (
+              <span
+                className="ml-2.5 inline-flex translate-y-[-0.3em] items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 align-middle text-xs font-medium text-primary"
+                title="Reviewed and approved by BeautyFolio"
+              >
+                <Check className="h-3 w-3" aria-hidden="true" /> Verified
+              </span>
+            )}
           </h1>
           <p className="mt-2 text-[19px] leading-snug font-medium text-primary sm:text-lg">
             {profile.headline}
@@ -124,11 +194,18 @@ export function PortfolioHeroSection({ profile }: P) {
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 text-[14px] sm:mt-6 sm:gap-2.5 sm:text-sm">
-            <span className="inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-card/60 px-3 py-1.5 shadow-soft backdrop-blur-sm">
-              <Stars />
-              <span className="font-semibold">{profile.rating}</span>
-              <span className="text-muted-foreground">({profile.reviewCount}+ clients)</span>
-            </span>
+            {/* Real rating from published reviews only — hidden entirely
+                when there are none yet, never a fabricated 0.0/0 (Phase
+                3F.3A §4). */}
+            {profile.rating != null && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-card/60 px-3 py-1.5 shadow-soft backdrop-blur-sm">
+                <Stars />
+                <span className="font-semibold">{profile.rating}</span>
+                <span className="text-muted-foreground">
+                  ({profile.reviewCount} review{profile.reviewCount === 1 ? "" : "s"})
+                </span>
+              </span>
+            )}
             <span className="inline-flex items-center gap-2 rounded-full border border-rose-gold/25 bg-secondary/50 px-3 py-1.5 text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-rose-gold" aria-hidden="true" />
               {profile.experience} experience
@@ -139,19 +216,26 @@ export function PortfolioHeroSection({ profile }: P) {
             </span>
           </div>
 
-
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
             {profile.positioning}
           </p>
 
           <div className="mt-6 grid gap-2.5 sm:mt-8 sm:flex sm:flex-wrap sm:gap-3">
             <Button variant="hero" size="lg" className="w-full text-[15px] sm:w-auto" asChild>
-              <a href="#availability">
+              <a
+                href="#availability"
+                onClick={() => trackAvailabilityCtaClick(profile, CtaLocation.Hero)}
+              >
                 <Calendar aria-hidden="true" /> Check availability
               </a>
             </Button>
             <Button variant="softline" size="lg" className="w-full text-[15px] sm:w-auto" asChild>
-              <a href={waLink(profile)} target="_blank" rel="noreferrer">
+              <a
+                href={waLink(profile)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => trackWhatsappClick(profile, CtaLocation.Hero)}
+              >
                 <MessageCircle aria-hidden="true" /> WhatsApp
               </a>
             </Button>
@@ -177,19 +261,41 @@ export function PortfolioHeroSection({ profile }: P) {
         </div>
 
         <div className="brand-arc relative mx-auto mt-2 w-full max-w-md text-primary lg:mt-0">
-          <img
-            src={profile.portrait}
-            alt={`${profile.name}, ${profile.role} in ${profile.primaryCity}`}
-            width={900}
-            height={1100}
-            fetchPriority="high"
-            decoding="async"
-            className="aspect-[4/5] w-full rounded-3xl object-cover object-top shadow-lift sm:aspect-auto sm:object-center"
-          />
-          <div className="absolute -bottom-5 left-1/2 w-[88%] -translate-x-1/2 rounded-2xl border border-border bg-card px-4 py-3 text-center shadow-lift">
-            <p className="text-xs text-muted-foreground">Next available date</p>
-            <p className="text-sm font-semibold">Booking for this wedding season</p>
-          </div>
+          {profile.portrait ? (
+            <img
+              src={profile.portrait}
+              alt={`${profile.name}, ${profile.role} in ${profile.primaryCity}`}
+              width={900}
+              height={1100}
+              fetchPriority="high"
+              decoding="async"
+              className="aspect-[4/5] w-full rounded-3xl object-cover object-top shadow-lift sm:aspect-auto sm:object-center"
+            />
+          ) : (
+            // Genuine no-photo state (Phase 3F.9A) — never a fabricated
+            // fallback photo. Matches the dashboard's own "No photo" circle
+            // language, scaled up for the hero frame.
+            <div
+              className="bg-gradient-brand flex aspect-[4/5] w-full items-center justify-center rounded-3xl shadow-lift sm:aspect-auto"
+              role="img"
+              aria-label={`${profile.name}, ${profile.role} in ${profile.primaryCity}`}
+            >
+              <Sparkles className="h-14 w-14 text-primary-foreground/80" aria-hidden="true" />
+            </div>
+          )}
+          {/* Phase 3G.1 §21 — was static, unverified "Next available
+              date: Booking for this wedding season" copy with no real
+              availability data behind it. Replaced with a genuine CTA
+              using the same safe, generic wording as the hero button,
+              and made it an actual link since it visually reads as one. */}
+          <a
+            href="#availability"
+            onClick={() => trackAvailabilityCtaClick(profile, CtaLocation.HeroCard)}
+            className="absolute -bottom-5 left-1/2 w-[88%] -translate-x-1/2 rounded-2xl border border-border bg-card px-4 py-3 text-center shadow-lift transition-shadow hover:shadow-soft"
+          >
+            <p className="text-xs text-muted-foreground">Ready to book?</p>
+            <p className="text-sm font-semibold">Check availability for your date</p>
+          </a>
         </div>
       </div>
     </section>
@@ -235,8 +341,13 @@ export function AboutSection({ profile }: P) {
           <dl className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
             {[
               { v: profile.experience, l: "Experience" },
-              { v: profile.looksDelivered.replace(" bridal looks", ""), l: "Brides" },
-              { v: `${profile.rating}★`, l: "Average rating" },
+              // Real, system-calculated published-work count — replaces the
+              // former unverified client_count-derived "Brides" stat
+              // (Phase 3F.3A §5/§6).
+              { v: `${profile.publishedWorkCount}`, l: "Published looks" },
+              // Real rating omitted entirely with no published reviews yet,
+              // never shown as a fabricated 0★ (Phase 3F.3A §4).
+              ...(profile.rating != null ? [{ v: `${profile.rating}★`, l: "Average rating" }] : []),
               { v: profile.primaryCity, l: "Based in" },
             ].map((m) => (
               <div
@@ -328,7 +439,10 @@ function Lightbox({
   onIndex: (i: number) => void;
 }) {
   const touchX = useRef<number | null>(null);
-  const next = useCallback(() => onIndex((index + 1) % items.length), [index, items.length, onIndex]);
+  const next = useCallback(
+    () => onIndex((index + 1) % items.length),
+    [index, items.length, onIndex],
+  );
   const prev = useCallback(
     () => onIndex((index - 1 + items.length) % items.length),
     [index, items.length, onIndex],
@@ -387,7 +501,7 @@ function Lightbox({
       <div className="flex flex-1 items-center justify-center px-3">
         <img
           src={img.src}
-          alt={imageAlt(profile, img.label)}
+          alt={img.alt ?? imageAlt(profile, img.label)}
           className="max-h-[70vh] w-auto max-w-full rounded-2xl object-contain"
         />
       </div>
@@ -428,6 +542,11 @@ export function GallerySection({ profile }: P) {
     [profile.gallery, active],
   );
   const mobileItems = showAll ? items : items.slice(0, 6);
+
+  // Phase 3G.1 §23 — optional section, omitted entirely when empty rather
+  // than showing filter chips with nothing to filter (same convention
+  // already used by Reviews/Videos/Service Areas below).
+  if (profile.gallery.length === 0) return null;
 
   return (
     <section id="gallery" className="py-14 sm:py-20">
@@ -477,7 +596,7 @@ export function GallerySection({ profile }: P) {
               >
                 <img
                   src={img.src}
-                  alt={imageAlt(profile, img.label)}
+                  alt={img.alt ?? imageAlt(profile, img.label)}
                   loading={i < 2 ? "eager" : "lazy"}
                   decoding="async"
                   width={900}
@@ -514,7 +633,7 @@ export function GallerySection({ profile }: P) {
             >
               <img
                 src={img.src}
-                alt={imageAlt(profile, img.label)}
+                alt={img.alt ?? imageAlt(profile, img.label)}
                 title={img.label}
                 loading="lazy"
                 decoding="async"
@@ -522,7 +641,7 @@ export function GallerySection({ profile }: P) {
                 height={900}
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
               />
-              <figcaption className="sr-only">{imageAlt(profile, img.label)}</figcaption>
+              <figcaption className="sr-only">{img.alt ?? imageAlt(profile, img.label)}</figcaption>
             </figure>
           ))}
         </div>
@@ -555,7 +674,7 @@ function BeforeAfter({
       <div className="relative aspect-[4/5] w-full select-none">
         <img
           src={item.before}
-          alt={imageAlt(profile, `Natural look before ${item.service}`)}
+          alt={item.beforeAlt ?? imageAlt(profile, `Natural look before ${item.service}`)}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-top"
@@ -563,7 +682,7 @@ function BeforeAfter({
         <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
           <img
             src={item.after}
-            alt={imageAlt(profile, `Finished ${item.service} look`)}
+            alt={item.afterAlt ?? imageAlt(profile, `Finished ${item.service} look`)}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover object-top"
@@ -602,6 +721,8 @@ function BeforeAfter({
 export function TransformationsSection({ profile }: P) {
   const ref = useRef<HTMLDivElement>(null);
   const index = useScrollIndex(ref, profile.transformations.length);
+  // Phase 3G.1 §23 — optional section, omitted entirely when empty.
+  if (profile.transformations.length === 0) return null;
   return (
     <section id="transformations" className="bg-gradient-soft py-14 sm:py-20">
       <div className="section-shell">
@@ -630,11 +751,25 @@ export function TransformationsSection({ profile }: P) {
 }
 
 /* 6. SERVICES — accordion on mobile, grid on desktop */
-function ServiceRow({ profile, s }: { profile: BeauticianProfile; s: BeauticianProfile["serviceGroups"][number]["items"][number] }) {
+function ServiceRow({
+  profile,
+  s,
+}: {
+  profile: BeauticianProfile;
+  s: BeauticianProfile["serviceGroups"][number]["items"][number];
+}) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-border/70 py-3.5 last:border-0">
       <div className="min-w-0">
-        <p className="text-[15px] font-semibold">{s.name}</p>
+        <p className="text-[15px] font-semibold">
+          {s.slug ? (
+            <a href={`/portfolio/${profile.slug}/services/${s.slug}`} className="hover:underline">
+              {s.name}
+            </a>
+          ) : (
+            s.name
+          )}
+        </p>
         <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{s.detail}</p>
         <p className="mt-1 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
           <Clock className="h-3.5 w-3.5" aria-hidden="true" /> {s.duration}
@@ -645,9 +780,15 @@ function ServiceRow({ profile, s }: { profile: BeauticianProfile; s: BeauticianP
           {s.price}
         </span>
         <a
-          href={waLink(profile, `Hi ${profile.name.split(" ")[0]}, I'd like to enquire about ${s.name}.`)}
+          href={waLink(
+            profile,
+            `Hi ${profile.name.split(" ")[0]}, I'd like to enquire about ${s.name}.`,
+          )}
           target="_blank"
           rel="noreferrer"
+          onClick={() =>
+            trackWhatsappClick(profile, CtaLocation.ServiceCard, { service_name: s.name })
+          }
           className="inline-flex min-h-9 items-center rounded-full border border-rose-gold/40 px-3 text-[13px] font-semibold text-primary"
         >
           Enquire
@@ -665,7 +806,7 @@ export function ServicesSection({ profile }: P) {
         <SectionHead
           eyebrow="Services"
           title="What I offer"
-          sub="Transparent pricing, no hidden travel or product charges within Ahmedabad."
+          sub="Clear, upfront pricing for every service."
         />
 
         {/* Mobile accordion */}
@@ -720,7 +861,18 @@ export function ServicesSection({ profile }: P) {
                     className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-soft transition-shadow hover:shadow-lift"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <h4 className="text-base font-semibold">{s.name}</h4>
+                      <h4 className="text-base font-semibold">
+                        {s.slug ? (
+                          <a
+                            href={`/portfolio/${profile.slug}/services/${s.slug}`}
+                            className="hover:underline"
+                          >
+                            {s.name}
+                          </a>
+                        ) : (
+                          s.name
+                        )}
+                      </h4>
                       <span className="font-display text-lg font-semibold whitespace-nowrap text-primary">
                         {s.price}
                       </span>
@@ -729,18 +881,30 @@ export function ServicesSection({ profile }: P) {
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" /> {s.duration}
                     </p>
                     <p className="mt-3 flex-1 text-sm text-muted-foreground">{s.detail}</p>
-                    <Button variant="softline" size="sm" className="mt-5 self-start" asChild>
-                      <a
-                        href={waLink(
-                          profile,
-                          `Hi ${profile.name.split(" ")[0]}, I'd like to enquire about ${s.name}.`,
-                        )}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Enquire
-                      </a>
-                    </Button>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <Button variant="softline" size="sm" asChild>
+                        <a
+                          href={waLink(
+                            profile,
+                            `Hi ${profile.name.split(" ")[0]}, I'd like to enquire about ${s.name}.`,
+                          )}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() =>
+                            trackWhatsappClick(profile, CtaLocation.ServiceCard, {
+                              service_name: s.name,
+                            })
+                          }
+                        >
+                          Enquire
+                        </a>
+                      </Button>
+                      {s.slug && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={`/portfolio/${profile.slug}/services/${s.slug}`}>View service</a>
+                        </Button>
+                      )}
+                    </div>
                   </article>
                 ))}
               </div>
@@ -756,6 +920,8 @@ export function ServicesSection({ profile }: P) {
 export function PackagesSection({ profile }: P) {
   const ref = useRef<HTMLDivElement>(null);
   const index = useScrollIndex(ref, profile.packages.length);
+  // Phase 3G.1 §23 — optional section, omitted entirely when empty.
+  if (profile.packages.length === 0) return null;
   return (
     <section id="packages" className="bg-gradient-soft py-14 sm:py-20">
       <div className="section-shell">
@@ -801,7 +967,16 @@ export function PackagesSection({ profile }: P) {
               </ul>
               <div className="mt-6 flex flex-col gap-2">
                 <Button variant={p.featured ? "hero" : "plum"} asChild>
-                  <a href="#availability">Check availability</a>
+                  <a
+                    href="#availability"
+                    onClick={() =>
+                      trackAvailabilityCtaClick(profile, CtaLocation.PackageCard, {
+                        package_name: p.name,
+                      })
+                    }
+                  >
+                    Check availability
+                  </a>
                 </Button>
                 <Button variant="softline" asChild>
                   <a
@@ -811,6 +986,11 @@ export function PackagesSection({ profile }: P) {
                     )}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() =>
+                      trackWhatsappClick(profile, CtaLocation.PackageCard, {
+                        package_name: p.name,
+                      })
+                    }
                   >
                     Enquire on WhatsApp
                   </a>
@@ -829,6 +1009,10 @@ export function PackagesSection({ profile }: P) {
 export function ReviewsSection({ profile }: P) {
   const ref = useRef<HTMLDivElement>(null);
   const index = useScrollIndex(ref, profile.reviews.length);
+  // No published reviews yet — don't show a fabricated 0.0★/0 reviews
+  // summary or an empty section (Phase 3F.3A §4), same convention already
+  // used by VideosSection below for the equivalent empty state.
+  if (profile.reviews.length === 0) return null;
   return (
     <section id="reviews" className="py-14 sm:py-20">
       <div className="section-shell">
@@ -886,7 +1070,198 @@ export function ReviewsSection({ profile }: P) {
 }
 
 /* 9. VIDEOS */
+function VideoPlayerModal({
+  profile,
+  items,
+  index,
+  onClose,
+  onIndex,
+}: {
+  profile: BeauticianProfile;
+  items: BeauticianProfile["videos"];
+  index: number;
+  onClose: () => void;
+  onIndex: (i: number) => void;
+}) {
+  const touchX = useRef<number | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const next = useCallback(
+    () => onIndex((index + 1) % items.length),
+    [index, items.length, onIndex],
+  );
+  const prev = useCallback(
+    () => onIndex((index - 1 + items.length) % items.length),
+    [index, items.length, onIndex],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [next, prev, onClose]);
+
+  // Focus management: move focus into the dialog on open, return it to
+  // whatever triggered the dialog (the thumbnail button) on close. Runs
+  // once per mount/unmount only — index changes (Prev/Next) don't remount
+  // this component, so this doesn't refight focus on every navigation.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+    return () => {
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
+  const video = items[index];
+  if (!video) return null;
+
+  const embed = getVideoEmbedSource({
+    platform: video.platform,
+    videoUrl: video.videoUrl,
+  });
+
+  // Sizing intentionally differs per source so nothing is cropped or
+  // stretched: YouTube keeps its native 16:9, an uploaded file keeps its
+  // own intrinsic dimensions, and Instagram's embed keeps a portrait
+  // container sized for its own naturally-portrait reel widget rather than
+  // being forced into a one-size-fits-all box.
+  const mediaContainerClass =
+    embed?.type === "iframe" && video.platform === "youtube"
+      ? "aspect-video w-full max-w-3xl overflow-hidden rounded-2xl bg-black"
+      : embed?.type === "iframe" && video.platform === "instagram"
+        ? "aspect-[9/16] w-full max-w-[380px] overflow-hidden rounded-2xl bg-black"
+        : embed?.type === "iframe"
+          ? "aspect-video w-full max-w-3xl overflow-hidden rounded-2xl bg-black"
+          : "max-w-sm overflow-hidden rounded-2xl bg-black";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Video player"
+      className="fixed inset-0 z-[60] flex flex-col bg-plum-deep/95 backdrop-blur-sm"
+      onClick={onClose}
+      onTouchStart={(e) => (touchX.current = e.touches[0]?.clientX ?? null)}
+      onTouchEnd={(e) => {
+        const start = touchX.current;
+        const end = e.changedTouches[0]?.clientX;
+        if (start == null || end == null) return;
+        if (Math.abs(end - start) > 45) (end < start ? next : prev)();
+        touchX.current = null;
+      }}
+    >
+      {/* Clicks anywhere in here must not bubble up and trigger the
+          backdrop's onClose — this is what makes "click backdrop to close,
+          click content to not close" work with a single shared handler. */}
+      <div className="flex flex-1 flex-col" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center justify-between px-4 py-3 text-primary-foreground"
+          style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+        >
+          <span className="text-sm font-semibold">
+            {index + 1} / {items.length}
+          </span>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            aria-label="Close video player"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center px-3">
+          {embed?.type === "video" ? (
+            <video
+              key={embed.src}
+              src={embed.src}
+              poster={video.thumb}
+              controls
+              autoPlay
+              playsInline
+              className="max-h-[75vh] max-w-full rounded-2xl bg-black"
+            />
+          ) : (
+            <div className={mediaContainerClass}>
+              {embed?.type === "iframe" && (
+                <iframe
+                  key={embed.src}
+                  src={embed.src}
+                  title={video.title}
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
+              {(embed?.type === "link" || embed == null) && (
+                <div className="flex aspect-[9/16] w-full flex-col items-center justify-center gap-4 p-6 text-center text-primary-foreground">
+                  <img
+                    src={video.thumb}
+                    alt={video.thumbnailAlt ?? imageAlt(profile, video.title)}
+                    className="max-h-[50%] rounded-xl object-cover"
+                  />
+                  <p className="text-sm text-white/80">This video can't be played inline here.</p>
+                  {embed?.type === "link" && (
+                    <a
+                      href={embed.src}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex min-h-11 items-center rounded-full bg-card px-5 text-sm font-semibold text-foreground"
+                    >
+                      Watch on original site
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div
+          className="flex items-center justify-between gap-3 px-4 py-4 text-primary-foreground"
+          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        >
+          <button
+            type="button"
+            onClick={prev}
+            aria-label="Previous video"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20"
+          >
+            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <p className="flex-1 text-center text-sm">{video.title}</p>
+          <button
+            type="button"
+            onClick={next}
+            aria-label="Next video"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20"
+          >
+            <ChevronRight className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VideosSection({ profile }: P) {
+  const ref = useRef<HTMLDivElement>(null);
+  const index = useScrollIndex(ref, profile.videos.length);
+  const [player, setPlayer] = useState<number | null>(null);
+
+  if (profile.videos.length === 0) return null;
+
   return (
     <section id="videos" className="bg-gradient-soft py-14 sm:py-20">
       <div className="section-shell">
@@ -895,21 +1270,29 @@ export function VideosSection({ profile }: P) {
           title="Transformations on camera"
           sub="Short reels showing the full process from prep to final look."
         />
-        <div className="-mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:px-0 md:mt-10 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible">
-          {profile.videos.map((v) => (
+        <div
+          ref={ref}
+          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:px-0 md:mt-10 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible"
+        >
+          {profile.videos.map((v, i) => (
             <article
-              key={v.title}
-              className="w-[82vw] shrink-0 snap-center overflow-hidden rounded-2xl border border-border bg-card shadow-soft sm:w-[60vw] md:w-auto"
+              key={v.title + i}
+              className="w-[60vw] shrink-0 snap-center overflow-hidden rounded-2xl border border-border bg-card shadow-soft sm:w-[40vw] md:w-auto"
             >
-              <div className="relative">
+              <button
+                type="button"
+                onClick={() => setPlayer(i)}
+                aria-label={`Play ${v.title}`}
+                className="relative block w-full"
+              >
                 <img
                   src={v.thumb}
-                  alt={imageAlt(profile, v.title)}
+                  alt={v.thumbnailAlt ?? imageAlt(profile, v.title)}
                   loading="lazy"
                   decoding="async"
-                  width={900}
-                  height={506}
-                  className="aspect-video w-full object-cover object-top"
+                  width={506}
+                  height={900}
+                  className="aspect-[9/16] w-full object-cover object-top"
                 />
                 <span className="absolute inset-0 flex items-center justify-center bg-plum-deep/35">
                   <span className="flex h-14 w-14 items-center justify-center rounded-full bg-card/90 md:h-12 md:w-12">
@@ -919,7 +1302,7 @@ export function VideosSection({ profile }: P) {
                 <span className="absolute right-2 bottom-2 rounded bg-plum-deep/80 px-1.5 py-0.5 text-[11px] text-primary-foreground">
                   {v.length}
                 </span>
-              </div>
+              </button>
               <div className="p-4">
                 <p className="text-[11px] tracking-widest text-muted-foreground uppercase">
                   {v.category}
@@ -932,22 +1315,57 @@ export function VideosSection({ profile }: P) {
             </article>
           ))}
         </div>
+        <Dots count={profile.videos.length} active={index} />
       </div>
+
+      {player !== null && (
+        <VideoPlayerModal
+          profile={profile}
+          items={profile.videos}
+          index={player}
+          onIndex={setPlayer}
+          onClose={() => setPlayer(null)}
+        />
+      )}
     </section>
   );
 }
 
 /* 10. SERVICE AREAS */
+function buildAreasServedSentence(profile: BeauticianProfile): string {
+  const areas = profile.areas;
+  const service = profile.role
+    .replace(/\b(artist|specialist|stylist|expert)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+  if (areas.length === 0) return "";
+  if (areas.length === 1) {
+    return `${profile.name} provides ${service} services in ${areas[0]}, ${profile.primaryCity}.`;
+  }
+  const shown = areas.slice(0, 3);
+  const list =
+    shown.length === 2
+      ? shown.join(" and ")
+      : `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}`;
+  return areas.length > 3
+    ? `${profile.name} provides ${service} services in ${list} and other areas of ${profile.primaryCity}.`
+    : `${profile.name} provides ${service} services in ${list}, ${profile.primaryCity}.`;
+}
+
 export function ServiceAreasSection({ profile }: P) {
   const [showAll, setShowAll] = useState(false);
   const visible = showAll ? profile.areas : profile.areas.slice(0, 6);
+  // Service areas are optional — don't render an empty section on the public
+  // page when the beautician hasn't configured any yet.
+  if (profile.areas.length === 0) return null;
   return (
     <section id="areas" className="py-14 sm:py-20">
       <div className="section-shell grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
         <div>
           <SectionHead eyebrow="Local" title="Areas I serve" center={false} />
           <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground sm:mt-5 sm:text-base">
-            {profile.travelNote}
+            {buildAreasServedSentence(profile)}
           </p>
           <p className="mt-5 text-xs font-semibold tracking-widest text-muted-foreground uppercase sm:mt-6">
             Primary city
@@ -997,13 +1415,82 @@ export function ServiceAreasSection({ profile }: P) {
 }
 
 /* 11. AVAILABILITY + CONTACT + MAP */
-export function AvailabilitySection({ profile }: P) {
-  const [date, setDate] = useState("");
-  const [service, setService] = useState("");
-  const [location, setLocation] = useState("");
-  const [sent, setSent] = useState(false);
+type AvailabilityEligibility = "ok" | "too-soon" | "too-far" | "blocked" | null;
 
-  const allServices = profile.serviceGroups.flatMap((g) => g.items.map((i) => i.name));
+function computeAvailabilityEligibility(
+  dateStr: string,
+  availability: BeauticianProfile["availability"],
+): AvailabilityEligibility {
+  if (!dateStr) return null;
+  const target = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(target.getTime())) return null;
+  if (availability.blockedDates.includes(dateStr)) return "blocked";
+  const now = new Date();
+  if (availability.minimumNoticeHours != null) {
+    const minDate = new Date(now.getTime() + availability.minimumNoticeHours * 60 * 60 * 1000);
+    if (target < minDate) return "too-soon";
+  }
+  if (availability.advanceBookingDays != null) {
+    const maxDate = new Date(now.getTime() + availability.advanceBookingDays * 24 * 60 * 60 * 1000);
+    if (target > maxDate) return "too-far";
+  }
+  return "ok";
+}
+
+const ELIGIBILITY_MESSAGE: Record<Exclude<AvailabilityEligibility, null>, string> = {
+  ok: "This date looks available to request.",
+  blocked: "This date isn't usually available — you can still send a request.",
+  "too-soon": "That's short notice — I'll do my best to get back to you quickly.",
+  "too-far": "That's further ahead than I usually plan — I'll confirm as soon as I can.",
+};
+
+export function AvailabilitySection({
+  profile,
+  initialService,
+}: P & {
+  /** Pre-selects the Service dropdown when arriving from a service
+   * landing page's "Check availability" CTA (Phase 3F.6 §8/§9) — carries
+   * only the service name via a URL search param, no schema change. */
+  initialService?: string;
+}) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [date, setDate] = useState("");
+  const [service, setService] = useState(initialService ?? "");
+  const [location, setLocation] = useState("");
+  const [message, setMessage] = useState("");
+  const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Phase 3G.3 §13/§25 — fires availability_form_start at most once per
+  // form instance, on the visitor's first genuine field interaction (not
+  // merely because the form rendered).
+  const formStartedRef = useRef(false);
+  const markFormStarted = () => {
+    if (formStartedRef.current) return;
+    formStartedRef.current = true;
+    trackEvent(AnalyticsEvent.AvailabilityFormStart, {
+      profile_slug: profile.slug,
+      page_path: `/portfolio/${profile.slug}`,
+    });
+  };
+
+  const allServiceItems = profile.serviceGroups.flatMap((g) => g.items);
+  const allServices = allServiceItems.map((i) => i.name);
+  const acceptingBookings = profile.availability.acceptingBookings;
+  const eligibility = computeAvailabilityEligibility(date, profile.availability);
+
+  // Advisory only — a location outside the listed service areas should never
+  // block or discourage a request, since areas served isn't an exhaustive
+  // guarantee of where the beautician can travel.
+  const locationMatchesArea =
+    location.trim().length > 0 &&
+    profile.areas.length > 0 &&
+    profile.areas.some(
+      (a) =>
+        a.toLowerCase().includes(location.trim().toLowerCase()) ||
+        location.trim().toLowerCase().includes(a.toLowerCase()),
+    );
 
   const enquiry = waLink(
     profile,
@@ -1026,80 +1513,293 @@ export function AvailabilitySection({ profile }: P) {
             center={false}
           />
 
-          <form
-            className="mt-6 space-y-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:mt-8 sm:p-6"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="text-sm">
-                <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                  Event date
-                </span>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  className={field}
-                />
-              </label>
-              <label className="text-sm">
-                <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                  Service
-                </span>
-                <select
-                  value={service}
-                  onChange={(e) => setService(e.target.value)}
-                  required
-                  className={field}
+          {sent ? (
+            // Phase 3G.1 §5/§31 — the form previously stayed on screen
+            // (fields + submit button both still active) after a successful
+            // send, so nothing prevented an accidental duplicate submission.
+            // Replacing it with a distinct success state removes that
+            // possibility entirely and gives a clear next action.
+            <div className="mt-6 space-y-4 rounded-3xl border border-primary/20 bg-card p-5 shadow-soft sm:mt-8 sm:p-6">
+              <p role="status" className="rounded-xl bg-secondary/60 px-4 py-3 text-sm">
+                <strong className="block font-semibold">Availability request sent</strong>
+                Thank you. {profile.name.split(" ")[0]} will contact you to confirm availability and
+                booking details. This is a request, not a confirmed booking.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button variant="softline" size="lg" asChild className="sm:flex-1">
+                  <a
+                    href={enquiry}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => trackWhatsappClick(profile, CtaLocation.AvailabilitySection)}
+                  >
+                    <MessageCircle aria-hidden="true" /> WhatsApp
+                  </a>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="lg"
+                  className="sm:flex-1"
+                  onClick={() => {
+                    setSent(false);
+                    setName("");
+                    setPhone("");
+                    setDate("");
+                    setService(initialService ?? "");
+                    setLocation("");
+                    setMessage("");
+                  }}
                 >
-                  <option value="">Select a service</option>
-                  {allServices.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  Send another request
+                </Button>
+              </div>
             </div>
-            <label className="block text-sm">
-              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                Location
-              </span>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder={`Venue or area in ${profile.primaryCity}`}
-                required
-                className={field}
-              />
-            </label>
-
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button type="submit" variant="hero" size="lg" className="sm:flex-1">
-                <Calendar aria-hidden="true" /> Check availability
-              </Button>
-              <Button variant="softline" size="lg" asChild className="sm:flex-1">
-                <a href={enquiry} target="_blank" rel="noreferrer">
+          ) : !acceptingBookings ? (
+            <div className="mt-6 space-y-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:mt-8 sm:p-6">
+              <p
+                role="status"
+                className="rounded-xl border border-border bg-secondary/60 px-4 py-3 text-sm"
+              >
+                Currently not accepting new booking requests. You're welcome to reach out directly
+                and {profile.name.split(" ")[0]} will let you know when availability opens up.
+              </p>
+              <Button variant="softline" size="lg" asChild className="w-full">
+                <a
+                  href={waLink(profile)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => trackWhatsappClick(profile, CtaLocation.AvailabilitySection)}
+                >
                   <MessageCircle aria-hidden="true" /> WhatsApp
                 </a>
               </Button>
             </div>
+          ) : (
+            <form
+              className="mt-6 space-y-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:mt-8 sm:p-6"
+              onChangeCapture={markFormStarted}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError(null);
+                // Phase 3G.3 §13 — represents a genuine submit attempt,
+                // regardless of whether client validation then blocks it.
+                trackEvent(AnalyticsEvent.AvailabilityFormSubmit, {
+                  profile_slug: profile.slug,
+                  page_path: `/portfolio/${profile.slug}`,
+                });
+                // Phase 3G.1A §2/§3 — friendly client-side check; submit_lead()
+                // enforces the authoritative version of this same rule
+                // server-side regardless of what happens here.
+                if (!isValidPhone(phone)) {
+                  setError("Enter a valid phone number.");
+                  return;
+                }
+                setSubmitting(true);
+                // Real service_id when the selected name resolves to one of
+                // this profile's actual services — gives leads a genuine
+                // relational link (leads.service_id) instead of only the
+                // free-text _service_requested name (Phase 3F.6 §9).
+                const matchedService = allServiceItems.find((i) => i.name === service);
+                // Phase 3G.3A §9/§13/§14/§17/§18 — reads the session
+                // attribution snapshot captured on landing (or the last
+                // recognized-campaign touch) and this profile's most
+                // recently clicked CTA; falls back to availability_section
+                // when no tracked CTA preceded this submission, never
+                // inventing one. "portfolio" replaces the legacy
+                // "availability_request" value here to match the single
+                // canonical LEAD_SOURCES vocabulary already used everywhere
+                // else in the CRM (audited — see the phase report).
+                const attribution = getAttributionSnapshot(profile.slug);
+                const conversionPath = getConversionPath() || `/portfolio/${profile.slug}`;
+                const ctaLocation = attribution.cta_location ?? CtaLocation.AvailabilitySection;
+                const { error: rpcError } = await supabase.rpc("submit_lead", {
+                  _slug: profile.slug,
+                  _name: name,
+                  _phone: phone,
+                  _location: location,
+                  _source: "portfolio",
+                  ...(date ? { _event_date: date } : {}),
+                  ...(service ? { _service_requested: service } : {}),
+                  ...(matchedService?.id ? { _service_id: matchedService.id } : {}),
+                  ...(message.trim() ? { _message: message.trim() } : {}),
+                  ...(attribution.utm_source ? { _utm_source: attribution.utm_source } : {}),
+                  ...(attribution.utm_medium ? { _utm_medium: attribution.utm_medium } : {}),
+                  ...(attribution.utm_campaign ? { _utm_campaign: attribution.utm_campaign } : {}),
+                  ...(attribution.utm_content ? { _utm_content: attribution.utm_content } : {}),
+                  ...(attribution.utm_term ? { _utm_term: attribution.utm_term } : {}),
+                  ...(attribution.landing_path ? { _landing_path: attribution.landing_path } : {}),
+                  _conversion_path: conversionPath,
+                  ...(attribution.referrer_host
+                    ? { _referrer_host: attribution.referrer_host }
+                    : {}),
+                  _cta_location: ctaLocation,
+                });
+                setSubmitting(false);
+                if (rpcError) {
+                  setError(
+                    "Something went wrong sending your request — please try WhatsApp instead.",
+                  );
+                  return;
+                }
+                // Phase 3G.3 §13/§14, Phase 3G.3A §29 — fired ONLY after the
+                // server authoritatively confirms the enquiry was created;
+                // never on validation failure, never optimistically before
+                // this point. No PII: service/profile identifiers and the
+                // same non-PII attribution context now persisted to the
+                // database, never name/phone/message/location text (§9/§14).
+                trackEvent(AnalyticsEvent.AvailabilityFormSuccess, {
+                  profile_slug: profile.slug,
+                  page_path: `/portfolio/${profile.slug}`,
+                  service_id: matchedService?.id,
+                  service_name: service || undefined,
+                  event_date_present: !!date,
+                  lead_source: "portfolio",
+                  cta_location: ctaLocation,
+                  utm_source: attribution.utm_source,
+                  utm_medium: attribution.utm_medium,
+                  utm_campaign: attribution.utm_campaign,
+                });
+                setSent(true);
+              }}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-sm">
+                  <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    Your name
+                  </span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className={field}
+                  />
+                </label>
+                <label className="text-sm">
+                  <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    Phone number
+                  </span>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    className={field}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-sm">
+                  <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    Event date
+                  </span>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                    className={field}
+                  />
+                  {eligibility && (
+                    <p
+                      className={cn(
+                        "mt-1.5 text-xs",
+                        eligibility === "ok" ? "text-emerald-600" : "text-amber-600",
+                      )}
+                    >
+                      {ELIGIBILITY_MESSAGE[eligibility]}
+                    </p>
+                  )}
+                </label>
+                <label className="text-sm">
+                  <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    Service
+                  </span>
+                  <select
+                    value={service}
+                    onChange={(e) => setService(e.target.value)}
+                    required
+                    className={field}
+                  >
+                    <option value="">Select a service</option>
+                    {allServices.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="block text-sm">
+                <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                  Location
+                </span>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder={`Venue or area in ${profile.primaryCity}`}
+                  required
+                  className={field}
+                />
+                {location.trim().length > 0 && profile.areas.length > 0 && (
+                  <p
+                    role="status"
+                    className={cn(
+                      "mt-1.5 text-xs",
+                      locationMatchesArea ? "text-emerald-600" : "text-muted-foreground",
+                    )}
+                  >
+                    {locationMatchesArea
+                      ? `Good news — this looks like an area ${profile.name.split(" ")[0]} serves.`
+                      : `This isn't one of the areas ${profile.name.split(" ")[0]} usually lists, but you're welcome to ask — availability may still be possible.`}
+                  </p>
+                )}
+              </label>
 
-            {sent && (
-              <p
-                role="status"
-                className="rounded-xl border border-primary/20 bg-secondary/60 px-4 py-3 text-sm"
-              >
-                Thanks — your date request is noted. Send it straight through on WhatsApp for the
-                fastest reply.
-              </p>
-            )}
-          </form>
+              <label className="block text-sm">
+                <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                  Message (optional)
+                </span>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Anything else you'd like to share…"
+                  rows={3}
+                  className={cn(field, "min-h-20 resize-none py-2.5")}
+                />
+              </label>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="submit"
+                  variant="hero"
+                  size="lg"
+                  className="sm:flex-1"
+                  disabled={submitting}
+                >
+                  <Calendar aria-hidden="true" /> {submitting ? "Sending…" : "Check availability"}
+                </Button>
+                <Button variant="softline" size="lg" asChild className="sm:flex-1">
+                  <a href={enquiry} target="_blank" rel="noreferrer">
+                    <MessageCircle aria-hidden="true" /> WhatsApp
+                  </a>
+                </Button>
+              </div>
+
+              {error && (
+                <p
+                  role="alert"
+                  className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                >
+                  {error}
+                </p>
+              )}
+            </form>
+          )}
         </div>
 
         <div id="contact">
@@ -1132,7 +1832,7 @@ export function AvailabilitySection({ profile }: P) {
           >
             <iframe
               title={`Map showing ${profile.name}'s studio in ${profile.primaryCity}`}
-              src={`https://www.google.com/maps?q=${encodeURIComponent(profile.mapQuery)}&output=embed`}
+              src={resolveMapEmbedSrc(profile.mapQuery)}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="h-[240px] w-full border-0 sm:h-[320px]"
@@ -1147,6 +1847,8 @@ export function AvailabilitySection({ profile }: P) {
 /* 12. FAQ */
 export function FaqSection({ profile }: P) {
   const [open, setOpen] = useState<number | null>(0);
+  // Phase 3G.1 §23 — optional section, omitted entirely when empty.
+  if (profile.faqs.length === 0) return null;
   return (
     <section id="faq" className="py-14 sm:py-20">
       <div className="section-shell">
@@ -1201,12 +1903,20 @@ export function FinalCtaSection({ profile }: P) {
           </p>
           <div className="mt-6 grid gap-2.5 sm:mt-8 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
             <Button variant="hero" size="lg" className="w-full sm:w-auto" asChild>
-              <a href="#availability">
+              <a
+                href="#availability"
+                onClick={() => trackAvailabilityCtaClick(profile, CtaLocation.FinalCta)}
+              >
                 <Calendar aria-hidden="true" /> Check availability
               </a>
             </Button>
             <Button variant="softline" size="lg" className="w-full sm:w-auto" asChild>
-              <a href={waLink(profile)} target="_blank" rel="noreferrer">
+              <a
+                href={waLink(profile)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => trackWhatsappClick(profile, CtaLocation.FinalCta)}
+              >
                 <MessageCircle aria-hidden="true" /> WhatsApp
               </a>
             </Button>
@@ -1230,6 +1940,7 @@ export function MobileStickyCta({ profile }: P) {
           target="_blank"
           rel="noreferrer"
           aria-label={`Contact ${profile.name} on WhatsApp`}
+          onClick={() => trackWhatsappClick(profile, CtaLocation.MobileSticky)}
           className="flex h-12 shrink-0 flex-[0_0_22%] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           <MessageCircle className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
@@ -1246,6 +1957,7 @@ export function MobileStickyCta({ profile }: P) {
         <a
           href="#availability"
           aria-label={`Check ${profile.name}'s availability`}
+          onClick={() => trackAvailabilityCtaClick(profile, CtaLocation.MobileSticky)}
           className="flex h-13 flex-1 min-w-0 items-center justify-center gap-2 rounded-[15px] bg-gradient-to-r from-[#D94F78] to-[#5B176E] px-3 text-center text-[15px] font-semibold leading-tight text-white shadow-[0_4px_18px_-6px_rgba(91,23,110,0.45)] transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           <Calendar className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
@@ -1264,6 +1976,7 @@ export function WhatsAppButton({ profile }: P) {
       target="_blank"
       rel="noreferrer"
       aria-label={`Chat with ${profile.name} on WhatsApp`}
+      onClick={() => trackWhatsappClick(profile, CtaLocation.FloatingWhatsapp)}
       className="bg-gradient-brand animate-pulse-ring fixed right-5 bottom-5 z-40 hidden items-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-lift md:inline-flex"
     >
       <MessageCircle className="h-5 w-5" aria-hidden="true" />

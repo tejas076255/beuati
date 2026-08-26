@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.1A Lead Capture Integrity</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .bug { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.1A</div>
+    <h1>Public Lead Capture Data-Integrity Fix</h1>
+    <p class="sub">Phone validation was found completely absent — server-side, not just client-side — and every repeat customer enquiry was silently creating a brand-new, unrelated CRM lead instead of reusing the existing customer. Both fixed at the authoritative source: the submit_lead() function.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0 (function-only)</div>
+      <div><strong>Root cause</strong>No server-side phone check; no dedup</div>
+      <div><strong>Historical data</strong>Untouched, reported only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">2</div><div class="l">Real bugs fixed</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Function migration</div></div>
+    <div class="card"><div class="n">0</div><div class="l">New tables/columns</div></div>
+    <div class="card"><div class="n">2/2</div><div class="l">Files changed</div></div>
+  </div>
+
+  <h2>1–3. Phone Validation — Root Cause, Client &amp; Server Fix</h2>
+  <div class="bug">
+    <b>Root cause confirmed in the live function source:</b> <code>submit_lead()</code>'s only phone check was <code>coalesce(trim(_phone),'') = ''</code> — non-empty, nothing else. "Singh", "Shukla", "Shah", "dd" were all accepted as valid phone values, with zero server-side format validation to catch a crafted request bypassing the browser.
+  </div>
+  <div class="verified">
+    <b>Fixed at both layers.</b> Client: <code>isValidPhone()</code> (digits-only, 8–15, country-agnostic) checked before the RPC call, with inline "Enter a valid phone number." — plus <code>inputMode="tel"</code>/<code>autoComplete="tel"</code> added. Server (authoritative): <code>submit_lead()</code> now normalizes via <code>regexp_replace(_phone, '\D', '', 'g')</code> and rejects anything outside 8–15 digits before any row is written. Live-verified in a rolled-back transaction: "Singh" and "123" both correctly rejected; "9000011111" and "+91 90000 11111" both correctly accepted.
+  </div>
+
+  <h2>4–8. Deduplication — Finding, Fix &amp; Verification</h2>
+  <div class="bug">
+    <b>Found:</b> <code>submit_lead()</code> unconditionally <code>INSERT</code>ed a new <code>leads</code> row on every call — the existing <code>leads → lead_inquiries</code> "one customer, many enquiries" architecture was never actually used for repeat customers. Every repeat enquiry silently became a new, unrelated customer.
+  </div>
+  <p style="font-size:11.5px;"><b>Fixed:</b> matches an existing lead within the same <code>beautician_profile_id</code> by normalized phone before deciding to insert vs. reuse. A legitimate repeat enquiry (different service/date) reuses the lead and adds a new <code>lead_inquiries</code> row, refreshing the lead's top-level snapshot. An identical phone+service+event-date resubmitted within 5 minutes is idempotent — no second inquiry row.</p>
+  <div class="verified">
+    <b>Live-verified</b> in a single rolled-back transaction: two different services/dates from the same phone → 1 lead row + 2 inquiry rows. The exact-duplicate resubmit of one of those → still 1 lead + 2 inquiries (zero rows added by the duplicate). Double-submit protection at the client (in-flight disable + explicit "Send another request" reset, from Phase 3G.1) was already correct.
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>9. Existing Duplicate Rows — Read-Only Finding</h2>
+  <table>
+    <tr><th>Rows</th><th>Issue</th></tr>
+    <tr><td>"Pooja" / phone "Singh" ×2</td><td>Invalid phone accepted — root cause of this phase</td></tr>
+    <tr><td>"Pooja Singh" / phone "8320699679" ×2, 32s apart</td><td>Accidental duplicate submission of a valid enquiry</td></tr>
+    <tr><td>"Tulsi" / phone "Shah"; "Kavya" / phone "Shukla"</td><td>Invalid phone</td></tr>
+    <tr><td>"dd" / phone "dd", "ddd" ×2</td><td>Invalid phone (test data)</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>None of these were deleted or merged</b> — cleanup deferred to your explicit decision, per instruction.</p>
+
+  <h2>10–12. Service Context, WhatsApp &amp; Missing Dropdown</h2>
+  <ul>
+    <li><b>Service context:</b> <code>leads.service_id</code> confirmed correctly populated as a real relational FK on the Pooja Singh test leads. <code>lead_inquiries</code> has no <code>service_id</code> column (text-tag only via <code>lead_inquiry_services</code>) — an existing architecture limitation, out of this phase's scope to change.</li>
+    <li><b>WhatsApp:</b> single source (<code>beautician_profiles.whatsapp_number</code>) via one shared <code>waLink()</code> helper — confirmed internally consistent across every public CTA. Not modified.</li>
+    <li><b>HD Bridal Makeup dropdown:</b> confirmed data state, not a bug — deactivated one minute after the Pooja Singh test leads (deliberate testing of the "zero active services" scenario). Not reactivated.</li>
+  </ul>
+
+  <h2>13–15. Files Changed, Database Changes &amp; Security</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>20260825180000_submit_lead_phone_validation_and_dedup.sql</code></td><td>New migration — <code>CREATE OR REPLACE FUNCTION public.submit_lead(...)</code></td></tr>
+    <tr><td><code>portfolio-sections.tsx</code></td><td>Client-side phone validation + <code>inputMode</code>/<code>autoComplete</code></td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes:</b> one function replacement only, applied via the verified Lovable MCP connection. No new tables, columns, or constraints. <b>RLS/security:</b> unchanged — <code>submit_lead</code> remains <code>SECURITY DEFINER</code>, scoped only to the published <code>_slug</code>'s profile; new phone-matching is scoped by that same profile id, so cross-profile customer matching remains structurally impossible.</p>
+
+  <h2>16–17. Automated &amp; Manual Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>5 required routes</td><td><span class="pill done">As expected</span></td></tr>
+  </table>
+  <div class="flag">
+    <b>Manual tests recommended:</b> a real browser submission of TEST A–I to visually confirm the inline error message and success-state flow; a check of <code>/dashboard/leads</code> after reactivating HD Bridal Makeup to confirm the dropdown and full customer-history rendering in the CRM UI (verified at the database level only this phase).
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's STOP condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.1A Public Lead Capture Integrity Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.7 Service Detail Enrichment</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.7</div>
+    <h1>Service Detail Enrichment — Structured Content + Dashboard UX</h1>
+    <p class="sub">Adds What's Included, Suitable For, and Preparation Notes to every service — dashboard-editable, zero seeded content, and rendered publicly only when real data exists. No structured-data mapping, no add-ons table, packages untouched.</p>
+    <div class="meta">
+      <div><strong>New columns</strong>3 (services table)</div>
+      <div><strong>Seeded content</strong>0</div>
+      <div><strong>New public sections</strong>3, conditional</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">3</div><div class="l">New DB columns</div></div>
+    <div class="card"><div class="n">4</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">New tables / add-ons built</div></div>
+    <div class="card"><div class="n">6/6</div><div class="l">Routes smoke-tested OK</div></div>
+  </div>
+
+  <h2>1–2. Existing Schema Audit &amp; Schema Decision</h2>
+  <p style="font-size:11.5px;">Queried the live <code>services</code> table and reviewed every repo migration before writing new SQL. No existing field captured inclusions, suitability, or preparation notes; <code>package_services</code> is a pure junction table with no detail columns — zero duplication risk confirmed.</p>
+  <div class="note">
+    Reused the exact list-column convention already established by <code>packages.inclusions</code> — <code>TEXT[] NOT NULL DEFAULT '{}'::text[]</code> (confirmed live: <code>column_default = '{}'::text[]</code>, <code>is_nullable = NO</code>) — rather than inventing a second pattern (e.g. jsonb) for the same kind of data. <code>preparation_notes</code> is plain nullable <code>TEXT</code>.
+  </div>
+
+  <h2>3. Database Migration</h2>
+  <p style="font-size:11.5px;"><code>20260825140000_service_detail_enrichment.sql</code>, applied live via Lovable MCP. Adds <code>included_items</code>, <code>suitable_for</code>, <code>preparation_notes</code>. No RLS change needed — <code>services_owner_all</code> / <code>services_public_read</code> are row-level policies that cover new columns automatically.</p>
+
+  <h2>4. Files Changed</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>services.server.ts</code></td><td><code>ServiceInput</code> extended with the 3 new fields</td></tr>
+    <tr><td><code>types.ts</code></td><td>Manually patched Row/Insert/Update for <code>services</code> — this migration bypassed Lovable's auto-codegen since it was applied via raw SQL</td></tr>
+    <tr><td><code>dashboard.services.tsx</code></td><td>New "Service details" section: 2 repeatable list inputs + preparation textarea, plus <code>cleanListItems()</code> and <code>RepeatableListField</code></td></tr>
+    <tr><td><code>portfolio.$slug_.services.$serviceSlug.tsx</code></td><td>3 new public sections between Pricing and Service areas, each independently conditional</td></tr>
+  </table>
+
+  <div class="page-break"></div>
+
+  <h2>5–7. What's Included / Suitable For / Preparation</h2>
+  <ul>
+    <li><b>What's Included:</b> repeatable text-list dashboard input, rendered publicly as a checkmark list, only when non-empty</li>
+    <li><b>Suitable For:</b> same repeatable-list pattern, rendered publicly as wrapped chip tags, only when non-empty</li>
+    <li><b>Preparation Notes:</b> plain textarea, rendered publicly as a paragraph under "Before your appointment," only when non-null/non-empty</li>
+  </ul>
+
+  <h2>8–9. Dashboard UX &amp; Validation/Default Behavior</h2>
+  <p style="font-size:11.5px;">New section placed below the Price/Duration grid, border-separated, customer-facing language only — no raw column names surfaced in the UI. All three fields start empty for new services and are never auto-populated. List items cleaned at submit (<code>cleanListItems</code>: trim, drop blank, dedupe case-insensitively, 120-char cap). Preparation notes trims to <code>null</code> when blank — never stored as an empty string.</p>
+
+  <h2>10–12. Public Page Changes, Empty States, SSR Behavior</h2>
+  <div class="verified">
+    <b>Live-verified via raw SSR HTML fetch</b> (not client-hydrated): with real test data written to "HD Bridal Makeup," all 3 sections and their content appeared in the initial server-rendered response. After reverting the row to <code>included_items: {}, suitable_for: {}, preparation_notes: NULL</code>, a second raw fetch confirmed all 3 sections cleanly disappeared — no "no information available" placeholder anywhere — while the service name and price rendered correctly and unaffected.
+  </div>
+
+  <h2>13. Structured-Data Decision</h2>
+  <p style="font-size:11.5px;">Deliberately not mapped into JSON-LD. Kept as visible content only, per the instruction to prefer correct visible content over inventing unsupported schema.org properties.</p>
+
+  <h2>14–16. Price/Duration Regression, RLS, Performance</h2>
+  <p style="font-size:11.5px;">No changes made to 3F.6's price/duration validation; the live test write/revert touched only the 3 new columns on the same row, leaving <code>price</code>, <code>price_type</code>, <code>duration_minutes</code> untouched. RLS is row-level, not column-level — <code>services_owner_all</code>'s <code>with_check: owns_beautician_profile(beautician_profile_id)</code> covers the new columns automatically for every command (re-queried and confirmed unchanged live). <code>service-page-query.server.ts</code> already used <code>select("*")</code>, so the new columns flow through with zero new queries.</p>
+
+  <h2>17–18. Add-Ons Audit &amp; Package Relationship</h2>
+  <p style="font-size:11.5px;">Add-ons: documented only — no <code>service_addons</code> table built, consistent with the phase's scope limit. Packages: <code>packages</code> / <code>package_services</code> not touched in any way.</p>
+
+  <h2>19. Automated Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>6 required routes</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>20–22. Manual Tests, Known Limitations, Next Phase</h2>
+  <p style="font-size:11.5px;"><b>Manual tests performed:</b> live test-data write + SSR verification + revert + re-verification (above); RLS ownership policy re-confirmed unchanged, so a cross-profile write attempt on these rows would still be rejected exactly as before this phase; availability-form service-linking and duration/price forms (3F.6) use unrelated code paths, untouched this phase.</p>
+  <div class="flag">
+    <b>Known limitations:</b> preparation notes has no explicit length cap beyond normal textarea behavior; list items cap at 120 characters each with no configured maximum item count.
+  </div>
+  <p style="font-size:12px;"><b>Recommended next phase:</b> none proposed. Per the phase's STOP condition — priced add-ons, AI content generation, area/location pages, marketplace features, blog, Search Console, Google Business Profile, rank tracking, hosting, and cover-image A/B testing all remain explicitly out of scope.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.7 Service Detail Enrichment Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

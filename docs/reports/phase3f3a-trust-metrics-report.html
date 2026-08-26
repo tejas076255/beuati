@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.3A Trust Metrics</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 25px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.sys { background:#dbeafe; color:#1d4ed8; }
+  .pill.user { background:#dcfce7; color:#15803d; }
+  .pill.admin { background:#ede9fe; color:#6d28d9; }
+  .pill.unreliable { background:#fee2e2; color:#b91c1c; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .before-after { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .before-after .box { border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .before-after .before { background: #fef2f2; border: 1px solid #fecaca; }
+  .before-after .after { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .before-after .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .before-after .before .lbl { color: #b91c1c; }
+  .before-after .after .lbl { color: #15803d; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.3A</div>
+    <h1>Public Trust Metric Data Integrity</h1>
+    <p class="sub">Fixes the product-level counterpart of the Phase 3F.3 structured-data correction — every quantitative claim on the public portfolio now has a defined, trustworthy source, or is removed. Zero database changes.</p>
+    <div class="meta">
+      <div><strong>Module</strong>Trust Metrics</div>
+      <div><strong>Database changes</strong>None</div>
+      <div><strong>Scope</strong>Public UI only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">3</div><div class="l">Metrics corrected/removed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Schema changes</div></div>
+    <div class="card"><div class="n">4</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">1</div><div class="l">New signal added (Verified badge)</div></div>
+  </div>
+
+  <h2>1. All Trust Metrics Discovered</h2>
+  <table>
+    <tr><th>Metric</th><th>Where shown (before)</th><th>Value (before, live)</th></tr>
+    <tr><td>Rating</td><td>Hero chip, About stat, Reviews header, trust bar</td><td><code>4.9</code> (static column)</td></tr>
+    <tr><td>Review count</td><td>Hero chip (mislabeled "clients"), Reviews header</td><td><code>214</code> (static column)</td></tr>
+    <tr><td>Client count</td><td>About "Brides" stat, trust bar "Clients" chip</td><td><code>600+</code> (static column)</td></tr>
+    <tr><td>Years of experience</td><td>Hero, About, trust bar</td><td><code>8+ years</code> — already consistent</td></tr>
+    <tr><td>Verified status</td><td>Nowhere — no badge existed</td><td>n/a</td></tr>
+  </table>
+  <p style="font-size:11.5px;">No footer trust metrics found. <code>/dashboard/seo</code> confirmed to never display any of these numbers — no inconsistency there.</p>
+
+  <h2>2. Source-of-Truth Matrix</h2>
+  <table>
+    <tr><th>Metric</th><th>Classification</th><th>Source</th></tr>
+    <tr><td>Rating</td><td><span class="pill sys">System-calculated</span></td><td>Average of published <code>reviews.rating</code> — same helper as JSON-LD</td></tr>
+    <tr><td>Review count</td><td><span class="pill sys">System-calculated</span></td><td>Count of published reviews</td></tr>
+    <tr><td>Published work count</td><td><span class="pill sys">System-calculated</span></td><td>Count of published <code>portfolio_items</code> — new, replaces "Brides"</td></tr>
+    <tr><td>Years of experience</td><td><span class="pill user">User-entered</span></td><td><code>beautician_profiles.years_experience</code>, dashboard-editable</td></tr>
+    <tr><td>Verified badge</td><td><span class="pill admin">Admin-managed</span></td><td><code>is_verified</code>, toggled only in <code>/admin/profiles</code>, audit-logged</td></tr>
+    <tr><td>Client count</td><td><span class="pill unreliable">Not reliable enough</span></td><td>No dashboard field, no admin verification, no sync mechanism found</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b><code>metrics_verified</code> column:</b> confirmed via the Phase 1 admin migration's own comment to gate only the original <i>demo profile's</i> stat display — unrelated to real professional verification, never set <code>true</code> anywhere in current app code, not repurposed.</p>
+
+  <div class="page-break"></div>
+
+  <h2>8. client_count — Audit &amp; Decision: CASE B</h2>
+  <table>
+    <tr><th>Question</th><th>Finding</th></tr>
+    <tr><td>Where did it come from?</td><td>Seed/demo data — a migration-era comment confirms <code>600</code> was a known-good <i>demo profile</i> value</td></tr>
+    <tr><td>User-editable?</td><td>No — no field anywhere in <code>dashboard.profile.tsx</code></td></tr>
+    <tr><td>Admin-verifiable?</td><td>No — read-only display in <code>/admin/profiles</code>, no edit/verify action</td></tr>
+    <tr><td>Sync logic?</td><td>None found</td></tr>
+    <tr><td>Historical client data?</td><td>None — CRM only covers BeautyFolio-era enquiries, not full career history</td></tr>
+    <tr><td>CRM-derived alternative?</td><td>Deliberately not used, per instruction — would misrepresent partial data as complete history</td></tr>
+  </table>
+  <div class="flag">
+    <b>Decision: CASE B — removed from all public trust-metric display.</b> No new dashboard field was added to "preserve" it, per the explicit instruction not to add an input just to keep a legacy metric alive. Replaced with a real, system-calculated signal: published portfolio-work count.
+  </div>
+
+  <h2>5–7. Rating / Review Count / Zero-Review Behavior</h2>
+  <div class="before-after">
+    <div class="box before">
+      <div class="lbl">Before this phase</div>
+      Hero: <code>4.9 (214+ clients)</code><br/>
+      Reviews header: <code>4.9 / out of 5</code>, always rendered<br/>
+      About "Brides" stat: <code>600+</code>
+    </div>
+    <div class="box after">
+      <div class="lbl">After this phase — live-verified</div>
+      Hero: <code>4.7 (3 reviews)</code>, hidden if zero<br/>
+      Reviews header: <code>4.7 / 3 reviews</code>, section hidden if zero<br/>
+      About stat: <code>Published looks</code> (real count)
+    </div>
+  </div>
+  <p style="font-size:11.5px;">Both use the exact same <code>computeAggregateRating()</code> helper introduced in Phase 3F.3 for JSON-LD — one shared calculation, never two implementations that could drift. Zero-review profiles get no fabricated 0.0★: the rating chip is omitted, the About rating cell is omitted, and <code>ReviewsSection</code> now returns <code>null</code> entirely (same convention already used by the existing empty-state <code>VideosSection</code>).</p>
+
+  <h2>9–10. Years of Experience &amp; Verified Badge</h2>
+  <ul>
+    <li><b>Years of experience:</b> all three locations (hero, About, trust bar) already read one shared <code>profile.experience</code> field — confirmed already consistent, not touched.</li>
+    <li><b>Verified badge:</b> new, small, restrained — added next to the professional's name in the hero, shown only when <code>is_verified</code> is true, with a tooltip reading "Reviewed and approved by BeautyFolio" (deliberately not implying government ID or license verification).</li>
+  </ul>
+
+  <h2>11–14. Hero, Reviews, Structured Data &amp; SEO Dashboard</h2>
+  <ul>
+    <li>Hero layout, CTA hierarchy, portrait, spacing — byte-for-byte unchanged except the two value fixes and the new badge</li>
+    <li>Reviews section: zero-guard added; real values confirmed live</li>
+    <li>Structured data (Phase 3F.3's fix): confirmed untouched and still correct — no code change was needed</li>
+    <li><code>/dashboard/seo</code>: confirmed it never displayed these metrics — no inconsistency existed</li>
+  </ul>
+
+  <h2>15. Legacy/Deprecated Fields</h2>
+  <table>
+    <tr><th>Column</th><th>Classification</th><th>Disposition</th></tr>
+    <tr><td><code>rating</code></td><td>LEGACY</td><td>No longer read by public UI or structured data</td></tr>
+    <tr><td><code>review_count</code></td><td>LEGACY</td><td>Same</td></tr>
+    <tr><td><code>client_count</code></td><td>UNVERIFIED</td><td>No longer public; still read-only in internal admin view</td></tr>
+    <tr><td><code>metrics_verified</code></td><td>DEPRECATED</td><td>Confirmed unrelated; not repurposed; not read anywhere</td></tr>
+  </table>
+  <p style="font-size:11.5px;">No column dropped, per the phase's explicit "expected database schema changes: NONE."</p>
+
+  <h2>16–17. Tests &amp; Regression</h2>
+  <div class="verified">
+    Live-fetched the raw SSR response for <code>/portfolio/dharti-panchal</code> and confirmed byte-for-byte: hero chip <code>4.7 (3 reviews)</code>, Verified badge present, About "Published looks" + "Average rating" cells present, Reviews header <code>4.7 / 3 reviews</code>, trust bar with no "Clients" entry, JSON-LD <code>aggregateRating {ratingValue: 4.7, reviewCount: 3}</code> — and confirmed the old <code>214</code>/<code>600+</code> values are completely gone from the response.
+  </div>
+  <ul>
+    <li><code>tsc --noEmit</code> — clean</li>
+    <li>ESLint — clean (one pre-existing, unrelated warning)</li>
+    <li>Production build — succeeds</li>
+    <li>9 routes smoke-tested — all 200 OK</li>
+  </ul>
+
+  <h2>18. Manual Tests For You To Perform</h2>
+  <div class="flag">
+    Test A (3 published reviews → 4.7/3 everywhere) was verified directly against live SSR output. These need your dashboard session:
+    <ol style="margin:6px 0;">
+      <li>Unpublish one review — confirm rating/count recalculate everywhere</li>
+      <li>A zero-review profile — confirm no rating chip, no About rating cell, entire Reviews section absent</li>
+      <li>Change years of experience — confirm every public location updates</li>
+      <li>Toggle <code>is_verified</code> in <code>/admin/profiles</code> — confirm the badge appears/disappears</li>
+      <li>Refresh / log out / log in — confirm no inconsistency</li>
+    </ol>
+  </div>
+
+  <h2>19–20. Known Limitations &amp; Recommended Next Phase</h2>
+  <ul>
+    <li><code>client_count</code> remains visible read-only in the internal <code>/admin/profiles</code> view — an admin tool reading raw stored values, not a public trust claim, intentionally left as-is</li>
+    <li>No dashboard field was added for "approximate clients served" — per instruction not to add an input just to preserve a legacy metric</li>
+  </ul>
+  <p style="font-size:11.5px;">No next phase proposed — this phase intentionally stops for manual review, per the stop condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.3A Trust Metric Data Integrity Report</span>
+    <span>Generated 23 Aug 2026</span>
+  </div>
+
+</body>
+</html>

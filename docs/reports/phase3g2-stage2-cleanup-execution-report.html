@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.2 Stage 2 Cleanup Execution</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .before-after { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .before-after .box { border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .before-after .before { background: #fef2f2; border: 1px solid #fecaca; }
+  .before-after .after { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .before-after .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .before-after .before .lbl { color: #b91c1c; }
+  .before-after .after .lbl { color: #15803d; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.2 · Stage 2</div>
+    <h1>Approved CRM Cleanup — Execution Report</h1>
+    <p class="sub">The Stage 1 audit's approved plan executed exactly as specified, inside one verified transaction: 6 invalid/test leads deleted, one accidental duplicate customer merged with both enquiries preserved, zero collateral damage to ambiguous or legitimate records.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>Transaction result</strong>Committed — all checks passed</div>
+      <div><strong>Scope</strong>Exactly the approved 7 rows, nothing more</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">6</div><div class="l">Leads deleted (approved)</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Duplicate customer merged</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Orphan rows after cleanup</div></div>
+    <div class="card"><div class="n">2</div><div class="l">Ambiguous rows untouched</div></div>
+  </div>
+
+  <h2>1–3. Pre-Cleanup Snapshot &amp; Deletions</h2>
+  <p style="font-size:11.5px;">Re-selected all 8 affected lead rows immediately before writing — identical to the Stage 1 snapshot, confirming no drift. Deleted exactly the 6 approved leads: <code>95bf77ab</code> (dd/dd), <code>1f670b87</code> (dd/ddd), <code>87c6989c</code> (Test Lead curl/9999999999), <code>88ac50a6</code> (Tulsi/Shah), <code>fcb7b8f6</code> (Pooja/Singh), <code>4bd28ca9</code> (Pooja/Singh).</p>
+  <p style="font-size:11.5px;"><b>Cascaded child rows removed:</b> 6 <code>lead_inquiries</code> (one per deleted lead), 3 <code>lead_inquiry_services</code> links (Tulsi + both Pooja/Singh rows), 3 <code>lead_activities</code> (only the auto-note rows — the "dd" leads and curl test had zero activities).</p>
+
+  <h2>4–7. Pooja Singh Merge — Verified in Full</h2>
+  <div class="verified">
+    Canonical: <code>f7030156-4268-4eeb-8d98-6fca545642d2</code>. Redundant (merged, then deleted): <code>e56a2788-769f-419c-bd0e-0967183cbdb4</code>. Re-parented the redundant lead's inquiry (<code>e0ae278e-...</code>, "Update") and its 1 activity note onto the canonical lead <b>before</b> deleting the now-childless redundant row. Live-verified after commit: the canonical lead has exactly <b>2 inquiries</b> (its own "Updatte me" plus the re-parented "Update", both with original timestamps and their own "HD Bridal Makeup" service tag intact) and exactly <b>2 activities</b> — neither enquiry was flattened, nothing was converted to text-only.
+  </div>
+
+  <div class="before-after">
+    <div class="box before">
+      <div class="lbl">Before</div>
+      2 separate "Pooja Singh" lead rows, same phone, 32s apart, each with its own inquiry + activity
+    </div>
+    <div class="box after">
+      <div class="lbl">After</div>
+      1 lead row, 2 preserved inquiries, 2 preserved activities, both service links intact
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>8–10. Final Counts, Orphans &amp; Duplicates</h2>
+  <table>
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Leads</td><td>13</td><td><b>6</b></td></tr>
+    <tr><td>Inquiries</td><td>13</td><td><b>7</b></td></tr>
+    <tr><td>Inquiry-service links</td><td>10</td><td><b>7</b></td></tr>
+    <tr><td>Activities</td><td>21</td><td><b>18</b></td></tr>
+  </table>
+  <p style="font-size:11.5px;">All numbers reconcile exactly with the approved plan's arithmetic. <b>0 orphan rows</b> anywhere (inquiries, inquiry-service links, activities). <b>0 duplicate valid-phone groups</b> remaining. <b>1 invalid-phone lead remains</b> — Kavya/Shukla — exactly as expected and intentionally protected, not a cleanup failure.</p>
+
+  <h2>11–12. Ambiguous &amp; Legitimate Rows — Confirmed Unchanged</h2>
+  <p style="font-size:11.5px;">Live-verified post-commit: <code>ad8daeeb</code> (Kavya, phone still exactly "Shukla") and <code>8c28d837</code> (Navya Panchal, phone still exactly "989898989") — both present, untouched. <code>76a2b735</code> (Rikesh), <code>c3ff2e89</code> (tushar), <code>4c76e672</code> (Jay Jogiya) — all present with original data.</p>
+
+  <h2>13–14. Transaction Result &amp; Database Changes</h2>
+  <div class="verified">
+    <b>Committed successfully.</b> Every verification (6 deletions gone, redundant Pooja gone, canonical Pooja has 2 inquiries + 2 activities, zero orphans, ambiguous/legitimate rows unchanged) ran <i>inside</i> the same transaction before <code>COMMIT</code> — any single failure would have raised an exception and rolled back the entire operation. <b>Database changes: zero</b> — no new tables, columns, flags, or RLS/FK changes; only <code>DELETE</code>/<code>UPDATE</code> on existing rows.
+  </div>
+
+  <h2>15–16. Manual Checks &amp; Next Recommendation</h2>
+  <div class="flag">
+    <b>Manual browser check needed:</b> no automation available in this environment. <code>/dashboard/leads</code> confirmed loading (200) and the underlying data verified at the database level — please confirm visually that Pooja Singh appears once with both enquiries in her timeline, filters work, and "Open Lead" renders correctly.
+  </div>
+  <p style="font-size:11.5px;"><b>Recommendation for 3G.2A:</b> the dashboard's manual "Add Lead" form still has no phone-validation gap fix (same class of bug fixed for the public form in 3G.1A) — this is how "Kavya"/"Shukla" and "Navya"/"989898989" entered the system. A separate follow-up phase should add matching validation there.</p>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's STOP condition — not starting 3G.2A automatically.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.2 Stage 2 CRM Cleanup Execution Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

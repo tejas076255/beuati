@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/site/logo";
@@ -44,11 +45,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <Button variant="ghost" size="default">
-            Login
+          <Button variant="ghost" size="default" asChild>
+            <Link to="/login">Login</Link>
           </Button>
-          <Button variant="hero" size="default">
-            Create Free Portfolio
+          <Button variant="hero" size="default" asChild>
+            <Link to="/signup">Create Free Portfolio</Link>
           </Button>
         </div>
 
@@ -78,8 +79,12 @@ export function SiteHeader() {
               </a>
             ))}
             <div className="mt-2 flex flex-col gap-2">
-              <Button variant="softline">Login</Button>
-              <Button variant="hero">Create Free Portfolio</Button>
+              <Button variant="softline" asChild onClick={() => setOpen(false)}>
+                <Link to="/login">Login</Link>
+              </Button>
+              <Button variant="hero" asChild onClick={() => setOpen(false)}>
+                <Link to="/signup">Create Free Portfolio</Link>
+              </Button>
             </div>
           </nav>
         </div>

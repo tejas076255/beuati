@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.6 Content Conversion</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .before-after { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .before-after .box { border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .before-after .before { background: #fef2f2; border: 1px solid #fecaca; }
+  .before-after .after { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .before-after .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .before-after .before .lbl { color: #b91c1c; }
+  .before-after .after .lbl { color: #15803d; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.6</div>
+    <h1>Service Page Content Depth + Conversion Optimization</h1>
+    <p class="sub">Deepens every service landing page with real trust signals, real appointment context, and real internal links — while fixing a genuine conversion gap: service context was being lost the moment a visitor clicked "Check availability." Zero database schema changes.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>Real gap fixed</strong>Service context → lead flow</div>
+      <div><strong>Structured data</strong>Unchanged (verified)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">6</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">New DB columns/tables</div></div>
+    <div class="card"><div class="n">5</div><div class="l">New real-data page sections</div></div>
+    <div class="card"><div class="n">11/11</div><div class="l">Routes smoke-tested OK</div></div>
+  </div>
+
+  <h2>1–2. Audit &amp; Conversion Weaknesses Found</h2>
+  <p style="font-size:11.5px;">Present already: breadcrumb, H1, provider line + verified badge, city, top CTAs, description, pricing, service areas, relevant gallery, before/after, aggregate trust stat, FAQ link-out, back-link block. Missing/weak: appointment-type/travel info despite real data existing; no "Other services" internal links; no bottom-of-page CTA; no mobile sticky CTA on this route; reviews heading conflated bio wording with trust data; hero showed no rating/experience/price summary.</p>
+  <div class="flag">
+    <b>Biggest conversion weakness found:</b> the "Check availability" CTA left the service page and dropped into the main portfolio's generic form with <b>zero service context carried over</b> — the customer had to re-select the exact service they'd just come from.
+  </div>
+
+  <h2>3–4. Files Changed &amp; Database Changes</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>service-page-query.server.ts</code></td><td>Bundle now carries <code>otherServices</code>, <code>appointmentType</code>, <code>travelAvailable</code> — all from already-fetched queries</td></tr>
+    <tr><td><code>portfolio.$slug_.services.$serviceSlug.tsx</code></td><td>Hero chips, appointment info, review snippets, Other services, final CTA, mobile sticky CTA, service-context search param</td></tr>
+    <tr><td><code>portfolio.$slug.tsx</code></td><td><code>validateSearch</code> for <code>?service=</code>, passed to <code>AvailabilitySection</code></td></tr>
+    <tr><td><code>portfolio-sections.tsx</code></td><td><code>AvailabilitySection</code> accepts prefill, passes real <code>_service_id</code> to <code>submit_lead</code></td></tr>
+    <tr><td><code>portfolio.ts</code> / <code>portfolio-mapper.ts</code></td><td>Added <code>id</code> to <code>ServiceItem</code></td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: zero, confirmed.</b> <code>submit_lead</code>'s <code>_service_id</code> parameter and <code>leads.service_id</code> FK already existed from the base migration — they simply weren't being passed from the client.</p>
+
+  <div class="page-break"></div>
+
+  <h2>9. Service Context → Lead-Flow Finding (Real Gap, Fixed)</h2>
+  <div class="verified">
+    The form already sent <code>_service_requested</code> (free text) but never <code>_service_id</code>, even though the RPC and FK already supported it. Now resolves the selected service to its real <code>id</code> and passes both — giving leads a genuine relational link instead of only a text label. Zero schema changes required.
+  </div>
+
+  <h2>5–8. Architecture, Hero, Pricing, CTAs</h2>
+  <ul>
+    <li>New page order: Breadcrumb → Hero (+ trust chips) → CTAs → Overview → Pricing/booking context → Relevant work → Before/After → Client reviews → FAQ link-out → Other services → Professional summary → Final CTA → mobile sticky bar</li>
+    <li>Hero: compact real-data chip row (rating+count, years of experience) — only when they exist, never every stat at once</li>
+    <li>Pricing: unchanged Phase 3F.3 semantics — live-verified <code>HD Bridal Makeup</code> (fixed) → <code>{"price":18000,"priceCurrency":"INR"}</code> in structured data, <code>₹18,000</code> visible, fully consistent</li>
+    <li>CTAs: primary/secondary hierarchy preserved, now carries <code>?service={name}</code> into the main portfolio's Availability form</li>
+  </ul>
+
+  <h2>10–14. Relevant Work, Reviews, FAQ, Service Areas</h2>
+  <p style="font-size:11.5px;">Gallery/Before-After rendering logic unchanged (already correct from Phase 3F.5). Reviews heading corrected from "About {name}" to "Client reviews for {name}" — up to 2 real review quotes now shown when reviews exist.</p>
+  <div class="note">
+    <b>Live-verified empty-state confirmation:</b> Dharti's 3 reviews are currently all unpublished — the reviews section correctly and cleanly omits itself. This is real proof the empty-state rule works, not a bug to fix.
+  </div>
+  <p style="font-size:11.5px;">FAQs: confirmed no <code>service_id</code> column exists — link-out preserved, no duplication. Service areas: appointment type/travel now surfaced as one concise real-data line (e.g. "Studio &amp; client-location appointments"), never exposing raw config values.</p>
+
+  <h2>15–18. Provider Summary, Related Services, Packages, Mobile CTA</h2>
+  <ul>
+    <li>Provider summary: existing back-link block kept, unchanged in scope</li>
+    <li>New "Other services by {name}" section — up to 4 real active services, current one excluded</li>
+    <li>Packages: <code>package_services</code> re-verified live at 0 rows — correctly omitted from service pages</li>
+    <li>New mobile sticky CTA on this route, matching the existing <code>MobileStickyCta</code> visual pattern exactly (not directly reused — needed cross-page navigation with service context)</li>
+  </ul>
+
+  <h2>19–22. Structured Data, SSR, Performance, Indexability</h2>
+  <div class="verified">
+    <b>Structured data: no change.</b> Live-verified the JSON-LD <code>@graph</code> still contains exactly the same 5 node types as before (<code>WebPage</code>, <code>Service</code>, <code>BeautySalon+LocalBusiness</code>, <code>Person</code>, <code>BreadcrumbList</code>) — no schema added just because new visual sections exist.
+  </div>
+  <p style="font-size:11.5px;"><b>SSR:</b> raw HTML confirmed title, meta description, canonical, <code>robots: index, follow</code>, exactly one H1, all new sections — nothing hydration-dependent. <b>Performance:</b> no new query added — new bundle fields all come from already-fetched queries. <b>Indexability:</b> <code>evaluateServiceIndexability()</code> untouched.</p>
+
+  <h2>23. Automated Tests</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td><span class="pill done">Clean</span></td></tr>
+    <tr><td>ESLint</td><td><span class="pill done">Clean</span> (1 pre-existing unrelated warning)</td></tr>
+    <tr><td>Production build</td><td><span class="pill done">Succeeds</span></td></tr>
+    <tr><td>11 required routes</td><td><span class="pill done">All 200 OK</span></td></tr>
+  </table>
+
+  <h2>24–26. Manual Tests, Limitations, Next Phase</h2>
+  <div class="flag">
+    Test G (availability CTA carries service context) and Test H (WhatsApp) are ready to click through live. To see the full reviews section, publish at least one of Dharti's 3 reviews via <code>/dashboard/reviews</code> first — all 3 are currently unpublished (real data state, not a defect).
+  </div>
+  <p style="font-size:11.5px;"><b>Known limitations:</b> reviews section can't currently be visually verified end-to-end since no review is published right now. "What's included"/duration-detail/prep info remains correctly omitted — no such fields exist in the schema.</p>
+  <p style="font-size:12px;"><b>Recommended next phase:</b> possible future dashboard fields for services (duration, what's included, add-ons) if richer service-detail content is wanted — not added this phase since the schema doesn't support them yet.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.6 Service Page Content + Conversion Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

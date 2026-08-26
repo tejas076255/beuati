@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3H.2A.1 Root Flattening</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.5px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .verdict { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 16px 20px; margin: 14px 0; }
+  .verdict h3 { margin: 0 0 4px; color: #15803d; font-size: 15px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .tree { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; background: #faf5ff; border: 1px solid #eee0f7; border-radius: 8px; padding: 12px 16px; white-space: pre; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3H.2A.1</div>
+    <h1>Repository Root Flattening</h1>
+    <p class="sub">The GitHub repository's incorrect nested structure (beautyfolio-launch-main/beautyfolio-launch-main/) was flattened to the correct root layout Lovable's GitHub sync expects. Verified via clean rename detection, a full local rebuild, and direct inspection of the pushed commit's tree.</p>
+    <div class="meta">
+      <div><strong>Commit</strong>da18741</div>
+      <div><strong>Files moved</strong>298 clean renames</div>
+      <div><strong>Database/Lovable changes</strong>Zero</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h3>✓ ROOT FLATTENED AND PUSHED — VERIFIED</h3>
+    <p style="margin:0; font-size:12px;">GitHub's repository root now directly contains package.json, src/, public/, supabase/, and .lovable/ — confirmed both locally and by reading the pushed commit's tree directly. This should resolve the underlying cause of the sync failure found in Phase 3H.2A.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">Collisions found</div></div>
+    <div class="card"><div class="n">298</div><div class="l">Clean git renames</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Files lost</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Functional errors</div></div>
+  </div>
+
+  <h2>Before → After</h2>
+  <table>
+    <tr><th>Before (incorrect)</th><th>After (flattened)</th></tr>
+    <tr><td class="tree">beautyfolio-launch-main/
+└── beautyfolio-launch-main/
+    ├── .lovable/
+    ├── src/
+    ├── supabase/
+    └── package.json</td><td class="tree">beautyfolio-launch-main/
+├── .lovable/
+├── src/
+├── supabase/
+└── package.json</td></tr>
+  </table>
+
+  <h2>1–3. Verification &amp; Collision Audit</h2>
+  <div class="verified">
+    Git root confirmed: C:/Projects/BeautyFolio 2/beautyfolio-launch-main. Remote verified exact match: rikeshjpanchal-svg/beautyfolio-launch-main.git, branch main. Nesting confirmed exactly as reported — repo root held only .claude/, .git/, and the nested beautyfolio-launch-main/ folder; every real project file lived one level down. <b>Zero collisions</b> — the repo root's only pre-existing entries didn't overlap with anything inside the nested folder.
+  </div>
+
+  <h2>4. Files Moved</h2>
+  <p style="font-size:11.5px;">All 18 top-level tracked items moved via individual <code>git mv</code> calls, preserving rename history: .env, .gitignore, .lovable, .prettierignore, .prettierrc, AGENTS.md, README.md, bun.lock, bunfig.toml, components.json, docs, eslint.config.js, package-lock.json, package.json, public, src, supabase, tsconfig.json, vite.config.ts. The 2 untracked report files generated this session moved along with the docs/ directory move. Gitignored build artifacts (node_modules, .output, .tanstack, .wrangler) were left behind and the now-empty nested folder was removed.</p>
+
+  <h2>5–6. Final Structure &amp; Quality Gate</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>src/lib/attribution.ts location</td><td><span class="pill pass">Confirmed at repo root: src/lib/attribution.ts</span></td></tr>
+    <tr><td>npm install (fresh, at new root)</td><td>420 packages, 0 vulnerabilities</td></tr>
+    <tr><td>tsc --noEmit</td><td><span class="pill pass">Clean</span></td></tr>
+    <tr><td>ESLint functional errors</td><td><span class="pill pass">0</span> (115 pre-existing formatting-only issues, unchanged)</td></tr>
+    <tr><td>npm run build</td><td><span class="pill pass">Succeeded</span> — Worker name auto-corrected from the duplicated path to rikeshjpanchal-svg-beautyfolio-launch-main</td></tr>
+  </table>
+
+  <h2>7–10. Git Review, Commit &amp; Push</h2>
+  <div class="verified">
+    <b>Git status after staging:</b> 298 clean renames, 1 rename+modify (package-lock.json — content shift from the fresh install, expected), 2 new untracked report files. Zero unexplained deletions.<br/>
+    <b>Commit:</b> <code>da18741646a3aa773a108ad86ab76614833d4dcd</code> — "Flatten BeautyFolio project to repository root". Prior checkpoint commit (6d04104) untouched, not amended.<br/>
+    <b>Push:</b> normal, no force — 6d04104..da18741 main → main.<br/>
+    <b>HEAD parity:</b> local and origin/main both confirmed at da18741... after fetch.<br/>
+    <b>Independent tree check:</b> read origin/main's tree directly — .lovable/, docs/, public/, src/, supabase/, package.json, and src/lib/attribution.ts all confirmed present at the correct flattened paths on the pushed commit itself.
+  </div>
+
+  <h2>14–15. Database &amp; Lovable Impact</h2>
+  <p style="font-size:11.5px;"><b>Database changes: zero</b> — no migration applied, no schema touched, file-system/git operations only. <b>Lovable changes: zero</b> — not reconnected, not published, not touched. Reconnection is deferred to a separate manual step per this phase's explicit instruction.</p>
+
+  <h2>Next Step (Manual, Not Performed)</h2>
+  <div class="flag">
+    Check/reconnect Lovable's GitHub sync in its web UI now that the repo root structure is correct. Once done, re-verify by checking whether src/lib/attribution.ts resolves from Lovable's project state — if it does, Phase 3H.2 can resume from the Publish gate.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per this phase's explicit STOP condition — no Lovable reconnection or publish attempted.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3H.2A.1 Repository Root Flattening Report</span>
+    <span>Generated 26 Aug 2026</span>
+  </div>
+
+</body>
+</html>

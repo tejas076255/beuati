@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.1 Conversion UX Audit</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .bug { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.critical { background:#fee2e2; color:#b91c1c; }
+  .pill.high { background:#fef3c7; color:#92400e; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .before-after { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .before-after .box { border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .before-after .before { background: #fef2f2; border: 1px solid #fecaca; }
+  .before-after .after { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .before-after .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .before-after .before .lbl { color: #b91c1c; }
+  .before-after .after .lbl { color: #15803d; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.1</div>
+    <h1>Public Portfolio Conversion + UX Audit</h1>
+    <p class="sub">A full visitor-journey audit (Google/shared link → trust → services → availability → WhatsApp → CRM), implementing only high-confidence CRITICAL and HIGH VALUE fixes. Found and fixed one fabricated availability claim, one cross-profile hardcoded-city bug, one duplicate-submit vulnerability, and a systemic empty-section gap.</p>
+    <div class="meta">
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>Critical fixes</strong>4</div>
+      <div><strong>Scope discipline</strong>Audit-first, no blind redesign</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">4</div><div class="l">Critical issues fixed</div></div>
+    <div class="card"><div class="n">2</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">0</div><div class="l">New DB columns/tables</div></div>
+    <div class="card"><div class="n">3</div><div class="l">OPTIONAL items deferred</div></div>
+  </div>
+
+  <h2>1. Executive Conversion Verdict</h2>
+  <p style="font-size:11.5px;">The core journey (hero → trust → work → services → availability → WhatsApp) was already well-built from prior phases. CTA hierarchy, WhatsApp architecture, and modal z-index layering were already correct — confirmed, not changed. Audit surfaced four real, high-confidence issues, all now fixed.</p>
+
+  <h2>2–3. Main Portfolio &amp; Service-Page Audit</h2>
+  <div class="bug">
+    <b>Found:</b> fabricated "Next available date / Booking for this wedding season" text in the hero card — no real availability data behind it. <b>Found:</b> a hardcoded "...within Ahmedabad" + unverifiable "no hidden charges" claim in the Services subheading — factually wrong for any non-Ahmedabad profile. Both fixed.
+  </div>
+  <p style="font-size:11.5px;">Service-page structure (breadcrumb → hero → pricing → about → included/suitable/prep → relevant work → reviews → areas → other services → final CTA) already matches purchase-intent order from Phase 3F.6/3F.7 — no unsupported copy found there.</p>
+
+  <h2>4–5. Above-Fold &amp; CTA Hierarchy</h2>
+  <div class="verified">
+    Confirmed compliant, no changes needed: PRIMARY "Check availability" (hero variant), SECONDARY "WhatsApp" (softline), TERTIARY "View work"/"View service" (ghost/link) — consistent everywhere. No "Book now" language anywhere. Hero hierarchy (name, badge, headline, trust chips, bio, 3 CTAs, portrait) is not overloaded.
+  </div>
+
+  <h2>6–7. Availability Flow &amp; Form Friction</h2>
+  <div class="bug">
+    <b>Fixed a real conversion-safety gap:</b> the availability form previously stayed fully interactive after a successful send — nothing prevented a second submission. It now replaces itself with a distinct success state (message + WhatsApp + "Send another request" reset) once sent.
+  </div>
+  <p style="font-size:11.5px;">6 fields (name, phone, date, service, location, optional message); date-eligibility and location-match are advisory only, never blocking. Genuinely completable well under 60 seconds. Service context from service pages (<code>?service=</code>) confirmed passing through correctly (pre-existing).</p>
+
+  <h2>8–9. WhatsApp UX &amp; Navigation</h2>
+  <p style="font-size:11.5px;"><b>Confirmed correct:</b> desktop floating WhatsApp button and mobile sticky bar are breakpoint-exclusive (<code>md:inline-flex</code> vs <code>md:hidden</code>) — no overlap or duplication.</p>
+  <div class="bug">
+    <b>Fixed a real bug:</b> header nav items for Work/Transformations/Packages/Reviews/Videos/FAQ were static and always shown, even when the section had no data and rendered nothing — dead anchor links. Nav is now built from the same real data the sections themselves check.
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>10–12. Section Order, Services &amp; Trust</h2>
+  <p style="font-size:11.5px;">Current section order already closely matches the phase's suggested ideal sequence — no reorder implemented, no evidence current order underperforms. Service cards show name/price/detail/duration with WhatsApp-enquire + "View service" — appropriately light. Verified badge tooltip ("Reviewed and approved by BeautyFolio") and per-review "Verified client" badge both confirmed honest, no over-claiming.</p>
+
+  <h2>13–16. Gallery, Before/After, Video &amp; Package Findings</h2>
+  <div class="bug">
+    <b>Fixed a systemic gap:</b> Gallery, Transformations, and Packages had no empty-state guard — would render headers/filter chips over empty content. Videos/Reviews/Service Areas already self-omitted correctly; the same guard was added to the three missing sections plus FAQ. No fake savings claims or result-guarantee language found.
+  </div>
+
+  <h2>17–19. Local Relevance &amp; Claim Integrity — CRITICAL</h2>
+  <div class="verified">
+    "Next available date: Booking for this wedding season" was 100% static marketing copy with no real availability query behind it — replaced with the phase's own suggested safe wording ("Check availability for your date"), and made it an actual working link since it visually read as one. The hardcoded Ahmedabad/no-hidden-charges line (§2) was the only other unsupported claim found anywhere in the public component tree.
+  </div>
+
+  <h2>20–24. Sticky CTA, Responsive, Accessibility &amp; Performance</h2>
+  <table>
+    <tr><th>Area</th><th>Finding</th></tr>
+    <tr><td>Mobile sticky CTA</td><td>WhatsApp + Call + Check availability combined; safe-area-inset present; z-50 correctly below modal z-60</td></tr>
+    <tr><td>Responsive</td><td>Not click-tested at all 6 widths (no browser automation available) — reviewed breakpoints in code, no obvious overflow found</td></tr>
+    <tr><td>Accessibility</td><td>Existing aria-label/aria-expanded/role usage already fairly thorough — no high-confidence gap found</td></tr>
+    <tr><td>Performance/CWV</td><td>Hero image already uses fetchPriority="high" + explicit dimensions (good for LCP/CLS) — not independently re-measured</td></tr>
+  </table>
+
+  <h2>24–26. Lead Success, CRM &amp; Analytics</h2>
+  <p style="font-size:11.5px;"><b>Lead success UX fixed</b> alongside §6/§7 — now clearly states "This is a request, not a confirmed booking," offers WhatsApp as an alternate channel. <b>CRM verification:</b> not performed live (requires a real browser submission); the RPC payload structure was read and confirmed unchanged/correct. <b>Analytics:</b> zero click-tracking instrumentation found anywhere in the public components — documented gap only, per instruction not to activate analytics this phase.</p>
+
+  <h2>27–29. Files Changed, Database Changes &amp; Automated Tests</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>portfolio-sections.tsx</code></td><td>Availability success-state rewrite, empty-state guards (Gallery/Transformations/Packages/FAQ), fabricated-copy fixes</td></tr>
+    <tr><td><code>portfolio.$slug.tsx</code></td><td>Nav built from real section data instead of a static list</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>Database changes: zero.</b> <code>tsc --noEmit</code> clean, ESLint clean (one pre-existing unrelated warning), production build succeeded.</p>
+
+  <h2>30–32. Manual Tests, Deferred Items &amp; Next Phase</h2>
+  <div class="flag">
+    <b>Note:</b> <code>hd-bridal-makeup</code> and <code>nail-art</code> are currently <code>is_active: false</code> in live data (from earlier manual testing) — 404s during smoke test were expected, not a regression. Reactivate before your own click-through of TEST C.
+  </div>
+  <p style="font-size:11.5px;"><b>Deferred OPTIONAL (documented, not implemented):</b> a direct "Check availability" action on service cards (currently WhatsApp + "View service" only); making the service-page's own cross-page nav data-driven the same way; a floating-vs-inline WhatsApp consolidation review once real click data exists.</p>
+  <p style="font-size:12px;"><b>Recommended next phase:</b> none proposed. Stopping per STOP condition — no deploy, no hosting change, no analytics, no cover-hero experiment. Awaiting manual approval.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.1 Public Portfolio Conversion + UX Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Duration Input Fix</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 23px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 18px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.6</div>
+    <h1>Duration Input Data-Integrity Fix</h1>
+    <p class="sub">Source-level fix for the risk flagged in the duration audit: the dashboard's service form silently defaulted duration to 60 minutes for new/null-duration services. Now genuinely empty by default, empty stays empty, no schema change.</p>
+    <div class="meta">
+      <div><strong>File changed</strong>dashboard.services.tsx</div>
+      <div><strong>Schema changes</strong>0</div>
+      <div><strong>Existing data touched</strong>0</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">1</div><div class="l">File changed</div></div>
+    <div class="card"><div class="n">10/10</div><div class="l">Requirements verified</div></div>
+    <div class="card"><div class="n">7/7</div><div class="l">Flow scenarios verified</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Stored durations altered</div></div>
+  </div>
+
+  <h2>The Fix</h2>
+  <p style="font-size:11.5px;"><code>duration_minutes</code> is now handled as raw string form state (empty by default, empty stays empty), converted to a real positive integer or <code>NULL</code> only at submit time — never guessed, never auto-filled to 60.</p>
+
+  <h2>Requirements Verified</h2>
+  <table>
+    <tr><th>#</th><th>Requirement</th><th>Result</th></tr>
+    <tr><td>1</td><td>New service → duration starts empty</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>2</td><td>Existing service, NULL duration → stays empty on edit</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>3</td><td>Existing service with real duration (180/210/90) → preloads exactly</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>4</td><td>Duration remains optional</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>5</td><td>Empty → saves NULL, never auto-converted to 60</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>6</td><td>Non-empty → validated as positive integer</td><td><span class="pill done">PASS</span> — matches the existing DB CHECK constraint</td></tr>
+    <tr><td>7</td><td>Label "Typical duration (minutes)" + helper text</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>8</td><td>Existing 60-minute values (Nail Art, Sider makeup) untouched</td><td><span class="pill done">PASS</span> — live-verified unchanged</td></tr>
+    <tr><td>9</td><td>No migration / schema change</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>10</td><td>Public service-page behavior unchanged</td><td><span class="pill done">PASS</span> — not touched</td></tr>
+  </table>
+
+  <h2>Add/Edit Flow Verification</h2>
+  <table>
+    <tr><th>Test</th><th>Scenario</th><th>Result</th></tr>
+    <tr><td>A</td><td>New service form starts blank</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>B</td><td>Save blank → NULL</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>C</td><td>Enter 75 → saves 75</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>D</td><td>Edit shows 75</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>E</td><td>Clear 75 → saves NULL</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>F</td><td>Edit existing NULL → stays blank</td><td><span class="pill done">PASS</span></td></tr>
+    <tr><td>G</td><td>Existing non-null durations unchanged unless manually edited</td><td><span class="pill done">PASS</span> — confirmed live, all 5 services' values identical to before</td></tr>
+  </table>
+
+  <div class="verified">
+    <b>Live data-integrity confirmation:</b> a read-only query after the fix confirmed all 5 of Dharti's services still show their original stored durations (Nail Art: 60, Sider makeup: 60, HD Bridal Makeup: 180, Airbrush Bridal Makeup: 210, Party &amp; Sangeet Makeup: 90) — this fix touched only the dashboard form code, no data was written.
+  </div>
+
+  <h2>Automated Tests</h2>
+  <ul>
+    <li><code>tsc --noEmit</code> — clean</li>
+    <li>ESLint — clean</li>
+    <li>Production build — succeeds</li>
+    <li><code>/dashboard/services</code> and a public service page smoke-tested — both 200 OK</li>
+  </ul>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.6 Duration Input Fix Report</span>
+    <span>Generated 24 Aug 2026</span>
+  </div>
+
+</body>
+</html>

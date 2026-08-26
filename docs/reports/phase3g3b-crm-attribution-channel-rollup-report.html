@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.3B Channel Rollup</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10.6px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.3px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.pass { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .file-list { font-size: 11px; }
+  .file-list li { margin: 4px 0; }
+  .bars { margin: 6px 0; }
+  .bar-row { display:flex; align-items:center; justify-content:space-between; font-size: 11px; margin: 4px 0 2px; }
+  .bar-track { height: 6px; border-radius: 999px; background:#f3e8ff; overflow:hidden; margin-bottom: 8px; }
+  .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#7c3aed,#ec4899); }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.3B</div>
+    <h1>CRM Attribution + Channel Rollup</h1>
+    <p class="sub">A lightweight, read-only Insights view inside the existing Leads manager — enquiry counts, source/UTM/campaign/service/CTA breakdowns, all cross-verified against live data. Zero schema changes, zero CRM record can be edited from this view.</p>
+    <div class="meta">
+      <div><strong>Placement</strong>4th view mode in /dashboard/leads</div>
+      <div><strong>Database changes</strong>0</div>
+      <div><strong>Live enquiries analyzed</strong>15 (9 unique customers)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">15</div><div class="l">Total enquiries (all time)</div></div>
+    <div class="card"><div class="n">9</div><div class="l">Unique customers</div></div>
+    <div class="card"><div class="n">1</div><div class="l">UTM-attributed</div></div>
+    <div class="card"><div class="n">13</div><div class="l">Unattributed / historical</div></div>
+  </div>
+
+  <h2>1–4. UX Placement &amp; Metric Definitions</h2>
+  <p style="font-size:11.5px;">Extended the existing List / Cards / Pipeline view switcher on <code>/dashboard/leads</code> with a 4th mode, <b>Insights</b> — no new route, matching the CRM's own navigation pattern. When active, the Today command center and per-lead filters hide, since Insights is an aggregate rollup, not a per-lead worklist.</p>
+  <p style="font-size:11.5px;"><b>Total enquiries</b> = count of lead_inquiries rows in range. <b>Unique customers</b> = distinct lead_id. <b>UTM-attributed</b> = utm_source present. <b>Unattributed/historical</b> = source, utm_source, referrer_host, AND cta_location all NULL — never relabeled "Direct." Coverage is reported as three separate honest percentages (Source / UTM / CTA recorded) rather than one collapsed score, since source alone trends toward 100% and would be misleading on its own.</p>
+
+  <h2>Live Breakdown — Source</h2>
+  <div class="bars">
+    <div class="bar-row"><span>Unknown / historical</span><span>13 · 86.7%</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:86.7%"></div></div>
+    <div class="bar-row"><span>Portfolio</span><span>2 · 13.3%</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:13.3%"></div></div>
+  </div>
+
+  <h2>Live Breakdown — Service Demand</h2>
+  <table>
+    <tr><th>Service</th><th>Enquiries</th></tr>
+    <tr><td>HD Bridal Makeup</td><td>4</td></tr>
+    <tr><td>Hair Cutting</td><td>3</td></tr>
+    <tr><td>Bridal Makeup</td><td>2</td></tr>
+    <tr><td>Nail Art / Airbrush Bridal Makeup / Hair Styling / Eyebrow / Skin Treatment / HD Makeup</td><td>1 each</td></tr>
+  </table>
+  <p style="font-size:10.5px; color:#6b7280;">Counting rule: an enquiry linked to multiple services contributes once to each service's count — the sum across services can exceed total enquiries. This is deliberate (service demand, not a partition of enquiries).</p>
+
+  <h2>Live Breakdown — CTA &amp; Campaign</h2>
+  <table>
+    <tr><th>CTA location</th><th>Enquiries</th></tr>
+    <tr><td>Unknown / historical</td><td>14</td></tr>
+    <tr><td><code>service_detail_hero</code></td><td>1</td></tr>
+  </table>
+  <p style="font-size:11.5px;">Campaign table shows <code>bridal_test</code> (google / cpc) with 1 enquiry — the real, manually-tested attribution flow from Phase 3G.3A.</p>
+
+  <div class="page-break"></div>
+
+  <h2>5–19. Design Decisions</h2>
+  <div class="verified">
+    <b>Date filter:</b> 7d/30d/90d/all, default 30d, strictly on lead_inquiries.created_at (never event_date). Live-verified genuinely different counts: 7d=13, 30d=15, 90d=15, all=15.<br/>
+    <b>UTM channel / campaign:</b> raw recorded utm_source/utm_medium/utm_campaign values only — no invented groupings, no revenue/ROAS/CPA/conversion-rate columns (explicitly excluded, §9).<br/>
+    <b>Landing/conversion pages:</b> pathname-only top-10 lists; conversion pages kept as a secondary section.<br/>
+    <b>Referrer:</b> conditionally rendered — currently absent, since zero non-null referrer_host values exist yet; will appear automatically once real data arrives.<br/>
+    <b>Explicitly NOT built:</b> conversion rate (no session/traffic denominator exists), pipeline-performance-by-channel (status is customer-level, attribution is enquiry-level — combining them risks misleading conclusions), revenue/LTV (no billing data exists yet).
+  </div>
+
+  <h2>20–25. Architecture, Security &amp; Privacy</h2>
+  <div class="verified">
+    <b>Database changes: zero.</b> Single query per rollup — lead_inquiries joined to leads!inner(beautician_profile_id) (explicit scoping, defense in depth beyond RLS) and lead_inquiry_services(service_tag) inline, avoiding N+1. All grouping happens server-side in <code>lead-insights.server.ts</code> — only aggregated counts cross to the browser.<br/>
+    <b>Privacy:</b> the select() never touches name/phone/email/message/notes — confirmed by code review, only channel/campaign/service/path fields are fetched or rendered anywhere in the Insights view.<br/>
+    <b>Security:</b> ownership resolved via getOwnBeauticianProfileId() and applied as an explicit filter on top of unchanged RLS policies — never assumes a single global profile.
+  </div>
+
+  <h2>26–27. Responsive Design</h2>
+  <p style="font-size:11.5px;">Reused the existing StatCard visual language — no new charting library installed. Breakdown sections use a 2-column grid on desktop collapsing to 1 column on mobile; bars are plain CSS width divs; all lists stack vertically with no horizontal overflow.</p>
+
+  <h2>22. Files Changed</h2>
+  <ul class="file-list">
+    <li><code>src/data/lead-insights.server.ts</code> <span class="pill done">NEW</span> — aggregation + types</li>
+    <li><code>src/components/leads/lead-insights-view.tsx</code> <span class="pill done">NEW</span> — read-only rollup UI</li>
+    <li><code>src/routes/dashboard.leads.tsx</code> — 4th view mode, insights query, conditional layout</li>
+  </ul>
+
+  <h2>28. Quality Gates</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td><code>tsc --noEmit</code></td><td>Clean</td></tr>
+    <tr><td>ESLint</td><td>0 errors after autofix</td></tr>
+    <tr><td><code>npm run build</code></td><td>Succeeded</td></tr>
+    <tr><td>Route smoke tests</td><td>All 200: /dashboard/leads, /portfolio/dharti-panchal, service page, /sitemap.xml, /robots.txt</td></tr>
+  </table>
+
+  <h2>29. Test Matrix Results (SQL-cross-verified against live data)</h2>
+  <table>
+    <tr><th>Test</th><th>Result</th></tr>
+    <tr><td>A — 30-day summary</td><td><span class="pill pass">PASS</span> 15 total / 9 customers / 1 UTM / 13 unattributed — matches raw data</td></tr>
+    <tr><td>B — source breakdown</td><td><span class="pill pass">PASS</span> Unknown 13 (86.7%), Portfolio 2 (13.3%)</td></tr>
+    <tr><td>C — campaign</td><td><span class="pill pass">PASS</span> google/cpc/bridal_test appears, count=1</td></tr>
+    <tr><td>D — service</td><td><span class="pill pass">PASS</span> HD Bridal Makeup=4, matches lead_inquiry_services</td></tr>
+    <tr><td>E — CTA</td><td><span class="pill pass">PASS</span> service_detail_hero=1, rest Unknown</td></tr>
+    <tr><td>F — date filter</td><td><span class="pill pass">PASS</span> 7d=13, 30d=15, 90d=15, all=15</td></tr>
+    <tr><td>G — historical NULL</td><td><span class="pill pass">PASS</span> renders "Unknown / historical," never "Direct"</td></tr>
+    <tr><td>H — security</td><td>Code-verified — explicit profile scoping + unchanged RLS</td></tr>
+    <tr><td>I — zero-data range</td><td>Code-verified — dedicated empty state, no "0% performance"</td></tr>
+    <tr><td>J — mobile</td><td>Not browser-tested — manual check required</td></tr>
+  </table>
+
+  <h2>30–32. Manual Checks, Limitations &amp; Next Phase</h2>
+  <div class="flag">
+    <b>Manual browser checks needed:</b> open Leads → Insights, cycle all 4 date ranges, confirm the numbers above, resize to phone width and confirm no horizontal scroll, confirm nothing in this view can edit a CRM record.<br/>
+    <b>Known limitations:</b> no drill-down from a breakdown row into the filtered lead list (deferred, would need cross-view filter state); referrer section stays hidden until real external-referrer data arrives; coverage percentages will trend upward over time simply because source now defaults on every new enquiry — expected, not a quality signal by itself.<br/>
+    <b>Recommended next phase (not started):</b> a small "click a row to filter the list view" drill-down — still explicitly not Google Ads/Meta integration or Customer Growth OS.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's explicit STOP condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.3B CRM Attribution + Channel Rollup Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

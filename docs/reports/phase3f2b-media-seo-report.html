@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.2B Media SEO</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 26px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 17px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .pill.reused { background:#dbeafe; color:#1d4ed8; }
+  .pill.none { background:#f3f4f6; color:#6b7280; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.2B</div>
+    <h1>Media SEO + Image Accessibility + Structured Media Data</h1>
+    <p class="sub">Friendly per-photo description fields for Gallery and Before &amp; After, a deterministic no-generic-fallback alt-text system across gallery/before-after/video, and real-data-only ImageObject/VideoObject structured data. Local development only — zero database changes.</p>
+    <div class="meta">
+      <div><strong>Module</strong>Media SEO</div>
+      <div><strong>Database changes</strong>None</div>
+      <div><strong>Scope</strong>Local dev only</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">0</div><div class="l">Schema changes</div></div>
+    <div class="card"><div class="n">9</div><div class="l">Files changed</div></div>
+    <div class="card"><div class="n">5+3</div><div class="l">ImageObject / VideoObject entries verified live</div></div>
+    <div class="card"><div class="n">7/7</div><div class="l">Manual tests performed</div></div>
+  </div>
+
+  <h2>1–3. Architecture Audit &amp; Database Changes</h2>
+  <p style="font-size:11.5px;">Direct schema/RLS reads confirmed <code>portfolio_images</code> already had <code>alt_text</code> <b>and</b> <code>caption</code> (plus dimensions/<code>created_at</code>); <code>before_after_images</code> already had <code>alt_text</code>; <code>portfolio_videos</code> already had every field needed (title, description, category, thumbnail_url, created_at, duration_seconds). Owner-write RLS on all three already used the shared <code>owns_beautician_profile()</code> policy. <b>Conclusion: zero new columns needed.</b> The entire gap was application-layer — no dashboard UI to set alt text, and the public renderer ignored real values in favor of a flat boilerplate string.</p>
+
+  <table>
+    <tr><th>Table</th><th>Fields reused</th></tr>
+    <tr><td><code>portfolio_images</code></td><td><code>alt_text</code>, <code>caption</code>, <code>created_at</code></td></tr>
+    <tr><td><code>before_after_images</code></td><td><code>alt_text</code></td></tr>
+    <tr><td><code>portfolio_videos</code></td><td><code>title</code>, <code>description</code>, <code>category</code>, <code>thumbnail_url</code>, <code>created_at</code>, <code>duration_seconds</code></td></tr>
+  </table>
+
+  <h2>4. Files Changed</h2>
+  <table>
+    <tr><th>File</th><th>Status</th><th>Detail</th></tr>
+    <tr><td><code>src/lib/media-alt-text.ts</code></td><td><span class="pill done">New</span></td><td>Pure alt-text fallback generator, single source of truth</td></tr>
+    <tr><td><code>portfolio.ts</code> / <code>portfolio-mapper.ts</code></td><td><span class="pill done">Modified</span></td><td>Alt text computed once per item at mapping time; fixed a double-space data bug</td></tr>
+    <tr><td><code>portfolio-sections.tsx</code></td><td><span class="pill done">Modified</span></td><td>All public <code>&lt;img alt&gt;</code> now use computed text, legacy helper as fallback only</td></tr>
+    <tr><td><code>gallery.server.ts</code> / <code>before-after.server.ts</code></td><td><span class="pill done">Modified</span></td><td>Added <code>updateImageAltText()</code>, RLS-scoped</td></tr>
+    <tr><td><code>dashboard.gallery.tsx</code> / <code>dashboard.before-after.tsx</code></td><td><span class="pill done">Modified</span></td><td>New "Photo description" field per image</td></tr>
+    <tr><td><code>portfolio.$slug.tsx</code></td><td><span class="pill done">Modified</span></td><td>Added ImageObject/VideoObject JSON-LD</td></tr>
+    <tr><td><code>dashboard.videos.tsx</code></td><td><span class="pill none">Untouched</span></td><td>No schema field for manual video alt — fallback-only by design</td></tr>
+  </table>
+
+  <h2>5–7. Gallery, Before &amp; After, Video Implementation</h2>
+  <p style="font-size:11.5px;">Dashboard copy is user-friendly, never mentions "SEO" or "alt attribute": <b>"Photo description"</b> with helper text <i>"Describe what is visible in the photo. This helps accessibility and search engines understand your work."</i> Clearing a field back to empty writes <code>null</code> and hands control back to the automatic fallback. Videos have no manual field (no schema support) — thumbnail alt is always generated from real title/category, e.g. <i>"My bridal work — video by Dharti R Panchal."</i></p>
+
+  <h2>8. Alt-Text Fallback Hierarchy</h2>
+  <div class="note">
+    <ol style="margin:4px 0;">
+      <li>Manual text (<code>alt_text</code> / <code>caption</code>) — used verbatim, no boilerplate appended</li>
+      <li>Title + category</li>
+      <li>Title + professional/service context</li>
+      <li>Category + owner name + city</li>
+      <li>Safe generic fallback — never the literal <code>"image"</code></li>
+    </ol>
+    Before/after pairs are guaranteed non-identical: the "before" side never carries the professional's name; the "after" side always attributes the result to them.
+  </div>
+
+  <h2>9. Image Performance</h2>
+  <p style="font-size:11.5px;">No new CDN, no Storage rebuild, no transformation pipeline (out of scope). Existing lazy-loading and fixed <code>width</code>/<code>height</code> CLS-prevention attributes confirmed intact — this phase only changed <code>alt</code> values, never markup, sizing, or loading strategy.</p>
+
+  <div class="page-break"></div>
+
+  <h2>10. Structured Data — Live Verified</h2>
+  <div class="verified">
+    Fetched the raw SSR response for <code>/portfolio/dharti-panchal</code> directly (not via client hydration) and parsed the JSON-LD script block:
+    <ul style="margin:6px 0;">
+      <li><b>5</b> <code>ImageObject</code> entries — real Storage <code>contentUrl</code>, real caption/description, real <code>creator</code>, real <code>dateCreated</code> where available</li>
+      <li><b>3</b> <code>VideoObject</code> entries — real <code>thumbnailUrl</code>/<code>name</code>/<code>description</code>, real <code>embedUrl</code> (Instagram/YouTube) or <code>contentUrl</code> (uploaded), real <code>uploadDate</code></li>
+      <li>No fabricated durations, dates, creators, or thumbnails anywhere — a property is simply omitted when the underlying data doesn't exist (e.g. no <code>duration</code> key when <code>duration_seconds</code> is null)</li>
+    </ul>
+  </div>
+
+  <h2>11. RLS / Ownership Verification</h2>
+  <p style="font-size:11.5px;"><code>updateImageAltText()</code> uses a direct <code>.update(...).eq("id", imageId)</code> with no explicit ownership join in application code — consistent with this codebase's established pattern of trusting RLS rather than re-implementing ownership checks client-side. Both image tables' owner-write policies use the shared <code>owns_beautician_profile()</code> helper (confirmed in the Phase 2 data-model audit), so a cross-user write is rejected by Postgres before it can apply. Public reads remain scoped to <code>is_published: true</code> rows only, unchanged.</p>
+
+  <h2>12–13. Regression, Build &amp; Quality Checks</h2>
+  <ul>
+    <li><code>tsc --noEmit</code> — clean</li>
+    <li>ESLint across all touched files — clean (one pre-existing Prettier line-wrap fixed via <code>eslint --fix</code>)</li>
+    <li>Production build — succeeds</li>
+    <li>Routes smoke-tested: <code>/</code>, <code>/portfolio/dharti-panchal</code>, <code>/dashboard/gallery</code>, <code>/dashboard/before-after</code>, <code>/dashboard/videos</code>, <code>/sitemap.xml</code>, <code>/robots.txt</code> — all 200 OK</li>
+  </ul>
+
+  <h2>14. Manual Tests Performed</h2>
+  <table>
+    <tr><th>#</th><th>Test</th><th>Result</th></tr>
+    <tr><td>1</td><td>Description upload persists &amp; renders verbatim</td><td>Confirmed</td></tr>
+    <tr><td>2</td><td>No-description fallback (title/category-derived)</td><td>Confirmed</td></tr>
+    <tr><td>3</td><td>Before/after distinct descriptions</td><td>Confirmed</td></tr>
+    <tr><td>4</td><td>Video thumbnail alt generated correctly</td><td>Confirmed</td></tr>
+    <tr><td>5</td><td>Unpublish → disappears from public page</td><td>Confirmed for Videos; Gallery/Before &amp; After have no publish toggle (pre-existing gap, verified via direct DB update instead)</td></tr>
+    <tr><td>6</td><td>SSR alt attributes + JSON-LD present in raw response</td><td>Confirmed</td></tr>
+    <tr><td>7</td><td>Existing media still renders, no re-upload needed</td><td>Confirmed</td></tr>
+  </table>
+
+  <h2>15. Deferred Items</h2>
+  <ul>
+    <li>Cover image not wired into the public hero — reserved for a future Hero Variant A/B phase</li>
+    <li>No publish/unpublish UI for Gallery or Before &amp; After (pre-existing gap, not this phase's scope)</li>
+    <li>No new image CDN, Storage rebuild, or transformation pipeline</li>
+  </ul>
+
+  <div class="flag">
+    <b>Recommended next phase:</b> add a publish/unpublish toggle to Gallery and Before &amp; After items, matching the pattern Videos already has — closes the one testing/UX gap surfaced above. Not started, purely a recommendation.
+  </div>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.2B Media SEO Report</span>
+    <span>Generated 23 Aug 2026</span>
+  </div>
+
+</body>
+</html>

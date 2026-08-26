@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3G.2B Merge Execution</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 22px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 560px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 16px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; }
+  .pill.done { background:#dcfce7; color:#15803d; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .before-after { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .before-after .box { border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .before-after .before { background: #fef2f2; border: 1px solid #fecaca; }
+  .before-after .after { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .before-after .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
+  .before-after .before .lbl { color: #b91c1c; }
+  .before-after .after .lbl { color: #15803d; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3G.2B</div>
+    <h1>Jay Jogiya Duplicate Merge — Final Execution</h1>
+    <p class="sub">The corrected-direction merge executed inside one verified transaction: four historical enquiries (Hair Cutting ×2, Hair Styling, HD Bridal Makeup) now live under one customer record, with all activities and service links intact and zero collateral impact on any other customer.</p>
+    <div class="meta">
+      <div><strong>Schema/code changes</strong>0</div>
+      <div><strong>Transaction result</strong>Committed — all checks passed</div>
+      <div><strong>Enquiries preserved</strong>4 of 4</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">1</div><div class="l">Jay Jogiya customer row</div></div>
+    <div class="card"><div class="n">4</div><div class="l">Preserved enquiries</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Orphan rows after merge</div></div>
+    <div class="card"><div class="n">5</div><div class="l">Unrelated customers verified untouched</div></div>
+  </div>
+
+  <h2>1. Fresh Pre-Flight Comparison</h2>
+  <p style="font-size:11.5px;">Re-selected both leads immediately before writing — state matched the corrected proposal exactly, no further drift since it was raised: canonical (<code>5f5fdad4</code>) still had 3 inquiries, 3 activities, status "new"; redundant (<code>4c76e672</code>) still had its original 1 inquiry, 1 activity, status "new". Safe to proceed.</p>
+
+  <h2>2–3. Canonical &amp; Redundant IDs</h2>
+  <p style="font-size:11.5px;"><b>Canonical:</b> <code>5f5fdad4-8ac8-4f1c-b3c2-5befcf5e3357</code>. <b>Redundant:</b> <code>4c76e672-238b-48fc-be64-1960797a8289</code>.</p>
+
+  <h2>4–7. Re-Parenting &amp; Preservation — Verified in Full</h2>
+  <div class="verified">
+    Re-parented the redundant lead's inquiry (Hair Cutting, event 2026-08-29 — the original public-form enquiry) and its 1 activity onto the canonical lead. Live-verified post-commit: canonical lead now has exactly <b>4 inquiries</b> — Hair Cutting ×2, Hair Styling, HD Bridal Makeup — each with its own event date and real <code>lead_inquiry_services</code> tag intact, nothing flattened or converted to text-only. Confirmed no existing activity already made the Portfolio-sourced enquiry clear, so appended exactly one factual note: <i>"Historical enquiry merged from duplicate customer record — source: Portfolio, service: Hair Cutting."</i> — no fabricated time, status, or interaction claims.
+  </div>
+
+  <div class="before-after">
+    <div class="box before">
+      <div class="lbl">Before</div>
+      2 "Jay Jogiya" lead rows, same phone, split enquiry history (1 vs 3)
+    </div>
+    <div class="box after">
+      <div class="lbl">After</div>
+      1 lead row, 4 preserved enquiries, all service links intact, source history documented
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>8–9. Status/Follow-Up Preservation &amp; Redundant Deletion</h2>
+  <p style="font-size:11.5px;">Live-verified unchanged on the canonical lead: status "new", no follow-up set, source "whatsapp", name/phone unchanged — none overwritten by the older redundant lead's values. Verified zero remaining inquiries and activities on the redundant lead <i>inside the same transaction</i> before deleting only that row.</p>
+
+  <h2>10–13. Final Counts &amp; Verification</h2>
+  <table>
+    <tr><th>Metric</th><th>Before merge</th><th>After merge</th></tr>
+    <tr><td>Leads</td><td>7</td><td><b>6</b> (−1, exactly as expected)</td></tr>
+    <tr><td>Inquiries</td><td>10</td><td><b>10</b> (unchanged)</td></tr>
+    <tr><td>Inquiry-service links</td><td>10</td><td><b>10</b> (unchanged)</td></tr>
+    <tr><td>Activities</td><td>21</td><td><b>22</b> (+1, exactly the one factual merge note)</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><b>0 orphan rows</b> anywhere (inquiries, inquiry-service links, activities). All 5 unrelated customers (Pooja Singh, Kavya/Shukla, Navya Panchal, Rikesh, tushar) verified present and unchanged inside the transaction before commit.</p>
+
+  <h2>14–16. Transaction Result &amp; Changes</h2>
+  <div class="verified">
+    <b>Committed successfully.</b> Every verification (redundant gone, canonical present with correct phone, 4 inquiries, all 3 service tags present, zero orphans, all 5 unrelated customers unchanged) ran inside the same transaction before <code>COMMIT</code> — any single failure would have rolled back the entire operation. <b>Database/schema changes: zero. Code changes: zero.</b> Only <code>UPDATE</code>/<code>INSERT</code>/<code>DELETE</code> on existing rows — no RLS, FK, RPC, index, or constraint touched.
+  </div>
+
+  <h2>17. Manual Browser Check Required</h2>
+  <div class="flag">
+    <code>/dashboard/leads</code> confirmed loading (200) — please visually confirm Jay Jogiya now appears as a single customer row with all four enquiries (Hair Cutting, Hair Styling, HD Bridal Makeup, and the original Portfolio Hair Cutting) visible in their history/timeline.
+  </div>
+
+  <p style="font-size:12px;"><b>Stopping here</b> per the phase's STOP condition.</p>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3G.2B Jay Jogiya Merge Final Execution Report</span>
+    <span>Generated 25 Aug 2026</span>
+  </div>
+
+</body>
+</html>

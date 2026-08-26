@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BeautyFolio — Phase 3F.4A Backend Portability</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2a1f2d;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 12.5px;
+  }
+  .cover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    color: #fff;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .cover .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; opacity: .85; font-weight: 600; }
+  .cover h1 { font-size: 24px; margin: 8px 0; font-weight: 700; }
+  .cover p.sub { font-size: 13px; opacity: .92; margin: 0; max-width: 540px; }
+  .cover .meta { margin-top: 18px; display: flex; gap: 26px; font-size: 11.5px; opacity: .9; flex-wrap: wrap; }
+  .cover .meta strong { display: block; font-size: 12.5px; }
+  h2 { font-size: 15px; color: #6d28d9; border-bottom: 2px solid #f3e8ff; padding-bottom: 5px; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #a21caf; margin: 14px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .card { border: 1px solid #eee0f7; background: #faf5ff; border-radius: 10px; padding: 10px 12px; }
+  .card .n { font-size: 20px; font-weight: 700; color: #7c3aed; }
+  .card .l { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f0e6f9; vertical-align: top; }
+  th { color: #6d28d9; font-weight: 600; background: #faf5ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; background:#f5f0fa; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; font-size: 12px; }
+  .note { background: #fdf4ff; border-left: 4px solid #d946ef; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .verified { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .flag { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .critical { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; margin: 10px 0; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:10px; font-weight:700; }
+  .pill.green { background:#dcfce7; color:#15803d; }
+  .pill.amber { background:#fef3c7; color:#b45309; }
+  .pill.red { background:#fee2e2; color:#b91c1c; }
+  .matrix { display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .matrix .row { display:flex; justify-content:space-between; align-items:center; border:1px solid #eee0f7; border-radius:8px; padding:8px 10px; font-size:11px; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; color: #9ca3af; display:flex; justify-content: space-between; }
+  .page-break { page-break-before: always; }
+  .verdict-box { background: #ede9fe; border: 2px solid #a78bfa; padding: 16px 18px; border-radius: 10px; font-size: 13px; margin: 12px 0; color: #4c1d95; }
+  .verdict-box b { font-size: 14px; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="eyebrow">BeautyFolio · Phase 3F.4A</div>
+    <h1>Backend Portability + Migration Readiness Audit</h1>
+    <p class="sub">Read-only audit answering: could BeautyFolio's backend be accurately recreated from the repository if Lovable Cloud became unavailable? No fixes applied, no migration executed, no data modified.</p>
+    <div class="meta">
+      <div><strong>Scope</strong>Read-only audit</div>
+      <div><strong>Data modified</strong>None</div>
+      <div><strong>Backend</strong>Lovable Cloud (ivbujlyilzmlublqzalu)</div>
+    </div>
+  </div>
+
+  <div class="verdict-box">
+    <b>Critical final question:</b> "If a brand-new Supabase project were created today and the repository replayed as-is, would it reproduce the current backend?"<br/><br/>
+    <b>Answer: YES, WITH SPECIFIC GAPS</b> — schema/RLS/functions/triggers/enums are fully reproducible with zero gaps. Real data, storage binaries, 3 absolute-URL columns, existing user passwords, and the service-role secret would each need a separate, documented step (see §24 below).
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="n">26</div><div class="l">Tables audited</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Drift finding (harmless)</div></div>
+    <div class="card"><div class="n">9G / 3A / 0R</div><div class="l">Risk areas</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Fixes applied (audit only)</div></div>
+  </div>
+
+  <h2>1–2. Executive Verdict &amp; Current Architecture</h2>
+  <p style="font-size:11.5px;">BeautyFolio runs on <b>Lovable Cloud</b>, Lovable's managed Supabase backend — a genuine, standard Postgres/Supabase instance accessed exclusively through the plain <code>@supabase/supabase-js</code> client. No proprietary Lovable database/auth/storage SDK exists anywhere in application code.</p>
+
+  <h2>3–4. Live DB vs. Migration Files — Schema Drift</h2>
+  <div class="flag">
+    <b>One real finding, self-corrected:</b> <code>services</code> and <code>packages</code> already had a full <code>UNIQUE (beautician_profile_id, slug)</code> constraint since the very first migration — my own Phase 3F.4 audit missed this (inline in a <code>CREATE TABLE</code> block, didn't match my search pattern). My Phase 3F.4 migration added a second, functionally redundant partial index. Harmless — both now coexist, no conflict, just duplication. Documented, not fixed here per the audit-only instruction.
+  </div>
+  <p style="font-size:11.5px;">No other drift found across 26 tables, 11 functions, 18 triggers, 37 RLS policies, 11 enums — every live object traces to a migration file.</p>
+
+  <h2>5. Migration-History Findings</h2>
+  <p style="font-size:11.5px;">Lovable Cloud doesn't expose the standard Supabase CLI migration-history table from this access path. Reconciled instead via exhaustive direct schema comparison (§3–4) — found fully consistent.</p>
+
+  <div class="page-break"></div>
+
+  <h2>6–9. Tables, RLS, RPC, Triggers</h2>
+  <table>
+    <tr><th>Category</th><th>Count</th><th>Finding</th></tr>
+    <tr><td>Tables</td><td>26</td><td>All in <code>public</code>, RLS enabled on every one, no views/sequences</td></tr>
+    <tr><td>RLS policies</td><td>37</td><td>All trace to shared helpers <code>owns_beautician_profile()</code>/<code>is_published_profile()</code></td></tr>
+    <tr><td>Functions/RPCs</td><td>11</td><td>All present in migrations; <code>submit_lead()</code> + <code>log_admin_action()</code> actively used by app code</td></tr>
+    <tr><td>Triggers</td><td>18</td><td>15 <code>updated_at</code> + 2 write-guards + 1 signup-automation, all traced</td></tr>
+  </table>
+  <p style="font-size:11.5px;"><code>portfolio_events</code> table + <code>record_portfolio_event()</code> RPC exist in both migrations and live DB but are <b>never called by any application code</b> — dormant analytics infrastructure, not drift.</p>
+
+  <h2>10–11. Auth Architecture &amp; Migration Risk</h2>
+  <ul>
+    <li>Email/password only — no OAuth, no magic link found in the app</li>
+    <li><code>handle_new_user()</code> trigger auto-creates <code>profiles</code> + default <code>beautician</code> role on signup</li>
+    <li>Role/ownership checks: <code>user_roles</code> table + <code>has_role()</code>/<code>owns_beautician_profile()</code> — no metadata-based role logic</li>
+  </ul>
+  <div class="flag">
+    <b>Real risk found:</b> <code>profiles.auth_user_id</code> has <b>no database-level foreign key</b> to <code>auth.users.id</code> — kept in sync only by the signup trigger. A future Auth migration needs explicit remapping. Supabase also doesn't support standard password-hash export — existing users would need a reset-password flow post-migration.
+  </div>
+
+  <h2>12–14. Storage Inventory, Migration Risk &amp; URL Dependencies</h2>
+  <p style="font-size:11.5px;">One bucket: <code>portfolio-media</code>, public, 4 RLS policies, fully reproducible from migrations. Database backup alone would <b>not</b> recreate the actual files — needs a separate object-copy procedure (documented 8-step plan in the full doc).</p>
+  <table>
+    <tr><th>Storage-referencing column</th><th>Classification</th></tr>
+    <tr><td>Gallery / Before-After / uploaded-video <code>storage_path</code></td><td><span class="pill green">PORTABLE</span> — relative path, resolved dynamically</td></tr>
+    <tr><td><code>portfolio_videos.video_url</code> (YouTube/Instagram)</td><td><span class="pill green">PORTABLE</span> — external URL, not backend-specific</td></tr>
+    <tr><td><code>beautician_profiles.profile_image_url</code> / <code>cover_image_url</code></td><td><span class="pill amber">REQUIRES URL REWRITE</span> — absolute Supabase URL baked in</td></tr>
+    <tr><td><code>portfolio_videos.thumbnail_url</code></td><td><span class="pill amber">REQUIRES URL REWRITE</span> — same</td></tr>
+  </table>
+
+  <h2>15. Environment Variable Inventory</h2>
+  <p style="font-size:11.5px;">8 variables inventoried (names only, no values shown per instruction). <b>Notable finding:</b> <code>SUPABASE_SERVICE_ROLE_KEY</code> is injected by Lovable Cloud at runtime — absent from the repo's <code>.env</code> entirely — and powers an admin/service-role client (<code>supabaseAdmin</code>) that is <b>defined but imported nowhere in the codebase</b>. Dormant, not a current dependency of any working feature.</p>
+
+  <div class="page-break"></div>
+
+  <h2>16. Lovable-Specific Dependencies</h2>
+  <table>
+    <tr><th>Dependency</th><th>Classification</th></tr>
+    <tr><td><code>@lovable.dev/vite-tanstack-config</code> (build config package)</td><td>D — backend/build infrastructure dependency, but replaceable with standard Vite/TanStack config</td></tr>
+    <tr><td><code>window.__lovableEvents</code> error-reporting hooks</td><td>A — development-only, no-op in any real production browser</td></tr>
+    <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code> runtime injection</td><td>D — but currently unused by any working feature</td></tr>
+  </table>
+
+  <h2>17–19. Edge Functions, Admin System, CRM</h2>
+  <ul>
+    <li><b>No Supabase Edge Functions exist</b> — <code>supabase/functions/</code> doesn't exist; all server logic runs through TanStack Start server functions in the one app deployment</li>
+    <li>Admin system: pure RLS/role-based (<code>has_role()</code>), no Lovable-specific identity state</li>
+    <li>CRM: full FK chain (<code>leads → lead_inquiries → lead_inquiry_services</code>, <code>lead_activities</code>) intact; <code>lead_status</code> enum evolution (6→9 values across two migrations) matches live exactly</li>
+  </ul>
+
+  <h2>20–21. Enums &amp; Seed/Demo Data Separation</h2>
+  <div class="verified">
+    <b>No seed/demo-data migration exists at all.</b> Every one of the 13 migration files is schema-only — zero <code>INSERT</code> statements populating demo content. A clean replay of the migrations carries <b>zero risk</b> of accidentally seeding test/demo data into a future production migration, because there is no seed script to run.
+  </div>
+
+  <h2>22–23. Legacy Fields &amp; Service-Slug Verification</h2>
+  <p style="font-size:11.5px;"><code>rating</code>/<code>review_count</code>/<code>client_count</code>/<code>metrics_verified</code> classification unchanged from Phase 3F.3A. Phase 3F.4's service-slug work (column, CHECK constraint, unique index, backfilled data, <code>updateService()</code> preservation behavior) fully re-verified live-vs-migration-consistent this phase.</p>
+
+  <h2>24. Future Migration Procedure (Not Executed)</h2>
+  <p style="font-size:11.5px;">18-step procedure documented in the full report: freeze → export schema → provision destination → replay migrations → migrate Auth → migrate tables → migrate Storage → recreate policies/RLS/functions/triggers → configure environment → validate row/object/FK counts → regression test → cutover → monitor → rollback window.</p>
+
+  <h2>25. Future Validation Checklist (Not Executed)</h2>
+  <p style="font-size:11.5px;">Row counts per table, published-profile counts, service/gallery/review/lead counts, Storage object count vs. reference count (orphan detection both directions), Auth user count, broken-FK scan, duplicate-slug scan, post-rewrite URL resolution check.</p>
+
+  <h2>26. GREEN / AMBER / RED Risk Matrix</h2>
+  <div class="matrix">
+    <div class="row"><span>Database schema</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>Migration history</span><span class="pill amber">AMBER</span></div>
+    <div class="row"><span>RLS</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>Functions/RPC</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>Triggers</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>Auth</span><span class="pill amber">AMBER</span></div>
+    <div class="row"><span>Storage</span><span class="pill amber">AMBER</span></div>
+    <div class="row"><span>Environment variables</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>Lovable-specific deps</span><span class="pill amber">AMBER</span></div>
+    <div class="row"><span>Application code</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>SEO infrastructure</span><span class="pill green">GREEN</span></div>
+    <div class="row"><span>CRM data</span><span class="pill green">GREEN</span></div>
+  </div>
+  <p style="font-size:11px; color:#6b7280;">No meaningless single overall percentage given, per instruction — this matrix is the answer.</p>
+
+  <h2>27–30. Documentation, Gaps, Manual Actions &amp; Remediation</h2>
+  <ul>
+    <li><b>Created:</b> <code>docs/architecture/backend-portability.md</code> (full findings) + <code>backend-portability-manifest.json</code> (machine-readable)</li>
+    <li><b>Missing from migrations:</b> nothing schema-relevant — only my own prior audit's oversight (§3–4), now corrected in documentation</li>
+    <li><b>Manual actions needed from you:</b> none right now — only relevant if a real migration is later approved (destination secrets, password-reset communication plan)</li>
+    <li><b>Recommended remediation (not started):</b> (1) drop the one redundant index, (2) build a ready-to-run storage-URL-rewrite script, (3) decide the fate of the dormant service-role client</li>
+  </ul>
+
+  <div class="footer">
+    <span>BeautyFolio — Phase 3F.4A Backend Portability &amp; Migration Readiness Report</span>
+    <span>Generated 23 Aug 2026</span>
+  </div>
+
+</body>
+</html>
