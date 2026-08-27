@@ -5,12 +5,16 @@
 // service-role key, so results are naturally profile-scoped by the
 // existing public-read policies — Profile A can never receive Profile B's
 // service/media/review data through this file.
-import { createReadOnlyClient } from "./portfolio-query.server";
+import {
+  createReadOnlyClient,
+  PUBLIC_BEAUTICIAN_PROFILE_COLUMNS,
+  type PublicBeauticianProfile,
+} from "./portfolio-query.server";
 import { resolveServiceSlug } from "@/lib/seo-helpers";
 import type { Json, Tables } from "@/integrations/supabase/types";
 
 export interface ServicePageBundle {
-  profile: Tables<"beautician_profiles">;
+  profile: PublicBeauticianProfile;
   seo: Tables<"portfolio_seo"> | null;
   service: Tables<"services">;
   /** Every other active service on this profile (current service excluded
@@ -63,7 +67,7 @@ export async function getPublishedServicePage(
 
   const { data: profile, error: profileError } = await supabase
     .from("beautician_profiles")
-    .select("*")
+    .select(PUBLIC_BEAUTICIAN_PROFILE_COLUMNS)
     .eq("slug", profileSlug)
     .eq("status", "published")
     .maybeSingle();

@@ -48,8 +48,66 @@ export function createReadOnlyClient() {
   });
 }
 
+// Phase 3I.3 — explicit public-safe column allow-list for beautician_profiles
+// reads on public routes, replacing a broad select("*"). Every field here
+// has a proven consumer in the public portfolio/service-page mapper, the
+// SEO/JSON-LD builder, or a public CTA (audited against portfolio-mapper.ts,
+// portfolio.$slug.tsx's buildHead(), and portfolio.$slug_.services.
+// $serviceSlug.tsx). Excluded on purpose: profile_id, cover_image_url,
+// rating, review_count, client_count, metrics_verified, is_demo, latitude,
+// longitude, status, is_published, published_at, created_at, updated_at,
+// is_featured — none of these are read by any public consumer (rating/
+// review_count in particular must never be read here; the public rating
+// always comes from computeAggregateRating() over real published reviews,
+// never these legacy columns). `id` is retained — it's the join key every
+// subsequent query in this bundle uses as `beautician_profile_id`.
+//
+// This is a data-minimization / least-privilege change to the columns this
+// application code requests. It does NOT change the underlying RLS policy
+// or table grants — see the Phase 3I.3 report for the honest limitation
+// this leaves around direct anonymous REST access to the full row.
+export const PUBLIC_BEAUTICIAN_PROFILE_COLUMNS =
+  "id, slug, business_name, display_name, professional_title, short_tagline, bio, bio_secondary, profile_image_url, primary_city, locality, state, country, years_experience, phone, whatsapp_number, email, instagram_url, facebook_url, youtube_url, website_url, address, working_hours, travel_note, map_query, about_highlights, why_choose_points, is_verified" as const;
+
+/** The narrowed row shape `PUBLIC_BEAUTICIAN_PROFILE_COLUMNS` actually
+ * returns — keeps every public-route consumer honest at compile time
+ * about which columns genuinely exist, instead of the full (43-column)
+ * `Tables<"beautician_profiles">` shape implying access to fields that
+ * were never fetched. */
+export type PublicBeauticianProfile = Pick<
+  Tables<"beautician_profiles">,
+  | "id"
+  | "slug"
+  | "business_name"
+  | "display_name"
+  | "professional_title"
+  | "short_tagline"
+  | "bio"
+  | "bio_secondary"
+  | "profile_image_url"
+  | "primary_city"
+  | "locality"
+  | "state"
+  | "country"
+  | "years_experience"
+  | "phone"
+  | "whatsapp_number"
+  | "email"
+  | "instagram_url"
+  | "facebook_url"
+  | "youtube_url"
+  | "website_url"
+  | "address"
+  | "working_hours"
+  | "travel_note"
+  | "map_query"
+  | "about_highlights"
+  | "why_choose_points"
+  | "is_verified"
+>;
+
 export interface PortfolioBundle {
-  profile: Tables<"beautician_profiles">;
+  profile: PublicBeauticianProfile;
   specializations: Tables<"specializations">[];
   services: Tables<"services">[];
   packages: Tables<"packages">[];
@@ -88,7 +146,7 @@ export async function getPublishedPortfolioBySlug(slug: string): Promise<Portfol
 
   const { data: profile, error: profileError } = await supabase
     .from("beautician_profiles")
-    .select("*")
+    .select(PUBLIC_BEAUTICIAN_PROFILE_COLUMNS)
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
