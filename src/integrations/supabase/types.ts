@@ -1512,8 +1512,12 @@ export type Database = {
         | "service_created"
         | "service_updated"
         | "service_deleted"
-        | "profile_updated";
-      admin_audit_entity_type: "beautician_profile" | "user_role" | "review" | "service";
+        | "profile_updated"
+        | "gallery_item_created"
+        | "gallery_item_updated"
+        | "gallery_item_deleted";
+      admin_audit_entity_type:
+        "beautician_profile" | "user_role" | "review" | "service" | "gallery_item";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";

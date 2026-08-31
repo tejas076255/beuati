@@ -9,9 +9,16 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ServicesManager } from "@/components/services/services-manager";
 import { ProfileManager } from "@/components/profile/profile-manager";
+import { GalleryManager } from "@/components/gallery/gallery-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
+import type {
+  GalleryItemInput,
+  NewGalleryImage,
+  PortfolioItemUpdate,
+  PortfolioItemWithImages,
+} from "@/data/dashboard/gallery.server";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -103,16 +110,109 @@ const updateProfileAdminFn = createServerFn({ method: "POST" })
     await updateProfileAdmin(context.supabase, context.userId, data.targetProfileId, data.updates);
   });
 
-type TabId = "overview" | "profile" | "services";
+const listGalleryAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listGalleryAdmin } = await import("@/data/admin/gallery.server");
+    return listGalleryAdmin(context.supabase, context.userId, targetProfileId);
+  });
 
-// Phase 5.2A §6 / Phase 5.2B — the full future workspace nav; "services"
-// (5.2A) and "profile" (5.2B) are wired to real implementations. Every
-// other section is visibly present (so the eventual shape is clear) but
-// explicitly marked unavailable rather than rendering a fake/empty screen.
+const createGalleryItemAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: GalleryItemInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { createGalleryItemAdmin } = await import("@/data/admin/gallery.server");
+    await createGalleryItemAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.input,
+    );
+  });
+
+const updateGalleryItemAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; itemId: string; updates: PortfolioItemUpdate }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updateGalleryItemAdmin } = await import("@/data/admin/gallery.server");
+    await updateGalleryItemAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.itemId,
+      data.updates,
+    );
+  });
+
+const addGalleryImagesAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; itemId: string; images: NewGalleryImage[] }) => data)
+  .handler(async ({ context, data }) => {
+    const { addGalleryImagesAdmin } = await import("@/data/admin/gallery.server");
+    await addGalleryImagesAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.itemId,
+      data.images,
+    );
+  });
+
+const updateGalleryImageAltAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; imageId: string; altText: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateGalleryImageAltAdmin } = await import("@/data/admin/gallery.server");
+    await updateGalleryImageAltAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.imageId,
+      data.altText,
+    );
+  });
+
+const deleteGalleryImageAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; imageId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteGalleryImageAdmin } = await import("@/data/admin/gallery.server");
+    return deleteGalleryImageAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.imageId,
+    );
+  });
+
+const deleteGalleryItemAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; itemId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteGalleryItemAdmin } = await import("@/data/admin/gallery.server");
+    return deleteGalleryItemAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.itemId,
+    );
+  });
+
+type TabId = "overview" | "profile" | "services" | "gallery";
+
+// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C — the full future workspace nav;
+// "services" (5.2A), "profile" (5.2B), and "gallery" (5.2C) are wired to
+// real implementations. Every other section is visibly present (so the
+// eventual shape is clear) but explicitly marked unavailable rather than
+// rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
   { id: "services", label: "Services", enabled: true },
+  { id: "gallery", label: "Gallery", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
   { id: "reviews", label: "Reviews", enabled: false },
@@ -202,7 +302,10 @@ function AdminBeauticianWorkspace() {
   const servicesQuery = useQuery({
     queryKey: servicesQueryKey,
     queryFn: () => listServicesAdminFn({ data: targetProfileId! }),
-    enabled: !!targetProfileId && activeTab === "services",
+    // Also enabled for "gallery" — its "Related service" dropdown reuses
+    // this same admin services list, same as the beautician's own Gallery
+    // page reuses its own services query.
+    enabled: !!targetProfileId && (activeTab === "services" || activeTab === "gallery"),
   });
 
   const createMutation = useMutation({
@@ -238,6 +341,45 @@ function AdminBeauticianWorkspace() {
       queryClient.invalidateQueries({ queryKey: profileQueryKey });
       queryClient.invalidateQueries({ queryKey: ["admin-target-profile", slug] });
     },
+  });
+
+  const galleryQueryKey = ["admin-gallery", targetProfileId];
+  const galleryQuery = useQuery({
+    queryKey: galleryQueryKey,
+    queryFn: () => listGalleryAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "gallery",
+  });
+  const onGallerySaved = () => queryClient.invalidateQueries({ queryKey: galleryQueryKey });
+
+  const createGalleryItemMutation = useMutation({
+    mutationFn: (input: GalleryItemInput) =>
+      createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+  });
+  const updateGalleryItemMutation = useMutation({
+    mutationFn: (vars: { id: string; updates: PortfolioItemUpdate }) =>
+      updateGalleryItemAdminFn({
+        data: { targetProfileId: targetProfileId!, itemId: vars.id, updates: vars.updates },
+      }),
+  });
+  const addGalleryImagesMutation = useMutation({
+    mutationFn: (vars: { itemId: string; images: NewGalleryImage[] }) =>
+      addGalleryImagesAdminFn({
+        data: { targetProfileId: targetProfileId!, itemId: vars.itemId, images: vars.images },
+      }),
+  });
+  const deleteGalleryImageMutation = useMutation({
+    mutationFn: (id: string) =>
+      deleteGalleryImageAdminFn({ data: { targetProfileId: targetProfileId!, imageId: id } }),
+  });
+  const updateGalleryImageAltMutation = useMutation({
+    mutationFn: (vars: { id: string; altText: string }) =>
+      updateGalleryImageAltAdminFn({
+        data: { targetProfileId: targetProfileId!, imageId: vars.id, altText: vars.altText },
+      }),
+  });
+  const deleteGalleryItemMutation = useMutation({
+    mutationFn: (item: PortfolioItemWithImages) =>
+      deleteGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, itemId: item.id } }),
   });
 
   if (profileQuery.isLoading) {
@@ -332,6 +474,26 @@ function AdminBeauticianWorkspace() {
           onUpdate={(id, updates) => updateMutation.mutateAsync({ id, updates })}
           onDelete={(id) => deleteMutation.mutateAsync(id)}
           onSaved={onServicesSaved}
+        />
+      )}
+
+      {activeTab === "gallery" && targetProfileId && (
+        <GalleryManager
+          title="Gallery"
+          subtitle={`Managing ${profile.display_name}'s portfolio images.`}
+          items={galleryQuery.data ?? []}
+          services={services.map((s) => s.service)}
+          isLoading={galleryQuery.isLoading}
+          uploadSlug={profile.slug}
+          onCreate={(input) => createGalleryItemMutation.mutateAsync(input)}
+          onUpdateItem={(id, updates) => updateGalleryItemMutation.mutateAsync({ id, updates })}
+          onAddImages={(itemId, images) => addGalleryImagesMutation.mutateAsync({ itemId, images })}
+          onDeleteImage={(id) => deleteGalleryImageMutation.mutateAsync(id)}
+          onUpdateImageAlt={(id, altText) =>
+            updateGalleryImageAltMutation.mutateAsync({ id, altText })
+          }
+          onDeleteItem={(item) => deleteGalleryItemMutation.mutateAsync(item)}
+          onSaved={onGallerySaved}
         />
       )}
     </div>
