@@ -4,11 +4,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Tables, TablesUpdate } from "@/integrations/supabase/types";
 import { getOwnBeauticianProfileId } from "./shared.server";
 
-export async function getOwnProfile(
+// Phase 5.2B — bpId-parameterized core query, shared by both the
+// beautician's own-profile path (getOwnProfile, below) and the Master
+// Admin Console's explicit-target path (src/data/admin/profile.server.ts).
+// This is the ONE query both callers use — never a duplicated/forked copy.
+export async function getProfileForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
 ): Promise<Tables<"beautician_profiles">> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
   const { data, error } = await supabase
     .from("beautician_profiles")
     .select("*")
@@ -19,6 +22,14 @@ export async function getOwnProfile(
     throw new Error("Failed to load profile.");
   }
   return data;
+}
+
+export async function getOwnProfile(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<Tables<"beautician_profiles">> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return getProfileForProfile(supabase, bpId);
 }
 
 export type OwnProfileUpdate = Pick<
@@ -68,18 +79,41 @@ export type OwnProfileUpdate = Pick<
  * referenced. No storage cleanup job exists yet — a candidate for a future
  * phase, not this one.
  */
-export async function updateOwnProfile(
+// Phase 5.2B — bpId-parameterized core, shared with the admin path.
+// Re-verifies the target row actually exists before writing — defense in
+// depth matching the same pattern already applied to
+// updateServiceForProfile/deleteServiceForProfile in Phase 5.2A §12: a
+// stale/crafted bpId must fail clearly rather than silently no-op or
+// produce an ambiguous error.
+export async function updateProfileForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
   updates: OwnProfileUpdate,
 ): Promise<void> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { data: existing, error: fetchError } = await supabase
+    .from("beautician_profiles")
+    .select("id")
+    .eq("id", bpId)
+    .maybeSingle();
+  if (fetchError || !existing) {
+    throw new Error(`Failed to load profile: ${fetchError?.message ?? "not found"}`);
+  }
+
   const { error } = await supabase.from("beautician_profiles").update(updates).eq("id", bpId);
 
   if (error) {
     console.error("[dashboard/profile] failed to update profile", error);
     throw new Error(`Failed to save profile: ${error.message}`);
   }
+}
+
+export async function updateOwnProfile(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  updates: OwnProfileUpdate,
+): Promise<void> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  await updateProfileForProfile(supabase, bpId, updates);
 }
 
 /**

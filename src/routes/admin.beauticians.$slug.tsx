@@ -8,8 +8,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ServicesManager } from "@/components/services/services-manager";
+import { ProfileManager } from "@/components/profile/profile-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
+import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -77,14 +79,39 @@ const deleteServiceAdminFn = createServerFn({ method: "POST" })
     );
   });
 
-type TabId = "overview" | "services";
+const getProfileAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { getProfileAdmin } = await import("@/data/admin/profile.server");
+    return getProfileAdmin(context.supabase, context.userId, targetProfileId);
+  });
 
-// Phase 5.2A §6 — the full future workspace nav, but only "services" is
-// wired to a real implementation this phase. Every other section is
-// visibly present (so the eventual shape is clear) but explicitly marked
-// unavailable rather than rendering a fake/empty screen.
+const getProfileReadinessContextAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { getProfileReadinessContextAdmin } = await import("@/data/admin/profile.server");
+    return getProfileReadinessContextAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+const updateProfileAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; updates: OwnProfileUpdate }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateProfileAdmin } = await import("@/data/admin/profile.server");
+    await updateProfileAdmin(context.supabase, context.userId, data.targetProfileId, data.updates);
+  });
+
+type TabId = "overview" | "profile" | "services";
+
+// Phase 5.2A §6 / Phase 5.2B — the full future workspace nav; "services"
+// (5.2A) and "profile" (5.2B) are wired to real implementations. Every
+// other section is visibly present (so the eventual shape is clear) but
+// explicitly marked unavailable rather than rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
+  { id: "profile", label: "Profile", enabled: true },
   { id: "services", label: "Services", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
@@ -193,6 +220,26 @@ function AdminBeauticianWorkspace() {
       deleteServiceAdminFn({ data: { targetProfileId: targetProfileId!, serviceId: id } }),
   });
 
+  const profileQueryKey = ["admin-profile-full", targetProfileId];
+  const adminProfileQuery = useQuery({
+    queryKey: profileQueryKey,
+    queryFn: () => getProfileAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "profile",
+  });
+  const profileReadinessQuery = useQuery({
+    queryKey: ["admin-profile-readiness", targetProfileId],
+    queryFn: () => getProfileReadinessContextAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "profile",
+  });
+  const updateProfileMutation = useMutation({
+    mutationFn: (updates: OwnProfileUpdate) =>
+      updateProfileAdminFn({ data: { targetProfileId: targetProfileId!, updates } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+      queryClient.invalidateQueries({ queryKey: ["admin-target-profile", slug] });
+    },
+  });
+
   if (profileQuery.isLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
@@ -259,6 +306,19 @@ function AdminBeauticianWorkspace() {
         <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-soft">
           Overview details beyond what's shown in the header above will be added in a future phase.
         </div>
+      )}
+
+      {activeTab === "profile" && targetProfileId && (
+        <ProfileManager
+          title="Profile"
+          subtitle={`Managing ${profile.display_name}'s professional identity and public information.`}
+          profile={adminProfileQuery.data}
+          readinessContext={profileReadinessQuery.data}
+          isLoading={adminProfileQuery.isLoading}
+          uploadSlug={profile.slug}
+          publicPortfolioSlug={profile.slug}
+          onSave={(updates) => updateProfileMutation.mutateAsync(updates)}
+        />
       )}
 
       {activeTab === "services" && targetProfileId && (

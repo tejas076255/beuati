@@ -1511,7 +1511,8 @@ export type Database = {
         | "review_deleted"
         | "service_created"
         | "service_updated"
-        | "service_deleted";
+        | "service_deleted"
+        | "profile_updated";
       admin_audit_entity_type: "beautician_profile" | "user_role" | "review" | "service";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
