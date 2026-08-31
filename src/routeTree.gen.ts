@@ -34,6 +34,7 @@ import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
 import { Route as DashboardServicesRouteImport } from './routes/dashboard.services'
 import { Route as DashboardVideosRouteImport } from './routes/dashboard.videos'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
+import { Route as AdminBeauticiansSlugRouteImport } from './routes/admin.beauticians.$slug'
 import { Route as PortfolioSlugServicesServiceSlugRouteImport } from './routes/portfolio.$slug_.services.$serviceSlug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -161,6 +162,11 @@ const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
   path: '/portfolio/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminBeauticiansSlugRoute = AdminBeauticiansSlugRouteImport.update({
+  id: '/beauticians/$slug',
+  path: '/beauticians/$slug',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PortfolioSlugServicesServiceSlugRoute =
   PortfolioSlugServicesServiceSlugRouteImport.update({
     id: '/portfolio/$slug_/services/$serviceSlug',
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRoutesByTo {
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRoutesById {
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug_/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRouteTypes {
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin/'
+    | '/admin/beauticians/$slug'
     | '/portfolio/$slug/services/$serviceSlug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin'
+    | '/admin/beauticians/$slug'
     | '/portfolio/$slug/services/$serviceSlug'
   id:
     | '__root__'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin/'
+    | '/admin/beauticians/$slug'
     | '/portfolio/$slug_/services/$serviceSlug'
   fileRoutesById: FileRoutesById
 }
@@ -525,6 +537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/beauticians/$slug': {
+      id: '/admin/beauticians/$slug'
+      path: '/beauticians/$slug'
+      fullPath: '/admin/beauticians/$slug'
+      preLoaderRoute: typeof AdminBeauticiansSlugRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/portfolio/$slug_/services/$serviceSlug': {
       id: '/portfolio/$slug_/services/$serviceSlug'
       path: '/portfolio/$slug/services/$serviceSlug'
@@ -543,6 +562,7 @@ interface AdminRouteChildren {
   AdminServicesRoute: typeof AdminServicesRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminBeauticiansSlugRoute: typeof AdminBeauticiansSlugRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -553,6 +573,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminServicesRoute: AdminServicesRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminBeauticiansSlugRoute: AdminBeauticiansSlugRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

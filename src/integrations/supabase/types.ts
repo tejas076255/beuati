@@ -1508,8 +1508,11 @@ export type Database = {
         | "admin_role_granted"
         | "admin_role_revoked"
         | "review_moderated"
-        | "review_deleted";
-      admin_audit_entity_type: "beautician_profile" | "user_role" | "review";
+        | "review_deleted"
+        | "service_created"
+        | "service_updated"
+        | "service_deleted";
+      admin_audit_entity_type: "beautician_profile" | "user_role" | "review" | "service";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -169,6 +169,7 @@ function ProfilesPage() {
                 <TableHead>Verified</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Manage</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -242,6 +243,13 @@ function ProfilesPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="softline" size="sm" asChild>
+                      <Link to="/admin/beauticians/$slug" params={{ slug: profile.slug }}>
+                        Manage Portfolio
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

@@ -59,11 +59,14 @@ function validateServiceContent(input: Partial<ServiceInput>): void {
   }
 }
 
-export async function listOwnServices(
+// Phase 5.2A — bpId-parameterized core query, shared by both the
+// beautician's own-profile path (listOwnServices, below) and the Master
+// Admin Console's explicit-target path (src/data/admin/services.server.ts).
+// This is the ONE query both callers use — never a duplicated/forked copy.
+export async function listServicesForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
 ): Promise<Tables<"services">[]> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
   const { data, error } = await supabase
     .from("services")
     .select("*")
@@ -72,6 +75,14 @@ export async function listOwnServices(
 
   if (error) throw new Error(`Failed to load services: ${error.message}`);
   return data ?? [];
+}
+
+export async function listOwnServices(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<Tables<"services">[]> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return listServicesForProfile(supabase, bpId);
 }
 
 export type ServiceInput = Pick<
@@ -99,25 +110,38 @@ export type ServiceInput = Pick<
  * (23505), same pattern as `ensureOwnPortfolio()` for profile slugs.
  * Never a database UUID; never silently regenerated after this point.
  */
+// Phase 5.2A — bpId-parameterized core, shared with the admin path.
+// Returns the new row's id so admin callers can attach it to an audit-log
+// entity_id; the beautician's own path (createService, below) ignores it.
+export async function createServiceForProfile(
+  supabase: SupabaseClient<Database>,
+  bpId: string,
+  input: ServiceInput,
+): Promise<string> {
+  validateServiceContent(input);
+  const baseSlug = slugify(input.name) || "service";
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidateSlug = attempt === 0 ? baseSlug : `${baseSlug}-${randomSuffix()}`;
+    const { data, error } = await supabase
+      .from("services")
+      .insert({ ...input, beautician_profile_id: bpId, slug: candidateSlug })
+      .select("id")
+      .single();
+
+    if (!error) return data.id;
+    if (error.code !== "23505") throw new Error(`Failed to add service: ${error.message}`);
+  }
+  throw new Error("Could not generate a unique service URL — please try again.");
+}
+
 export async function createService(
   supabase: SupabaseClient<Database>,
   userId: string,
   input: ServiceInput,
 ): Promise<void> {
-  validateServiceContent(input);
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
-  const baseSlug = slugify(input.name) || "service";
-
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const candidateSlug = attempt === 0 ? baseSlug : `${baseSlug}-${randomSuffix()}`;
-    const { error } = await supabase
-      .from("services")
-      .insert({ ...input, beautician_profile_id: bpId, slug: candidateSlug });
-
-    if (!error) return;
-    if (error.code !== "23505") throw new Error(`Failed to add service: ${error.message}`);
-  }
-  throw new Error("Could not generate a unique service URL — please try again.");
+  await createServiceForProfile(supabase, bpId, input);
 }
 
 /**
@@ -128,19 +152,31 @@ export async function createService(
  * this phase (slug still NULL) gets one backfilled now, once, using the
  * same retry-on-conflict pattern as createService.
  */
-export async function updateService(
+// Phase 5.2A — bpId-parameterized core, shared with the admin path.
+// Explicitly re-verifies service.beautician_profile_id === bpId before
+// writing (§12 of the Phase 5.2A spec) — defense-in-depth on top of RLS,
+// not a replacement for it: this guards against a stale/crafted serviceId
+// being sent for the wrong profile (e.g. an admin workspace open on
+// Beautician A but somehow supplied a service id belonging to Beautician
+// B), which RLS alone would still correctly reject, but silently, with no
+// clear error distinguishing "not found" from "wrong profile."
+export async function updateServiceForProfile(
   supabase: SupabaseClient<Database>,
+  bpId: string,
   serviceId: string,
   updates: Partial<ServiceInput>,
 ): Promise<void> {
   validateServiceContent(updates);
   const { data: existing, error: fetchError } = await supabase
     .from("services")
-    .select("slug, name")
+    .select("slug, name, beautician_profile_id")
     .eq("id", serviceId)
     .single();
   if (fetchError || !existing) {
     throw new Error(`Failed to load service: ${fetchError?.message ?? "not found"}`);
+  }
+  if (existing.beautician_profile_id !== bpId) {
+    throw new Error("This service does not belong to the selected profile.");
   }
 
   if (existing.slug) {
@@ -163,12 +199,44 @@ export async function updateService(
   throw new Error("Could not generate a unique service URL — please try again.");
 }
 
-export async function deleteService(
+export async function updateService(
   supabase: SupabaseClient<Database>,
+  userId: string,
+  serviceId: string,
+  updates: Partial<ServiceInput>,
+): Promise<void> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  await updateServiceForProfile(supabase, bpId, serviceId, updates);
+}
+
+export async function deleteServiceForProfile(
+  supabase: SupabaseClient<Database>,
+  bpId: string,
   serviceId: string,
 ): Promise<void> {
+  const { data: existing, error: fetchError } = await supabase
+    .from("services")
+    .select("beautician_profile_id")
+    .eq("id", serviceId)
+    .single();
+  if (fetchError || !existing) {
+    throw new Error(`Failed to load service: ${fetchError?.message ?? "not found"}`);
+  }
+  if (existing.beautician_profile_id !== bpId) {
+    throw new Error("This service does not belong to the selected profile.");
+  }
+
   const { error } = await supabase.from("services").delete().eq("id", serviceId);
   if (error) throw new Error(`Failed to delete service: ${error.message}`);
+}
+
+export async function deleteService(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  serviceId: string,
+): Promise<void> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  await deleteServiceForProfile(supabase, bpId, serviceId);
 }
 
 /**
@@ -205,11 +273,62 @@ export interface OwnServicesOverview {
 }
 
 /**
+ * Phase 5.2A — pure assembly step, extracted so both the own-profile path
+ * (listOwnServicesWithReadiness, below) and the admin path
+ * (src/data/admin/services.server.ts, which gathers the same shape of
+ * inputs via its own explicit-bpId queries rather than importing 6 other
+ * "own"-scoped modules) compute readiness identically — one algorithm,
+ * never a fork. Takes already-fetched rows, does no querying itself.
+ */
+export function buildServicesWithReadiness(
+  services: Tables<"services">[],
+  readinessContext: ServiceReadinessContext,
+  galleryServiceIds: (string | null)[],
+  beforeAfterServiceIds: (string | null)[],
+): OwnServiceWithReadiness[] {
+  const linkedWorkCountByService = new Map<string, number>();
+  const bump = (serviceId: string | null) => {
+    if (!serviceId) return;
+    linkedWorkCountByService.set(serviceId, (linkedWorkCountByService.get(serviceId) ?? 0) + 1);
+  };
+  for (const id of galleryServiceIds) bump(id);
+  for (const id of beforeAfterServiceIds) bump(id);
+
+  return services.map((service) => {
+    const linkedWorkCount = linkedWorkCountByService.get(service.id) ?? 0;
+    return {
+      service,
+      linkedWorkCount,
+      readiness: evaluateServiceContentReadiness({
+        profileIsPublished: readinessContext.profileIsPublished,
+        profileRobotsIndex: readinessContext.profileRobotsIndex,
+        primaryCity: readinessContext.primaryCity,
+        publishedReviewCount: readinessContext.publishedReviewCount,
+        serviceAreaCount: readinessContext.serviceAreaCount,
+        serviceIsActive: service.is_active,
+        serviceName: service.name,
+        serviceCategory: service.category,
+        serviceHasPersistedSlug: !!service.slug,
+        serviceDescription: service.short_description ?? service.description,
+        priceConfigured: service.price_type === "custom_quote" || service.price != null,
+        durationEntered: service.duration_minutes != null,
+        includedItemsCount: service.included_items.length,
+        suitableForCount: service.suitable_for.length,
+        hasPreparationNotes: !!service.preparation_notes?.trim(),
+        linkedWorkCount,
+      }),
+    };
+  });
+}
+
+/**
  * Everything /dashboard/services needs to render both the service list and
  * each service's readiness, in a fixed small number of batched queries
  * regardless of how many services exist (Phase 3F.8 §32). Reuses the exact
  * same owner-scoped list functions already used by getSeoOverview
- * (Phase 3F.4) — not a second, competing data source (§14).
+ * (Phase 3F.4) — not a second, competing data source (§14). The actual
+ * readiness computation is buildServicesWithReadiness() above, shared with
+ * the admin path.
  */
 export async function listOwnServicesWithReadiness(
   supabase: SupabaseClient<Database>,
@@ -242,14 +361,6 @@ export async function listOwnServicesWithReadiness(
       listOwnBeforeAfterItems(supabase, userId),
     ]);
 
-  const linkedWorkCountByService = new Map<string, number>();
-  const bump = (serviceId: string | null) => {
-    if (!serviceId) return;
-    linkedWorkCountByService.set(serviceId, (linkedWorkCountByService.get(serviceId) ?? 0) + 1);
-  };
-  for (const item of galleryItems) bump(item.service_id);
-  for (const item of beforeAfterItems) bump(item.service_id);
-
   const readinessContext: ServiceReadinessContext = {
     profileIsPublished: profile.status === "published",
     profileRobotsIndex: seo?.robots_index !== false,
@@ -258,34 +369,13 @@ export async function listOwnServicesWithReadiness(
     serviceAreaCount: serviceAreas.length,
   };
 
-  const servicesWithReadiness: OwnServiceWithReadiness[] = services.map((service) => {
-    const linkedWorkCount = linkedWorkCountByService.get(service.id) ?? 0;
-    return {
-      service,
-      linkedWorkCount,
-      readiness: evaluateServiceContentReadiness({
-        profileIsPublished: readinessContext.profileIsPublished,
-        profileRobotsIndex: readinessContext.profileRobotsIndex,
-        primaryCity: readinessContext.primaryCity,
-        publishedReviewCount: readinessContext.publishedReviewCount,
-        serviceAreaCount: readinessContext.serviceAreaCount,
-        serviceIsActive: service.is_active,
-        serviceName: service.name,
-        serviceCategory: service.category,
-        serviceHasPersistedSlug: !!service.slug,
-        serviceDescription: service.short_description ?? service.description,
-        priceConfigured: service.price_type === "custom_quote" || service.price != null,
-        durationEntered: service.duration_minutes != null,
-        includedItemsCount: service.included_items.length,
-        suitableForCount: service.suitable_for.length,
-        hasPreparationNotes: !!service.preparation_notes?.trim(),
-        linkedWorkCount,
-      }),
-    };
-  });
-
   return {
-    services: servicesWithReadiness,
+    services: buildServicesWithReadiness(
+      services,
+      readinessContext,
+      galleryItems.map((i) => i.service_id),
+      beforeAfterItems.map((i) => i.service_id),
+    ),
     readinessContext,
   };
 }
