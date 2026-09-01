@@ -1515,9 +1515,17 @@ export type Database = {
         | "profile_updated"
         | "gallery_item_created"
         | "gallery_item_updated"
-        | "gallery_item_deleted";
+        | "gallery_item_deleted"
+        | "before_after_created"
+        | "before_after_updated"
+        | "before_after_deleted";
       admin_audit_entity_type:
-        "beautician_profile" | "user_role" | "review" | "service" | "gallery_item";
+        | "beautician_profile"
+        | "user_role"
+        | "review"
+        | "service"
+        | "gallery_item"
+        | "before_after_item";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";

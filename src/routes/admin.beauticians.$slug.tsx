@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ServicesManager } from "@/components/services/services-manager";
 import { ProfileManager } from "@/components/profile/profile-manager";
 import { GalleryManager } from "@/components/gallery/gallery-manager";
+import { BeforeAfterManager } from "@/components/before-after/before-after-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -19,6 +20,11 @@ import type {
   PortfolioItemUpdate,
   PortfolioItemWithImages,
 } from "@/data/dashboard/gallery.server";
+import type {
+  BeforeAfterItemUpdate,
+  BeforeAfterItemWithImages,
+  BeforeAfterPairInput,
+} from "@/data/dashboard/before-after.server";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -201,18 +207,97 @@ const deleteGalleryItemAdminFn = createServerFn({ method: "POST" })
     );
   });
 
-type TabId = "overview" | "profile" | "services" | "gallery";
+const listBeforeAfterAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listBeforeAfterAdmin } = await import("@/data/admin/before-after.server");
+    return listBeforeAfterAdmin(context.supabase, context.userId, targetProfileId);
+  });
 
-// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C — the full future workspace nav;
-// "services" (5.2A), "profile" (5.2B), and "gallery" (5.2C) are wired to
-// real implementations. Every other section is visibly present (so the
-// eventual shape is clear) but explicitly marked unavailable rather than
-// rendering a fake/empty screen.
+const createBeforeAfterPairAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: BeforeAfterPairInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { createBeforeAfterPairAdmin } = await import("@/data/admin/before-after.server");
+    await createBeforeAfterPairAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.input,
+    );
+  });
+
+const updateBeforeAfterItemAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; itemId: string; updates: BeforeAfterItemUpdate }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updateBeforeAfterItemAdmin } = await import("@/data/admin/before-after.server");
+    await updateBeforeAfterItemAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.itemId,
+      data.updates,
+    );
+  });
+
+const replaceBeforeAfterImageAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; imageId: string; storagePath: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { replaceBeforeAfterImageAdmin } = await import("@/data/admin/before-after.server");
+    return replaceBeforeAfterImageAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.imageId,
+      data.storagePath,
+    );
+  });
+
+const updateBeforeAfterImageAltAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; imageId: string; altText: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateBeforeAfterImageAltAdmin } = await import("@/data/admin/before-after.server");
+    await updateBeforeAfterImageAltAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.imageId,
+      data.altText,
+    );
+  });
+
+const deleteBeforeAfterItemAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; itemId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteBeforeAfterItemAdmin } = await import("@/data/admin/before-after.server");
+    return deleteBeforeAfterItemAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.itemId,
+    );
+  });
+
+type TabId = "overview" | "profile" | "services" | "gallery" | "before-after";
+
+// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D — the full future
+// workspace nav; "services" (5.2A), "profile" (5.2B), "gallery" (5.2C),
+// and "before-after" (5.2D) are wired to real implementations. Every other
+// section is visibly present (so the eventual shape is clear) but
+// explicitly marked unavailable rather than rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
   { id: "services", label: "Services", enabled: true },
   { id: "gallery", label: "Gallery", enabled: true },
+  { id: "before-after", label: "Before & After", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
   { id: "reviews", label: "Reviews", enabled: false },
@@ -302,10 +387,13 @@ function AdminBeauticianWorkspace() {
   const servicesQuery = useQuery({
     queryKey: servicesQueryKey,
     queryFn: () => listServicesAdminFn({ data: targetProfileId! }),
-    // Also enabled for "gallery" — its "Related service" dropdown reuses
-    // this same admin services list, same as the beautician's own Gallery
-    // page reuses its own services query.
-    enabled: !!targetProfileId && (activeTab === "services" || activeTab === "gallery"),
+    // Also enabled for "gallery"/"before-after" — their "Related service"
+    // dropdowns reuse this same admin services list, same as the
+    // beautician's own Gallery/Before & After pages reuse their own
+    // services query.
+    enabled:
+      !!targetProfileId &&
+      (activeTab === "services" || activeTab === "gallery" || activeTab === "before-after"),
   });
 
   const createMutation = useMutation({
@@ -350,6 +438,47 @@ function AdminBeauticianWorkspace() {
     enabled: !!targetProfileId && activeTab === "gallery",
   });
   const onGallerySaved = () => queryClient.invalidateQueries({ queryKey: galleryQueryKey });
+
+  const beforeAfterQueryKey = ["admin-before-after", targetProfileId];
+  const beforeAfterQuery = useQuery({
+    queryKey: beforeAfterQueryKey,
+    queryFn: () => listBeforeAfterAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "before-after",
+  });
+  const onBeforeAfterSaved = () => queryClient.invalidateQueries({ queryKey: beforeAfterQueryKey });
+
+  const createBeforeAfterMutation = useMutation({
+    mutationFn: (input: BeforeAfterPairInput) =>
+      createBeforeAfterPairAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+  });
+  const updateBeforeAfterItemMutation = useMutation({
+    mutationFn: (vars: { id: string; updates: BeforeAfterItemUpdate }) =>
+      updateBeforeAfterItemAdminFn({
+        data: { targetProfileId: targetProfileId!, itemId: vars.id, updates: vars.updates },
+      }),
+  });
+  const replaceBeforeAfterImageMutation = useMutation({
+    mutationFn: (vars: { imageId: string; storagePath: string }) =>
+      replaceBeforeAfterImageAdminFn({
+        data: {
+          targetProfileId: targetProfileId!,
+          imageId: vars.imageId,
+          storagePath: vars.storagePath,
+        },
+      }),
+  });
+  const updateBeforeAfterImageAltMutation = useMutation({
+    mutationFn: (vars: { id: string; altText: string }) =>
+      updateBeforeAfterImageAltAdminFn({
+        data: { targetProfileId: targetProfileId!, imageId: vars.id, altText: vars.altText },
+      }),
+  });
+  const deleteBeforeAfterItemMutation = useMutation({
+    mutationFn: (item: BeforeAfterItemWithImages) =>
+      deleteBeforeAfterItemAdminFn({
+        data: { targetProfileId: targetProfileId!, itemId: item.id },
+      }),
+  });
 
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
@@ -494,6 +623,27 @@ function AdminBeauticianWorkspace() {
           }
           onDeleteItem={(item) => deleteGalleryItemMutation.mutateAsync(item)}
           onSaved={onGallerySaved}
+        />
+      )}
+
+      {activeTab === "before-after" && targetProfileId && (
+        <BeforeAfterManager
+          title="Before & After"
+          subtitle={`Managing ${profile.display_name}'s transformation results.`}
+          items={beforeAfterQuery.data ?? []}
+          services={services.map((s) => s.service)}
+          isLoading={beforeAfterQuery.isLoading}
+          uploadSlug={profile.slug}
+          onCreate={(input) => createBeforeAfterMutation.mutateAsync(input)}
+          onUpdateItem={(id, updates) => updateBeforeAfterItemMutation.mutateAsync({ id, updates })}
+          onReplaceImage={(imageId, storagePath) =>
+            replaceBeforeAfterImageMutation.mutateAsync({ imageId, storagePath })
+          }
+          onUpdateImageAlt={(id, altText) =>
+            updateBeforeAfterImageAltMutation.mutateAsync({ id, altText })
+          }
+          onDeleteItem={(item) => deleteBeforeAfterItemMutation.mutateAsync(item)}
+          onSaved={onBeforeAfterSaved}
         />
       )}
     </div>
