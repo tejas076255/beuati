@@ -1518,14 +1518,18 @@ export type Database = {
         | "gallery_item_deleted"
         | "before_after_created"
         | "before_after_updated"
-        | "before_after_deleted";
+        | "before_after_deleted"
+        | "video_created"
+        | "video_updated"
+        | "video_deleted";
       admin_audit_entity_type:
         | "beautician_profile"
         | "user_role"
         | "review"
         | "service"
         | "gallery_item"
-        | "before_after_item";
+        | "before_after_item"
+        | "video";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";

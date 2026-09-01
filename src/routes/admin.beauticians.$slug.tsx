@@ -11,6 +11,7 @@ import { ServicesManager } from "@/components/services/services-manager";
 import { ProfileManager } from "@/components/profile/profile-manager";
 import { GalleryManager } from "@/components/gallery/gallery-manager";
 import { BeforeAfterManager } from "@/components/before-after/before-after-manager";
+import { VideoManager } from "@/components/videos/video-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -25,6 +26,7 @@ import type {
   BeforeAfterItemWithImages,
   BeforeAfterPairInput,
 } from "@/data/dashboard/before-after.server";
+import type { VideoInput } from "@/data/dashboard/videos.server";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -285,19 +287,61 @@ const deleteBeforeAfterItemAdminFn = createServerFn({ method: "POST" })
     );
   });
 
-type TabId = "overview" | "profile" | "services" | "gallery" | "before-after";
+const listVideosAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listVideosAdmin } = await import("@/data/admin/videos.server");
+    return listVideosAdmin(context.supabase, context.userId, targetProfileId);
+  });
 
-// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D — the full future
-// workspace nav; "services" (5.2A), "profile" (5.2B), "gallery" (5.2C),
-// and "before-after" (5.2D) are wired to real implementations. Every other
-// section is visibly present (so the eventual shape is clear) but
-// explicitly marked unavailable rather than rendering a fake/empty screen.
+const createVideoAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: VideoInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { createVideoAdmin } = await import("@/data/admin/videos.server");
+    await createVideoAdmin(context.supabase, context.userId, data.targetProfileId, data.input);
+  });
+
+const updateVideoAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; videoId: string; updates: Partial<VideoInput> }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updateVideoAdmin } = await import("@/data/admin/videos.server");
+    await updateVideoAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.videoId,
+      data.updates,
+    );
+  });
+
+const deleteVideoAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; videoId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteVideoAdmin } = await import("@/data/admin/videos.server");
+    return deleteVideoAdmin(context.supabase, context.userId, data.targetProfileId, data.videoId);
+  });
+
+type TabId = "overview" | "profile" | "services" | "gallery" | "before-after" | "videos";
+
+// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E — the
+// full future workspace nav; "services" (5.2A), "profile" (5.2B),
+// "gallery" (5.2C), "before-after" (5.2D), and "videos" (5.2E) are wired
+// to real implementations. Every other section is visibly present (so the
+// eventual shape is clear) but explicitly marked unavailable rather than
+// rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
   { id: "services", label: "Services", enabled: true },
   { id: "gallery", label: "Gallery", enabled: true },
   { id: "before-after", label: "Before & After", enabled: true },
+  { id: "videos", label: "Videos", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
   { id: "reviews", label: "Reviews", enabled: false },
@@ -480,6 +524,29 @@ function AdminBeauticianWorkspace() {
       }),
   });
 
+  const videosQueryKey = ["admin-videos", targetProfileId];
+  const videosQuery = useQuery({
+    queryKey: videosQueryKey,
+    queryFn: () => listVideosAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "videos",
+  });
+  const onVideosSaved = () => queryClient.invalidateQueries({ queryKey: videosQueryKey });
+
+  const createVideoMutation = useMutation({
+    mutationFn: (input: VideoInput) =>
+      createVideoAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+  });
+  const updateVideoMutation = useMutation({
+    mutationFn: (vars: { id: string; updates: Partial<VideoInput> }) =>
+      updateVideoAdminFn({
+        data: { targetProfileId: targetProfileId!, videoId: vars.id, updates: vars.updates },
+      }),
+  });
+  const deleteVideoMutation = useMutation({
+    mutationFn: (id: string) =>
+      deleteVideoAdminFn({ data: { targetProfileId: targetProfileId!, videoId: id } }),
+  });
+
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
       createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
@@ -644,6 +711,20 @@ function AdminBeauticianWorkspace() {
           }
           onDeleteItem={(item) => deleteBeforeAfterItemMutation.mutateAsync(item)}
           onSaved={onBeforeAfterSaved}
+        />
+      )}
+
+      {activeTab === "videos" && targetProfileId && (
+        <VideoManager
+          title="Videos"
+          subtitle={`Managing ${profile.display_name}'s portfolio videos.`}
+          videos={videosQuery.data ?? []}
+          isLoading={videosQuery.isLoading}
+          uploadSlug={profile.slug}
+          onCreate={(input) => createVideoMutation.mutateAsync(input)}
+          onUpdate={(id, updates) => updateVideoMutation.mutateAsync({ id, updates })}
+          onDelete={(id) => deleteVideoMutation.mutateAsync(id)}
+          onSaved={onVideosSaved}
         />
       )}
     </div>

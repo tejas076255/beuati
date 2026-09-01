@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET = "portfolio-media";
 
-export type MediaCategory = "profile" | "gallery" | "before-after";
+// Phase 5.2E1 — "video-thumbnails" added as its own semantic namespace so
+// a video's thumbnail is never mixed into the Gallery's own media
+// (profiles/{slug}/gallery/...). Existing thumbnails already persisted
+// under /gallery/ (from before this fix) are untouched and keep rendering
+// — thumbnail_url is a full public URL, not derived from this category at
+// read time, so nothing needs to migrate.
+export type MediaCategory = "profile" | "gallery" | "before-after" | "video-thumbnails";
 
 export const MAX_UPLOAD_SIZE_MB = 5;
 const ACCEPTED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -22,6 +28,7 @@ export const IMAGE_GUIDELINES: Record<MediaCategory, string> = {
   profile: "Portrait, ideally 1000×1250px (4:5 ratio)",
   gallery: "Square or near-square, ideally 1200×1200px",
   "before-after": "Portrait, ideally 1000×1250px (4:5 ratio), matching for both images",
+  "video-thumbnails": "Widescreen, ideally 1280×720px (16:9 ratio)",
 };
 
 export const UPLOAD_HINT = `JPG, PNG or WebP · up to ${MAX_UPLOAD_SIZE_MB}MB`;
