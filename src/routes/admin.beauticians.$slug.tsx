@@ -13,6 +13,7 @@ import { GalleryManager } from "@/components/gallery/gallery-manager";
 import { BeforeAfterManager } from "@/components/before-after/before-after-manager";
 import { VideoManager } from "@/components/videos/video-manager";
 import { PackageManager } from "@/components/packages/package-manager";
+import { FaqManager } from "@/components/faqs/faq-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -29,6 +30,7 @@ import type {
 } from "@/data/dashboard/before-after.server";
 import type { VideoInput } from "@/data/dashboard/videos.server";
 import type { PackageInput } from "@/data/dashboard/packages.server";
+import type { FaqInput } from "@/data/dashboard/faqs.server";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -374,15 +376,54 @@ const deletePackageAdminFn = createServerFn({ method: "POST" })
     );
   });
 
+const listFaqsAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listFaqsAdmin } = await import("@/data/admin/faqs.server");
+    return listFaqsAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+const createFaqAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: FaqInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { createFaqAdmin } = await import("@/data/admin/faqs.server");
+    await createFaqAdmin(context.supabase, context.userId, data.targetProfileId, data.input);
+  });
+
+const updateFaqAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; faqId: string; updates: Partial<FaqInput> }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateFaqAdmin } = await import("@/data/admin/faqs.server");
+    await updateFaqAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.faqId,
+      data.updates,
+    );
+  });
+
+const deleteFaqAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; faqId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteFaqAdmin } = await import("@/data/admin/faqs.server");
+    await deleteFaqAdmin(context.supabase, context.userId, data.targetProfileId, data.faqId);
+  });
+
 type TabId =
-  "overview" | "profile" | "services" | "gallery" | "before-after" | "videos" | "packages";
+  "overview" | "profile" | "services" | "gallery" | "before-after" | "videos" | "packages" | "faqs";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
-// 5.2F — the full future workspace nav; "services" (5.2A), "profile"
-// (5.2B), "gallery" (5.2C), "before-after" (5.2D), "videos" (5.2E), and
-// "packages" (5.2F) are wired to real implementations. Every other section
-// is visibly present (so the eventual shape is clear) but explicitly
-// marked unavailable rather than rendering a fake/empty screen.
+// 5.2F / Phase 5.2G — the full future workspace nav; "services" (5.2A),
+// "profile" (5.2B), "gallery" (5.2C), "before-after" (5.2D), "videos"
+// (5.2E), "packages" (5.2F), and "faqs" (5.2G) are wired to real
+// implementations. Every other section is visibly present (so the
+// eventual shape is clear) but explicitly marked unavailable rather than
+// rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
@@ -391,6 +432,7 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "before-after", label: "Before & After", enabled: true },
   { id: "videos", label: "Videos", enabled: true },
   { id: "packages", label: "Packages", enabled: true },
+  { id: "faqs", label: "FAQs", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
   { id: "reviews", label: "Reviews", enabled: false },
@@ -619,6 +661,29 @@ function AdminBeauticianWorkspace() {
       deletePackageAdminFn({ data: { targetProfileId: targetProfileId!, packageId: id } }),
   });
 
+  const faqsQueryKey = ["admin-faqs", targetProfileId];
+  const faqsQuery = useQuery({
+    queryKey: faqsQueryKey,
+    queryFn: () => listFaqsAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "faqs",
+  });
+  const onFaqsSaved = () => queryClient.invalidateQueries({ queryKey: faqsQueryKey });
+
+  const createFaqMutation = useMutation({
+    mutationFn: (input: FaqInput) =>
+      createFaqAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+  });
+  const updateFaqMutation = useMutation({
+    mutationFn: (vars: { id: string; updates: Partial<FaqInput> }) =>
+      updateFaqAdminFn({
+        data: { targetProfileId: targetProfileId!, faqId: vars.id, updates: vars.updates },
+      }),
+  });
+  const deleteFaqMutation = useMutation({
+    mutationFn: (id: string) =>
+      deleteFaqAdminFn({ data: { targetProfileId: targetProfileId!, faqId: id } }),
+  });
+
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
       createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
@@ -810,6 +875,19 @@ function AdminBeauticianWorkspace() {
           onUpdate={(id, updates) => updatePackageMutation.mutateAsync({ id, updates })}
           onDelete={(id) => deletePackageMutation.mutateAsync(id)}
           onSaved={onPackagesSaved}
+        />
+      )}
+
+      {activeTab === "faqs" && targetProfileId && (
+        <FaqManager
+          title="FAQs"
+          subtitle={`Managing ${profile.display_name}'s portfolio questions.`}
+          faqs={faqsQuery.data ?? []}
+          isLoading={faqsQuery.isLoading}
+          onCreate={(input) => createFaqMutation.mutateAsync(input)}
+          onUpdate={(id, updates) => updateFaqMutation.mutateAsync({ id, updates })}
+          onDelete={(id) => deleteFaqMutation.mutateAsync(id)}
+          onSaved={onFaqsSaved}
         />
       )}
     </div>
