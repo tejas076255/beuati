@@ -23,6 +23,18 @@ dist-ssr
 # Supabase CLI local cache
 supabase/.temp/
 
+# QA tool artifacts (Phase QA-1B) — generated reports/traces, not source
+qa/reports/*
+qa/artifacts/*
+!qa/reports/.gitkeep
+!qa/artifacts/.gitkeep
+playwright-report/*
+test-results/*
+playwright/.auth/*
+coverage/*
+.env.test
+.env.qa
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
