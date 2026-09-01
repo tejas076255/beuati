@@ -12,9 +12,11 @@
     "format": "prettier --write .",
     "test:unit": "vitest run tests/unit",
     "test:security": "vitest run tests/security",
+    "test:safety": "vitest run tests/safety",
+    "test:provider": "vitest run tests/provider",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:qa": "npm run test:unit && npm run test:security && npm run test:e2e"
+    "test:qa": "npm run test:unit && npm run test:security && npm run test:safety && npm run test:e2e"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

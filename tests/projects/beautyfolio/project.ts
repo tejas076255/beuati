@@ -15,4 +15,18 @@ export const beautyfolioProject = {
     admin: "/admin",
     login: "/login",
   },
+  // The current Lovable-managed Supabase backend — holds real BeautyFolio
+  // professional data. Listed here (project config), not in generic safety
+  // logic, so the generic destructive-QA gate stays project-agnostic while
+  // this specific backend can never receive destructive QA regardless of
+  // any other configuration (see tests/helpers/safety-gate.ts).
+  protectedBackendRefs: ["ivbujlyilzmlublqzalu"],
+  // Table/column BeautyFolio uses for the one trusted read this phase
+  // performs — kept here, not in the generic Supabase adapter, so the
+  // adapter stays free of BeautyFolio schema knowledge.
+  sampleProfile: {
+    table: "beautician_profiles",
+    slug: "dharti-panchal",
+    publishedColumn: "is_published",
+  },
 } as const;

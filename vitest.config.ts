@@ -12,7 +12,12 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["tests/unit/**/*.test.ts", "tests/security/**/*.test.ts"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/security/**/*.test.ts",
+      "tests/safety/**/*.test.ts",
+      "tests/provider/**/*.test.ts",
+    ],
     watch: false,
     passWithNoTests: false,
     reporters: ["default"],
