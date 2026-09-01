@@ -1521,7 +1521,10 @@ export type Database = {
         | "before_after_deleted"
         | "video_created"
         | "video_updated"
-        | "video_deleted";
+        | "video_deleted"
+        | "package_created"
+        | "package_updated"
+        | "package_deleted";
       admin_audit_entity_type:
         | "beautician_profile"
         | "user_role"
@@ -1529,7 +1532,8 @@ export type Database = {
         | "service"
         | "gallery_item"
         | "before_after_item"
-        | "video";
+        | "video"
+        | "package";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";

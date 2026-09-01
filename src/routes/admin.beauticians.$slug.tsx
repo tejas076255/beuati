@@ -12,6 +12,7 @@ import { ProfileManager } from "@/components/profile/profile-manager";
 import { GalleryManager } from "@/components/gallery/gallery-manager";
 import { BeforeAfterManager } from "@/components/before-after/before-after-manager";
 import { VideoManager } from "@/components/videos/video-manager";
+import { PackageManager } from "@/components/packages/package-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -27,6 +28,7 @@ import type {
   BeforeAfterPairInput,
 } from "@/data/dashboard/before-after.server";
 import type { VideoInput } from "@/data/dashboard/videos.server";
+import type { PackageInput } from "@/data/dashboard/packages.server";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -327,14 +329,60 @@ const deleteVideoAdminFn = createServerFn({ method: "POST" })
     return deleteVideoAdmin(context.supabase, context.userId, data.targetProfileId, data.videoId);
   });
 
-type TabId = "overview" | "profile" | "services" | "gallery" | "before-after" | "videos";
+const listPackagesAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listPackagesAdmin } = await import("@/data/admin/packages.server");
+    return listPackagesAdmin(context.supabase, context.userId, targetProfileId);
+  });
 
-// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E — the
-// full future workspace nav; "services" (5.2A), "profile" (5.2B),
-// "gallery" (5.2C), "before-after" (5.2D), and "videos" (5.2E) are wired
-// to real implementations. Every other section is visibly present (so the
-// eventual shape is clear) but explicitly marked unavailable rather than
-// rendering a fake/empty screen.
+const createPackageAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: PackageInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { createPackageAdmin } = await import("@/data/admin/packages.server");
+    await createPackageAdmin(context.supabase, context.userId, data.targetProfileId, data.input);
+  });
+
+const updatePackageAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; packageId: string; updates: Partial<PackageInput> }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updatePackageAdmin } = await import("@/data/admin/packages.server");
+    await updatePackageAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.packageId,
+      data.updates,
+    );
+  });
+
+const deletePackageAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; packageId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deletePackageAdmin } = await import("@/data/admin/packages.server");
+    await deletePackageAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.packageId,
+    );
+  });
+
+type TabId =
+  "overview" | "profile" | "services" | "gallery" | "before-after" | "videos" | "packages";
+
+// Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
+// 5.2F — the full future workspace nav; "services" (5.2A), "profile"
+// (5.2B), "gallery" (5.2C), "before-after" (5.2D), "videos" (5.2E), and
+// "packages" (5.2F) are wired to real implementations. Every other section
+// is visibly present (so the eventual shape is clear) but explicitly
+// marked unavailable rather than rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
@@ -342,6 +390,7 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "gallery", label: "Gallery", enabled: true },
   { id: "before-after", label: "Before & After", enabled: true },
   { id: "videos", label: "Videos", enabled: true },
+  { id: "packages", label: "Packages", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
   { id: "reviews", label: "Reviews", enabled: false },
@@ -547,6 +596,29 @@ function AdminBeauticianWorkspace() {
       deleteVideoAdminFn({ data: { targetProfileId: targetProfileId!, videoId: id } }),
   });
 
+  const packagesQueryKey = ["admin-packages", targetProfileId];
+  const packagesQuery = useQuery({
+    queryKey: packagesQueryKey,
+    queryFn: () => listPackagesAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "packages",
+  });
+  const onPackagesSaved = () => queryClient.invalidateQueries({ queryKey: packagesQueryKey });
+
+  const createPackageMutation = useMutation({
+    mutationFn: (input: PackageInput) =>
+      createPackageAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+  });
+  const updatePackageMutation = useMutation({
+    mutationFn: (vars: { id: string; updates: Partial<PackageInput> }) =>
+      updatePackageAdminFn({
+        data: { targetProfileId: targetProfileId!, packageId: vars.id, updates: vars.updates },
+      }),
+  });
+  const deletePackageMutation = useMutation({
+    mutationFn: (id: string) =>
+      deletePackageAdminFn({ data: { targetProfileId: targetProfileId!, packageId: id } }),
+  });
+
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
       createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
@@ -725,6 +797,19 @@ function AdminBeauticianWorkspace() {
           onUpdate={(id, updates) => updateVideoMutation.mutateAsync({ id, updates })}
           onDelete={(id) => deleteVideoMutation.mutateAsync(id)}
           onSaved={onVideosSaved}
+        />
+      )}
+
+      {activeTab === "packages" && targetProfileId && (
+        <PackageManager
+          title="Packages"
+          subtitle={`Managing ${profile.display_name}'s bundled offerings.`}
+          packages={packagesQuery.data ?? []}
+          isLoading={packagesQuery.isLoading}
+          onCreate={(input) => createPackageMutation.mutateAsync(input)}
+          onUpdate={(id, updates) => updatePackageMutation.mutateAsync({ id, updates })}
+          onDelete={(id) => deletePackageMutation.mutateAsync(id)}
+          onSaved={onPackagesSaved}
         />
       )}
     </div>
