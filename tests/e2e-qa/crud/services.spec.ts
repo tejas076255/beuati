@@ -12,6 +12,7 @@ import {
 } from "../../projects/beautyfolio/qa-destructive-preflight.ts";
 import { beautyfolioProject } from "../../projects/beautyfolio/project.ts";
 import { saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
+import { selectOption } from "../../helpers/ui/select-option.ts";
 
 const AUTH_DIR = "playwright/.auth";
 
@@ -29,11 +30,6 @@ async function openServicesTab(page: Page, slug: string): Promise<void> {
 function serviceCard(page: Page, name: string) {
   const deleteBtn = page.getByLabel(`Delete ${name}`);
   return deleteBtn.locator("xpath=ancestor::*[contains(@class,'p-5')][1]");
-}
-
-async function selectOption(page: Page, labelText: string, optionText: string): Promise<void> {
-  await page.getByLabel(labelText).click();
-  await page.getByRole("option", { name: optionText, exact: true }).click();
 }
 
 async function addRepeatableItems(

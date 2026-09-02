@@ -88,3 +88,27 @@ export function buildQaServiceContent(runId: string) {
     quoteDescription: `${prefix}Custom quote service description, long enough for indexability checks.`,
   };
 }
+
+/** QA-1G — deterministic, run-specific Package content. Names/inclusions
+ * are always QA_E2E_<runId>_-prefixed, never human-looking production data. */
+export function buildQaPackageContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  return {
+    prefix,
+    name: `${prefix}Bridal Package`,
+    bestFor: `${prefix}Brides with one main function`,
+    price: "15000",
+    inclusions: [`${prefix}Makeup`, `${prefix}Hairstyle`, `${prefix}Draping`],
+    note: `${prefix}Most popular`,
+    editedNote: `${prefix}Most popular edited`,
+    // §19 focused pricing-regression case — a second, separate temporary
+    // package exercising the custom_quote transition, cleanup-scoped like
+    // the primary one.
+    quoteName: `${prefix}Quote Package`,
+    quotePrice: "25000",
+    quoteInclusions: [`${prefix}Consultation`, `${prefix}Trial`],
+    // §20 optional second price-type transition, applied to the companion
+    // quote package before its cleanup.
+    quoteTransitionPrice: "27000",
+  };
+}
