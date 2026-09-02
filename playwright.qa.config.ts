@@ -35,7 +35,10 @@ export default defineConfig({
   forbidOnly: !!process.env["CI"],
   retries: 0,
   workers: 1,
-  timeout: 30_000,
+  // The QA-1E FAQ CRUD lifecycle spins up several browser contexts across
+  // admin/professional-A/professional-B/public identities per run, twice
+  // (idempotency re-run) — needs more headroom than a single smoke check.
+  timeout: 180_000,
   reporter: [["html", { outputFolder: "playwright-report-qa", open: "never" }], ["list"]],
   outputDir: "test-results-qa",
   use: {
@@ -50,9 +53,21 @@ export default defineConfig({
       testMatch: /.*\.setup\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
+    // Non-destructive isolated smoke/auth checks — what `npm run
+    // test:e2e:qa` runs. Explicitly excludes crud/** so the destructive
+    // FAQ pilot never runs as a side effect of the normal QA smoke suite.
     {
       name: "qa-chromium",
-      testIgnore: /.*\.setup\.ts/,
+      testIgnore: [/.*\.setup\.ts/, /.*\/crud\/.*/],
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["qa-setup"],
+    },
+    // QA-1E — destructive business-CRUD pilots. Only ever run explicitly
+    // via `npm run test:e2e:qa:crud`, never picked up by the default
+    // `test:e2e:qa` script (see package.json).
+    {
+      name: "qa-crud",
+      testDir: "./tests/e2e-qa/crud",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["qa-setup"],
     },

@@ -4,15 +4,19 @@
 // own adapter module; project-specific test code calls through the
 // interface, never through a vendor SDK directly.
 //
-// Read-only through QA-1C. QA-1D Step 3B adds the first destructive
-// methods (insertRow, ensureAuthUser), designed alongside
-// assertDestructiveQaAllowed() (../safety-gate.ts) as that phase requires.
+// Read-only through QA-1C. QA-1D Step 3B added the first destructive
+// methods (insertRow, ensureAuthUser); QA-1E adds updateRow/deleteRow for
+// scoped cleanup and countRows (read-only) for checkpoint-style audit
+// assertions — all designed alongside assertDestructiveQaAllowed()
+// (../safety-gate.ts) as each phase required.
 // CONTRACT: every implementation's destructive methods trust the caller to
 // have already called assertDestructiveQaAllowed() and thrown/aborted on
 // denial — these methods do not re-check the gate themselves, so nothing
 // in generic QA infrastructure may call them directly; only a project's
-// own guarded provisioning entrypoint may (e.g.
-// tests/projects/beautyfolio/qa-identity-provisioner.ts).
+// own guarded entrypoint may (e.g.
+// tests/projects/beautyfolio/qa-identity-provisioner.ts, or the QA-1E FAQ
+// CRUD suite's own preflight in tests/projects/beautyfolio/
+// qa-destructive-preflight.ts).
 export interface ProviderIdentity {
   /** e.g. "supabase" */
   providerType: string;
@@ -54,6 +58,12 @@ export interface QaProvider {
    * hold multiple rows. */
   rowExists(table: string, match: Record<string, unknown>): Promise<boolean>;
 
+  /** Read-only match count — for tracking "did any NEW row appear since a
+   * checkpoint" style assertions where a plain boolean isn't precise
+   * enough (e.g. audit-log rows for an entity that legitimately already
+   * has some). */
+  countRows(table: string, match: Record<string, unknown>): Promise<number>;
+
   /** Read-only storage object existence check. */
   storageObjectExists(bucket: string, path: string): Promise<boolean>;
 
@@ -74,6 +84,22 @@ export interface QaProvider {
    * the existing user unchanged if the email is already registered, so
    * this is safe to call repeatedly. */
   ensureAuthUser(input: QaAuthUserInput): Promise<QaAuthUser>;
+
+  /** DESTRUCTIVE — see file header contract. Generic scoped update; every
+   * row matching `match` gets `values` applied. Returns the count of rows
+   * actually updated — intended for narrow, exact-match cleanup/setup
+   * use (e.g. by id), never a broad/unscoped update. */
+  updateRow(
+    table: string,
+    match: Record<string, unknown>,
+    values: Record<string, unknown>,
+  ): Promise<number>;
+
+  /** DESTRUCTIVE — see file header contract. Generic scoped delete; every
+   * row matching `match` is removed. Returns the count of rows actually
+   * deleted. Intended for narrow, exact-match cleanup use (e.g. by id),
+   * never a broad/unscoped delete. */
+  deleteRow(table: string, match: Record<string, unknown>): Promise<number>;
 }
 
 export interface QaAuthUserInput {

@@ -1,9 +1,13 @@
 // The ONE place @supabase/supabase-js may be imported from generic QA
-// infrastructure. Node-only (uses process.env directly) — never import this
-// module from a Playwright spec that runs inside a browser context, and
-// never from tests/e2e/**, so the service-role key can never reach a page.
-// Generic on purpose: no BeautyFolio table/column names appear here —
-// project-specific test code passes those in as arguments.
+// infrastructure. Node-only (uses process.env directly). Safe to import at
+// the top of a Playwright *spec file* (which executes in Node, as the test
+// runner) — the constraint is that the client/key must never be handed to
+// `page.evaluate`/`page.addInitScript` or otherwise reach code that runs
+// inside the browser page itself. tests/e2e-qa/crud/** is the trusted
+// Node-side exception this applies to (QA-1E); tests/e2e/** (the normal,
+// non-QA smoke suite) still must never import this. Generic on purpose: no
+// BeautyFolio table/column names appear here — project-specific test code
+// passes those in as arguments.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type {
   BucketInfo,
@@ -88,6 +92,16 @@ export class SupabaseQaProvider implements QaProvider {
     return (count ?? 0) > 0;
   }
 
+  async countRows(table: string, match: Record<string, unknown>): Promise<number> {
+    let query = this.client.from(table).select("*", { count: "exact", head: true });
+    for (const [column, value] of Object.entries(match)) {
+      query = query.eq(column, value as never);
+    }
+    const { count, error } = await query;
+    if (error) throw new Error(`countRows(${table}) failed: ${error.message}`);
+    return count ?? 0;
+  }
+
   async storageObjectExists(bucket: string, path: string): Promise<boolean> {
     const lastSlash = path.lastIndexOf("/");
     const dir = lastSlash === -1 ? "" : path.slice(0, lastSlash);
@@ -139,6 +153,30 @@ export class SupabaseQaProvider implements QaProvider {
     if (existing) return { ...existing, created: false };
 
     throw new Error(`ensureAuthUser(${input.email}) failed: ${created.error?.message}`);
+  }
+
+  async updateRow(
+    table: string,
+    match: Record<string, unknown>,
+    values: Record<string, unknown>,
+  ): Promise<number> {
+    let query = this.client.from(table).update(values);
+    for (const [column, value] of Object.entries(match)) {
+      query = query.eq(column, value as never);
+    }
+    const { data, error } = await query.select("id");
+    if (error) throw new Error(`updateRow(${table}) failed: ${error.message}`);
+    return data?.length ?? 0;
+  }
+
+  async deleteRow(table: string, match: Record<string, unknown>): Promise<number> {
+    let query = this.client.from(table).delete();
+    for (const [column, value] of Object.entries(match)) {
+      query = query.eq(column, value as never);
+    }
+    const { data, error } = await query.select("id");
+    if (error) throw new Error(`deleteRow(${table}) failed: ${error.message}`);
+    return data?.length ?? 0;
   }
 
   private async findAuthUserByEmail(
