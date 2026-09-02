@@ -140,3 +140,28 @@ export function buildQaBeforeAfterContent(runId: string) {
     editedDescription: `${prefix}Edited description`,
   };
 }
+
+/** QA-1J — deterministic, run-specific Video content. Title is always
+ * QA_E2E_<runId>_-prefixed, never human-looking production data. The
+ * YouTube video ID is a synthetic-but-format-valid 11-char id derived from
+ * the runId (never a real/reachable video) — this suite only proves URL
+ * validation/provider-detection/embed-URL-construction, never real
+ * third-party playback (per the phase's explicit no-flaky-network-
+ * dependency instruction). */
+export function buildQaVideoContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  const youtubeId = `${runId}00000000000`.replace(/[^\w-]/g, "0").slice(0, 11);
+  return {
+    prefix,
+    title: `${prefix}Video`,
+    category: "Bridal",
+    description: `${prefix}Initial description`,
+    editedDescription: `${prefix}Edited description`,
+    durationSeconds: "120",
+    youtubeId,
+    youtubeWatchUrl: `https://www.youtube.com/watch?v=${youtubeId}`,
+    youtubeShortUrl: `https://youtu.be/${youtubeId}`,
+    expectedEmbedSrc: `https://www.youtube.com/embed/${youtubeId}?autoplay=1&playsinline=1`,
+    invalidTitle: `${prefix}InvalidVideo`,
+  };
+}

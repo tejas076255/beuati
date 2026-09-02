@@ -158,9 +158,22 @@ function VideoFormDialog({
     defaultValues: EMPTY,
   });
 
+  // QA-1J-D2 — the storage path of a thumbnail uploaded during THIS unsaved
+  // dialog session, if any. Never the pre-existing persisted `video.
+  // thumbnail_url` for an edit — that one is only ever touched by the
+  // existing post-success old-thumbnail-deletion block below. A pending
+  // path is deleted if the user abandons the dialog (X/Escape/outside-
+  // click) or supersedes it with another upload before saving; it is kept
+  // (never deleted) once the save that references it actually succeeds.
+  const pendingThumbnailPathRef = useRef<string | null>(null);
+  // Monotonic token guarding against a slower upload's response landing
+  // after a faster, later upload has already been applied — see §16.
+  const thumbnailUploadTokenRef = useRef(0);
+
   useEffect(() => {
     if (!open) return;
     setSelectedVideoFileSize(null);
+    pendingThumbnailPathRef.current = null;
     form.reset(
       video
         ? {
@@ -179,7 +192,47 @@ function VideoFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, video?.id]);
 
+  // QA-1J-D2 — best-effort, idempotent: safe to call when there is nothing
+  // pending (no-op), and safe to call more than once (the ref is cleared
+  // immediately so a second call always no-ops). Never touches the
+  // pre-existing persisted thumbnail for an edit, only a same-session
+  // upload that hasn't been committed to the DB yet.
+  const cleanupPendingThumbnail = () => {
+    const path = pendingThumbnailPathRef.current;
+    if (!path) return;
+    pendingThumbnailPathRef.current = null;
+    void deletePortfolioMedia(path).catch(() => {
+      // Best-effort — matches the existing delete-after-success pattern
+      // elsewhere in this file; a cleanup failure must never block the
+      // dialog from closing or surface as a user-facing error for an
+      // asset the user never asked to keep.
+    });
+  };
+
+  // QA-1J-D2 §13 — covers a route change unmounting this dialog while a
+  // thumbnail is pending (the same cleanup that already runs on an
+  // in-dialog close). A hard browser refresh/tab close cannot be made
+  // reliable from React alone within this SPA's current architecture — see
+  // the report's residual-limitation note; not addressed here.
+  useEffect(() => {
+    return () => cleanupPendingThumbnail();
+  }, []);
+
+  const handleDialogOpenChange = (next: boolean) => {
+    if (!next) {
+      // Reached only for a USER-initiated close (X / Escape / outside
+      // click) — the dialog's own close-on-success path calls setOpen(false)
+      // directly, bypassing this handler entirely, so a successful save
+      // never runs this cleanup. See §7/§8: a merely-invalid Save attempt
+      // never reaches here either, since the dialog stays open for the user
+      // to correct and retry with the same pending thumbnail.
+      cleanupPendingThumbnail();
+    }
+    setOpen(next);
+  };
+
   const processThumbnailFile = async (file: File) => {
+    const token = ++thumbnailUploadTokenRef.current;
     setUploadingThumbnail(true);
     try {
       // Phase 5.2E1 — its own namespace, never mixed into Gallery's own
@@ -188,6 +241,25 @@ function VideoFormDialog({
       // thumbnail_url is a full public URL, unrelated to where a NEW
       // upload lands) — only new uploads use the corrected path.
       const path = await uploadPortfolioMedia(uploadSlug, "video-thumbnails", file);
+      if (token !== thumbnailUploadTokenRef.current) {
+        // A newer upload was started (and has already applied its own
+        // result) before this slower one finished — this response is
+        // stale. Delete the object it just created rather than let it
+        // silently become an untracked orphan, and never touch form/ref
+        // state that a later upload already owns (§16).
+        void deletePortfolioMedia(path).catch(() => {});
+        return;
+      }
+      // §5 — supersede: delete whatever THIS session had pending before
+      // (never the edit's original persisted thumbnail, which is never
+      // stored in this ref), only after the new upload has actually
+      // succeeded, so an upload failure below never destroys a still-valid
+      // previous pending thumbnail (§6).
+      const previousPending = pendingThumbnailPathRef.current;
+      pendingThumbnailPathRef.current = path;
+      if (previousPending && previousPending !== path) {
+        void deletePortfolioMedia(previousPending).catch(() => {});
+      }
       form.setValue("thumbnail_url", buildPublicMediaUrl(path), { shouldValidate: true });
       toast.success("Thumbnail uploaded");
     } catch (error) {
@@ -268,6 +340,13 @@ function VideoFormDialog({
       }
     },
     onSuccess: () => {
+      // The just-saved thumbnail is now persisted and DB-referenced —
+      // clear tracking WITHOUT deleting it (§4/§10). onError intentionally
+      // does not touch pendingThumbnailPathRef at all: the dialog stays
+      // open for the user to retry the same save, and the pending
+      // thumbnail is only cleaned up later if they actually abandon or
+      // supersede it (§8).
+      pendingThumbnailPathRef.current = null;
       toast.success(video ? "Video updated" : "Video added");
       setOpen(false);
       onSaved();
@@ -280,7 +359,7 @@ function VideoFormDialog({
   const storagePath = form.watch("storage_path");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>
         <Button variant={video ? "softline" : "hero"} size="sm">
           {video ? "Edit" : "Add video"}
