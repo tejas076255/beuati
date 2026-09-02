@@ -38,6 +38,7 @@ import {
 } from "../../projects/beautyfolio/qa-destructive-preflight.ts";
 import { beautyfolioProject } from "../../projects/beautyfolio/project.ts";
 import { saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
+import { httpCheck, ownerSlugFromStoragePath } from "../../helpers/media/storage-checks.ts";
 
 const AUTH_DIR = "playwright/.auth";
 const BUCKET = "portfolio-media";
@@ -114,20 +115,6 @@ async function deleteGalleryItemViaAdmin(page: Page, title: string): Promise<voi
   page.once("dialog", (dialog) => void dialog.accept());
   await galleryCard(page, title).getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText(title)).toHaveCount(0, { timeout: 10_000 });
-}
-
-/** Second path segment of `profiles/{slug}/{category}/{file}` — the exact
- * ownership key the storage RLS policy itself keys off
- * ((storage.foldername(name))[2] in Postgres, 1-indexed). */
-function ownerSlugFromStoragePath(storagePath: string): string {
-  return storagePath.split("/")[1] ?? "";
-}
-
-async function httpCheck(
-  url: string,
-): Promise<{ ok: boolean; status: number; contentType: string | null }> {
-  const res = await fetch(url, { method: "GET" });
-  return { ok: res.ok, status: res.status, contentType: res.headers.get("content-type") };
 }
 
 interface LifecycleTiming {

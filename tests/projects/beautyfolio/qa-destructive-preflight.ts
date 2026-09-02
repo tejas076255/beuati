@@ -126,3 +126,17 @@ export function buildQaGalleryContent(runId: string) {
     category: "bridal",
   };
 }
+
+/** QA-1I — deterministic, run-specific Before & After content. Title is
+ * always QA_E2E_<runId>_-prefixed, never human-looking production data. */
+export function buildQaBeforeAfterContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  return {
+    prefix,
+    title: `${prefix}BeforeAfter`,
+    eventType: "Bridal",
+    location: "QA Location",
+    description: `${prefix}Initial description`,
+    editedDescription: `${prefix}Edited description`,
+  };
+}
