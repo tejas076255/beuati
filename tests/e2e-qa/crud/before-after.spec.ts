@@ -36,7 +36,7 @@ import {
   runDestructiveQaPreflight,
 } from "../../projects/beautyfolio/qa-destructive-preflight.ts";
 import { beautyfolioProject } from "../../projects/beautyfolio/project.ts";
-import { saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
+import { saveAndExpectFailure, saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
 import { httpCheck, ownerSlugFromStoragePath } from "../../helpers/media/storage-checks.ts";
 
 const AUTH_DIR = "playwright/.auth";
@@ -55,6 +55,24 @@ function requireEnv(name: string): string {
 async function openBeforeAfterTab(page: Page, slug: string): Promise<void> {
   await page.goto(`/admin/beauticians/${slug}`);
   await page.getByRole("button", { name: "Before & After", exact: true }).click();
+}
+
+// QA-1M — every admin-side mutation (create/update/delete) is a TanStack
+// Start server function, called from the browser as an opaque
+// `POST /_serverFn/{base64({file,export})}` — never a direct browser-to-
+// Supabase-REST call (only the Storage upload itself is direct). Confirmed
+// live during this phase's investigation. To fault-inject one specific DB
+// mutation from Playwright, the export name has to be decoded out of that
+// base64 segment.
+function isServerFnCall(url: string, exportNameSubstring: string): boolean {
+  const match = /\/_serverFn\/([^/?]+)/.exec(url);
+  const segment = match?.[1];
+  if (!segment) return false;
+  try {
+    return Buffer.from(segment, "base64").toString("utf-8").includes(exportNameSubstring);
+  } catch {
+    return false;
+  }
 }
 
 function pairCard(page: Page, title: string) {
@@ -578,6 +596,415 @@ test.describe
     console.log("Before & After lifecycle runtime measurements:");
     for (const t of timings) {
       console.log(`  ${t.label}: ${(t.ms / 1000).toFixed(1)}s`);
+    }
+  });
+});
+
+// QA-1M — save-failure compensation regressions (before-after-manager.tsx's
+// `save` mutation + createBeforeAfterPairForProfile, §8-§18 of the phase).
+// Fault injection is Playwright `page.route()` network interception scoped
+// to this test's own browser context — exists only inside this test
+// process, unreachable by a real user, no production feature flag, no
+// schema/RLS change, gone automatically once the context closes. Every
+// assertion reads Storage/DB state via the same authoritative provider APIs
+// used by the lifecycle pilot above, BEFORE this file's own `finally`-block
+// fallback cleanup ever runs — proving APPLICATION cleanup, not QA-harness
+// cleanup.
+test.describe("Before & After save-failure compensation regression @crud @before-after @storage", () => {
+  async function baseline(
+    provider: Awaited<ReturnType<typeof runDestructiveQaPreflight>>["provider"],
+  ) {
+    const proASlug = beautyfolioProject.qaIdentities.professionalA.slug;
+    const proA = await provider.getRow("beautician_profiles", { slug: proASlug });
+    if (!proA) throw new Error("QA professional fixtures not found.");
+    const proAId = proA["id"] as string;
+    const storageObjects = await provider.listStorageObjects(
+      BUCKET,
+      `profiles/${proASlug}/before-after`,
+    );
+    const itemCount = await provider.countRows("before_after_items", {
+      beautician_profile_id: proAId,
+    });
+    return { proASlug, proAId, storageObjects, itemCount };
+  }
+
+  async function assertNoNewObjects(
+    provider: Awaited<ReturnType<typeof runDestructiveQaPreflight>>["provider"],
+    proASlug: string,
+    priorObjects: string[],
+  ) {
+    await expect
+      .poll(
+        async () => {
+          const current = await provider.listStorageObjects(
+            BUCKET,
+            `profiles/${proASlug}/before-after`,
+          );
+          return current.filter((name) => !priorObjects.includes(name));
+        },
+        { timeout: 10_000, message: "no new storage objects may remain after this failed attempt" },
+      )
+      .toEqual([]);
+  }
+
+  test("create: BEFORE succeeds, AFTER fails — application deletes BEFORE, creates no rows (§22 direction 1)", async ({
+    browser,
+  }) => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaBeforeAfterContent(runId);
+    const { proASlug, proAId, storageObjects, itemCount } = await baseline(provider);
+
+    const ctx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
+    const page = await ctx.newPage();
+    try {
+      await openBeforeAfterTab(page, proASlug);
+      await page.getByRole("button", { name: "Add Before & After" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await page.getByLabel("Title").fill(content.title);
+      await page.getByLabel("Category").fill(content.eventType);
+      await page.getByLabel("Location").fill(content.location);
+      await dropzoneFileInput(page, "Before image").setInputFiles(BEFORE_FIXTURE);
+      await dropzoneFileInput(page, "After image").setInputFiles(AFTER_FIXTURE);
+
+      await page.route("**/storage/v1/object/**", async (route) => {
+        const url = route.request().url();
+        if (route.request().method() === "POST" && url.includes("qa-after")) {
+          await route.fulfill({
+            status: 500,
+            contentType: "application/json",
+            body: JSON.stringify({ message: "QA_FAULT_INJECTION: simulated AFTER upload failure" }),
+          });
+          return;
+        }
+        await route.continue();
+      });
+
+      const errorMsg = await saveAndExpectFailure(page, "Add pair");
+      console.log(`[before-after §22.1] save-failure toast: ${errorMsg}`);
+      await page.unroute("**/storage/v1/object/**");
+
+      const itemExists = await provider.rowExists("before_after_items", { title: content.title });
+      expect(itemExists, "no parent row from a failed create attempt").toBe(false);
+      const countUnchanged = await provider.countRows("before_after_items", {
+        beautician_profile_id: proAId,
+      });
+      expect(countUnchanged, "parent row count must remain at baseline").toBe(itemCount);
+
+      await assertNoNewObjects(provider, proASlug, storageObjects);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test("create: AFTER succeeds, BEFORE fails — application deletes AFTER, creates no rows (§22 direction 2)", async ({
+    browser,
+  }) => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaBeforeAfterContent(runId);
+    const { proASlug, proAId, storageObjects, itemCount } = await baseline(provider);
+
+    const ctx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
+    const page = await ctx.newPage();
+    try {
+      await openBeforeAfterTab(page, proASlug);
+      await page.getByRole("button", { name: "Add Before & After" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await page.getByLabel("Title").fill(content.title);
+      await page.getByLabel("Category").fill(content.eventType);
+      await page.getByLabel("Location").fill(content.location);
+      await dropzoneFileInput(page, "Before image").setInputFiles(BEFORE_FIXTURE);
+      await dropzoneFileInput(page, "After image").setInputFiles(AFTER_FIXTURE);
+
+      await page.route("**/storage/v1/object/**", async (route) => {
+        const url = route.request().url();
+        if (route.request().method() === "POST" && url.includes("qa-before")) {
+          await route.fulfill({
+            status: 500,
+            contentType: "application/json",
+            body: JSON.stringify({
+              message: "QA_FAULT_INJECTION: simulated BEFORE upload failure",
+            }),
+          });
+          return;
+        }
+        await route.continue();
+      });
+
+      const errorMsg = await saveAndExpectFailure(page, "Add pair");
+      console.log(`[before-after §22.2] save-failure toast: ${errorMsg}`);
+      await page.unroute("**/storage/v1/object/**");
+
+      const itemExists = await provider.rowExists("before_after_items", { title: content.title });
+      expect(itemExists, "no parent row from a failed create attempt").toBe(false);
+      const countUnchanged = await provider.countRows("before_after_items", {
+        beautician_profile_id: proAId,
+      });
+      expect(countUnchanged, "parent row count must remain at baseline").toBe(itemCount);
+
+      await assertNoNewObjects(provider, proASlug, storageObjects);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test("create: both uploads succeed, parent DB insert fails — application deletes both objects (§23)", async ({
+    browser,
+  }) => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaBeforeAfterContent(runId);
+    const { proASlug, proAId, storageObjects, itemCount } = await baseline(provider);
+
+    const ctx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
+    const page = await ctx.newPage();
+    try {
+      await openBeforeAfterTab(page, proASlug);
+      await page.getByRole("button", { name: "Add Before & After" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await page.getByLabel("Title").fill(content.title);
+      await page.getByLabel("Category").fill(content.eventType);
+      await page.getByLabel("Location").fill(content.location);
+      await dropzoneFileInput(page, "Before image").setInputFiles(BEFORE_FIXTURE);
+      await dropzoneFileInput(page, "After image").setInputFiles(AFTER_FIXTURE);
+
+      // Both uploads are left real; only the createBeforeAfterPairAdminFn
+      // server function call is intercepted — a genuine network-level
+      // failure (route.abort), not a fulfilled error response, since the
+      // server-function RPC client doesn't check HTTP status and treats
+      // any fulfilled response as a successful call (confirmed during this
+      // phase's investigation — see the Gallery spec's identical note).
+      await page.route("**/_serverFn/**", async (route) => {
+        if (
+          route.request().method() === "POST" &&
+          isServerFnCall(route.request().url(), "createBeforeAfterPairAdminFn")
+        ) {
+          await route.abort("failed");
+          return;
+        }
+        await route.continue();
+      });
+
+      const errorMsg = await saveAndExpectFailure(page, "Add pair");
+      console.log(`[before-after §23] save-failure toast: ${errorMsg}`);
+      await page.unroute("**/_serverFn/**");
+
+      const itemExists = await provider.rowExists("before_after_items", { title: content.title });
+      expect(itemExists, "no parent row from a failed create attempt").toBe(false);
+      const countUnchanged = await provider.countRows("before_after_items", {
+        beautician_profile_id: proAId,
+      });
+      expect(countUnchanged, "parent row count must remain at baseline").toBe(itemCount);
+
+      await assertNoNewObjects(provider, proASlug, storageObjects);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test("server-side: parent insert succeeds but child image insert fails — createBeforeAfterPairForProfile self-compensates by removing the orphaned parent (§24)", async () => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaBeforeAfterContent(runId);
+    const { proAId, itemCount } = await baseline(provider);
+
+    // The parent insert and child image insert both happen inside ONE
+    // opaque createBeforeAfterPairAdminFn server-function call — invisible
+    // to the browser's network stack as two separate operations, so
+    // Playwright network interception (used above) cannot isolate a
+    // failure to just the child insert without also failing the parent
+    // insert (which would just be a duplicate of §23). Per §26's
+    // preference for "dependency/test seam injection over production
+    // feature flags", this instead calls createBeforeAfterPairForProfile
+    // directly with a wrapped Supabase client whose .from("before_after_
+    // images") is swapped for a fault stub — every other table, including
+    // the real parent insert and the real self-compensating parent
+    // delete, goes through untouched to the actual QA backend. The seam is
+    // the function's own client PARAMETER, not a code change: no
+    // production file is touched, nothing about it is reachable by a real
+    // request or public input, and it exists only for this one test.
+    const { createClient } = await import("@supabase/supabase-js");
+    const { createBeforeAfterPairForProfile } =
+      await import("../../../src/data/dashboard/before-after.server.ts");
+
+    const realClient = createClient(
+      requireEnv("SUPABASE_URL"),
+      requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    );
+    const faultInjectedClient = new Proxy(realClient, {
+      get(target, prop, receiver) {
+        if (prop === "from") {
+          return (table: string) => {
+            if (table === "before_after_images") {
+              return {
+                insert: async () => ({
+                  data: null,
+                  error: { message: "QA_FAULT_INJECTION: simulated child image insert failure" },
+                }),
+              };
+            }
+            return target.from(table as Parameters<typeof target.from>[0]);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+
+    let threw = false;
+    try {
+      await createBeforeAfterPairForProfile(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test-only fault-injection proxy, deliberately widened
+        faultInjectedClient as any,
+        proAId,
+        {
+          title: content.title,
+          eventType: content.eventType,
+          location: content.location,
+          beforeStoragePath: `profiles/QA_E2E_${runId}_nonexistent/before-after/does-not-matter-before.png`,
+          afterStoragePath: `profiles/QA_E2E_${runId}_nonexistent/before-after/does-not-matter-after.png`,
+          isPublished: false,
+        },
+      );
+    } catch {
+      threw = true;
+    }
+    expect(threw, "createBeforeAfterPairForProfile must throw when the child insert fails").toBe(
+      true,
+    );
+
+    // The parent must not survive — the server-side compensation removes
+    // it when the child insert it depends on fails.
+    const itemExists = await provider.rowExists("before_after_items", { title: content.title });
+    expect(itemExists, "no orphaned parent row may survive a failed child insert").toBe(false);
+    const countUnchanged = await provider.countRows("before_after_items", {
+      beautician_profile_id: proAId,
+    });
+    expect(countUnchanged, "parent row count must remain at baseline").toBe(itemCount);
+    // No valid parent id exists to query children by (the create never
+    // returned one, and none was persisted) — the parent's own absence,
+    // already asserted above, is definitive for "no orphaned children"
+    // given the FK's ON DELETE CASCADE. No storage objects were ever
+    // uploaded in this test (paths are synthetic strings), so there is
+    // nothing to check on the Storage side here — that's covered by §22/§23.
+  });
+
+  test("edit: NEW upload succeeds, DB replacement mutation fails — application deletes NEW, DB still references OLD (§25)", async ({
+    browser,
+  }) => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaBeforeAfterContent(runId);
+    const { proASlug, storageObjects } = await baseline(provider);
+
+    const ctx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
+    const page = await ctx.newPage();
+    let itemId: string | null = null;
+    let beforeStoragePath: string | null = null;
+    let afterStoragePath: string | null = null;
+    try {
+      await openBeforeAfterTab(page, proASlug);
+      await createPairViaAdmin(page, {
+        title: content.title,
+        eventType: content.eventType,
+        location: content.location,
+      });
+
+      const createdItem = await provider.getRow("before_after_items", { title: content.title });
+      expect(
+        createdItem,
+        "setup: created pair must exist before the edit-failure test",
+      ).not.toBeNull();
+      itemId = createdItem!["id"] as string;
+      const beforeRow = await provider.getRow("before_after_images", {
+        before_after_id: itemId,
+        image_type: "before",
+      });
+      const afterRow = await provider.getRow("before_after_images", {
+        before_after_id: itemId,
+        image_type: "after",
+      });
+      beforeStoragePath = beforeRow!["storage_path"] as string;
+      afterStoragePath = afterRow!["storage_path"] as string;
+
+      // Now edit — replace only the BEFORE side. The upload of the NEW
+      // BEFORE object is left real; only the DB replacement PATCH is
+      // intercepted, so the upload succeeds but the DB never comes to
+      // reference it.
+      await pairCard(page, content.title).getByRole("button", { name: "Edit" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await dropzoneFileInput(page, "Before image").setInputFiles(BEFORE_FIXTURE);
+
+      await page.route("**/_serverFn/**", async (route) => {
+        if (
+          route.request().method() === "POST" &&
+          isServerFnCall(route.request().url(), "replaceBeforeAfterImageAdminFn")
+        ) {
+          await route.abort("failed");
+          return;
+        }
+        await route.continue();
+      });
+
+      const errorMsg = await saveAndExpectFailure(page, "Save changes");
+      console.log(`[before-after §25] save-failure toast: ${errorMsg}`);
+      await page.unroute("**/_serverFn/**");
+
+      // DB must still reference OLD.
+      const afterFailedEdit = await provider.getRow("before_after_images", {
+        before_after_id: itemId,
+        image_type: "before",
+      });
+      expect(
+        afterFailedEdit!["storage_path"],
+        "DB must still reference the OLD storage path after a failed replacement",
+      ).toBe(beforeStoragePath);
+
+      // OLD must still exist.
+      const oldStillExists = await provider.storageObjectExists(BUCKET, beforeStoragePath);
+      expect(oldStillExists, "OLD object must survive a failed replacement").toBe(true);
+
+      // NEW (the just-uploaded, now-unreferenced object) must be deleted —
+      // it's whatever landed under before-after/ that isn't part of the
+      // pre-test baseline and isn't either side of THIS pair (both of
+      // which remain legitimately persisted: OLD BEFORE because the
+      // replacement failed, and the untouched AFTER because this edit
+      // never touched it). listStorageObjects returns bare filenames, not
+      // full paths, so the DB-recorded full paths must be reduced to their
+      // basename before comparing.
+      const beforeBasename = beforeStoragePath.split("/").pop();
+      const afterBasename = afterStoragePath.split("/").pop();
+      await expect
+        .poll(
+          async () => {
+            const current = await provider.listStorageObjects(
+              BUCKET,
+              `profiles/${proASlug}/before-after`,
+            );
+            return current.filter(
+              (name) =>
+                !storageObjects.includes(name) && name !== beforeBasename && name !== afterBasename,
+            );
+          },
+          {
+            timeout: 10_000,
+            message: "the NEW uploaded object must be deleted after a failed DB replacement",
+          },
+        )
+        .toEqual([]);
+
+      await expect(dialog).toBeVisible();
+      await page.keyboard.press("Escape");
+    } finally {
+      if (itemId) {
+        await provider.deleteRow("before_after_items", { id: itemId }).catch(() => {});
+      }
+      if (beforeStoragePath) {
+        await provider.deleteStorageObject(BUCKET, beforeStoragePath).catch(() => {});
+      }
+      if (afterStoragePath) {
+        await provider.deleteStorageObject(BUCKET, afterStoragePath).catch(() => {});
+      }
+      await ctx.close();
     }
   });
 });

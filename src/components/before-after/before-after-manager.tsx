@@ -267,29 +267,84 @@ function PairFormDialog({
 
           if (beforeFile && beforeImage) {
             const path = await uploadPortfolioMedia(uploadSlug, "before-after", beforeFile);
-            const oldPath = await onReplaceImage(beforeImage.id, path);
+            let oldPath: string | null;
+            try {
+              oldPath = await onReplaceImage(beforeImage.id, path);
+            } catch (error) {
+              // NEW uploaded but the DB never came to reference it — delete
+              // NEW, leave OLD (and the DB row, which still points at OLD)
+              // completely untouched. Best-effort: never mask the original
+              // mutation error with a cleanup failure.
+              await deletePortfolioMedia(path).catch(() => {});
+              throw error;
+            }
             if (oldPath) await deletePortfolioMedia(oldPath);
           }
           if (afterFile && afterImage) {
             const path = await uploadPortfolioMedia(uploadSlug, "before-after", afterFile);
-            const oldPath = await onReplaceImage(afterImage.id, path);
+            let oldPath: string | null;
+            try {
+              oldPath = await onReplaceImage(afterImage.id, path);
+            } catch (error) {
+              await deletePortfolioMedia(path).catch(() => {});
+              throw error;
+            }
             if (oldPath) await deletePortfolioMedia(oldPath);
           }
         } else {
-          const [beforeStoragePath, afterStoragePath] = await Promise.all([
+          // Promise.allSettled (not Promise.all) so a rejection on one side
+          // never discards the other side's successful result — the prior
+          // Promise.all shape made a successful upload's path unrecoverable
+          // the instant its sibling rejected (QA-1L-D1 §15).
+          const [beforeResult, afterResult] = await Promise.allSettled([
             uploadPortfolioMedia(uploadSlug, "before-after", beforeFile as File),
             uploadPortfolioMedia(uploadSlug, "before-after", afterFile as File),
           ]);
-          await onCreate({
-            title,
-            eventType,
-            location,
-            description,
-            beforeStoragePath,
-            afterStoragePath,
-            isPublished,
-            serviceId: serviceId || null,
-          });
+
+          const beforeStoragePath = beforeResult.status === "fulfilled" ? beforeResult.value : null;
+          const afterStoragePath = afterResult.status === "fulfilled" ? afterResult.value : null;
+
+          if (beforeResult.status === "rejected" || afterResult.status === "rejected") {
+            // Delete whichever side actually succeeded — the other side
+            // never uploaded anything, so there's nothing to delete for it.
+            await Promise.allSettled(
+              [beforeStoragePath, afterStoragePath]
+                .filter((path): path is string => Boolean(path))
+                .map((path) => deletePortfolioMedia(path).catch(() => {})),
+            );
+            const failure =
+              beforeResult.status === "rejected"
+                ? beforeResult.reason
+                : afterResult.status === "rejected"
+                  ? afterResult.reason
+                  : null;
+            throw failure instanceof Error
+              ? failure
+              : new Error("Failed to upload before/after images.");
+          }
+
+          try {
+            await onCreate({
+              title,
+              eventType,
+              location,
+              description,
+              beforeStoragePath: beforeStoragePath as string,
+              afterStoragePath: afterStoragePath as string,
+              isPublished,
+              serviceId: serviceId || null,
+            });
+          } catch (error) {
+            // Both uploads succeeded but DB persistence failed — delete
+            // both, leaving no orphaned objects and no parent/child rows
+            // (createBeforeAfterPairForProfile self-compensates a
+            // parent-created/children-failed split before this ever throws).
+            await Promise.allSettled([
+              deletePortfolioMedia(beforeStoragePath as string).catch(() => {}),
+              deletePortfolioMedia(afterStoragePath as string).catch(() => {}),
+            ]);
+            throw error;
+          }
         }
       } finally {
         setUploading(false);

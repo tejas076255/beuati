@@ -37,13 +37,19 @@ import {
   runDestructiveQaPreflight,
 } from "../../projects/beautyfolio/qa-destructive-preflight.ts";
 import { beautyfolioProject } from "../../projects/beautyfolio/project.ts";
-import { saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
+import { saveAndExpectFailure, saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
 import { httpCheck, ownerSlugFromStoragePath } from "../../helpers/media/storage-checks.ts";
 
 const AUTH_DIR = "playwright/.auth";
 const BUCKET = "portfolio-media";
 const FIXTURE_IMAGE = fileURLToPath(
   new URL("../../fixtures/images/qa-gallery.png", import.meta.url),
+);
+// QA-1M — reused only as a second, distinguishable file for the multi-file
+// partial-upload-failure regression; category is irrelevant to Storage, only
+// the filename needs to differ so a route matcher can target it specifically.
+const SECOND_FIXTURE_IMAGE = fileURLToPath(
+  new URL("../../fixtures/images/qa-before.png", import.meta.url),
 );
 
 function requireEnv(name: string): string {
@@ -65,6 +71,27 @@ function galleryCard(page: Page, title: string) {
   return page
     .locator(".rounded-2xl.border.border-border.bg-card.shadow-soft")
     .filter({ hasText: title });
+}
+
+// QA-1M — every admin-side mutation (create/update/delete) is a TanStack
+// Start server function, called from the browser as an opaque
+// `POST /_serverFn/{base64({file,export})}` — never a direct browser-to-
+// Supabase-REST call (only the Storage upload itself is direct). Confirmed
+// live via a request listener during this phase's investigation. To
+// fault-inject one specific DB mutation from Playwright, the export name
+// has to be decoded out of that base64 segment; matching on `/rest/v1/...`
+// (as the app's *server-side* Supabase calls would suggest) never
+// intercepts anything, since those calls never reach the browser's network
+// stack.
+function isServerFnCall(url: string, exportNameSubstring: string): boolean {
+  const match = /\/_serverFn\/([^/?]+)/.exec(url);
+  const segment = match?.[1];
+  if (!segment) return false;
+  try {
+    return Buffer.from(segment, "base64").toString("utf-8").includes(exportNameSubstring);
+  } catch {
+    return false;
+  }
 }
 
 async function createGalleryItemViaAdmin(
@@ -513,6 +540,182 @@ test.describe
     console.log("Gallery lifecycle runtime measurements:");
     for (const t of timings) {
       console.log(`  ${t.label}: ${(t.ms / 1000).toFixed(1)}s`);
+    }
+  });
+});
+
+// QA-1M — save-failure compensation regressions (gallery-manager.tsx's
+// `save` mutation, §4-§7 of the phase). Fault injection is Playwright
+// `page.route()` network interception scoped to this test's own browser
+// context — it exists only inside this test process, is never reachable by
+// a real user, requires no production feature flag, alters no schema/RLS,
+// and is automatically gone the instant the context closes. Every
+// assertion below reads Storage/DB state via the same authoritative
+// provider APIs used by the lifecycle pilot above, BEFORE this file's own
+// `finally`-block fallback cleanup ever runs — proving APPLICATION
+// cleanup, not QA-harness cleanup.
+test.describe("Gallery save-failure compensation regression @crud @gallery @storage", () => {
+  test("upload succeeds, then Gallery create fails — application deletes the uploaded object (§21A)", async ({
+    browser,
+  }) => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaGalleryContent(runId);
+    const proASlug = beautyfolioProject.qaIdentities.professionalA.slug;
+    const proA = await provider.getRow("beautician_profiles", { slug: proASlug });
+    if (!proA) throw new Error("QA professional fixtures not found.");
+    const proAId = proA["id"] as string;
+
+    const baselineStorageObjects = await provider.listStorageObjects(
+      BUCKET,
+      `profiles/${proASlug}/gallery`,
+    );
+    const baselineItemCount = await provider.countRows("portfolio_items", {
+      beautician_profile_id: proAId,
+    });
+
+    const ctx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
+    const page = await ctx.newPage();
+    try {
+      await openGalleryTab(page, proASlug);
+      await page.getByRole("button", { name: "Add item" }).first().click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await page.getByLabel("Title").fill(content.title);
+      await galleryDialogFileInput(page).setInputFiles(FIXTURE_IMAGE);
+
+      // Force the DB create (createGalleryItemAdminFn server function) to
+      // fail — the upload itself is left completely real, so a genuine
+      // object lands in Storage before this fault fires.
+      await page.route("**/_serverFn/**", async (route) => {
+        const isTarget =
+          route.request().method() === "POST" &&
+          isServerFnCall(route.request().url(), "createGalleryItemAdminFn");
+        if (isTarget) {
+          // route.fulfill() with a synthetic body is silently treated as a
+          // successful response by the server-function RPC client (it
+          // doesn't appear to check HTTP status), so this uses a genuine
+          // network-level failure instead — the same shape a real dropped
+          // connection or upstream 502 would produce, which the client's
+          // fetch call actually rejects on.
+          await route.abort("failed");
+          return;
+        }
+        await route.continue();
+      });
+
+      const errorMsg = await saveAndExpectFailure(page, "Add item");
+      console.log(`[gallery §21A] save-failure toast: ${errorMsg}`);
+      await page.unroute("**/_serverFn/**");
+
+      // No DB row for this failed attempt.
+      const itemExists = await provider.rowExists("portfolio_items", { title: content.title });
+      expect(itemExists, "no gallery item row from a failed create attempt").toBe(false);
+      const countUnchanged = await provider.countRows("portfolio_items", {
+        beautician_profile_id: proAId,
+      });
+      expect(countUnchanged, "gallery item count must remain at baseline").toBe(baselineItemCount);
+
+      // Application must have already deleted the uploaded object by the
+      // time the error toast rendered (compensation is awaited inside the
+      // mutationFn's catch, before it rethrows) — polled defensively.
+      await expect
+        .poll(
+          async () => {
+            const current = await provider.listStorageObjects(
+              BUCKET,
+              `profiles/${proASlug}/gallery`,
+            );
+            return current.filter((name) => !baselineStorageObjects.includes(name));
+          },
+          {
+            timeout: 10_000,
+            message: "uploaded object from the failed create attempt must be deleted",
+          },
+        )
+        .toEqual([]);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test("multi-file: second upload fails — application deletes the first file's already-uploaded object (§21B)", async ({
+    browser,
+  }) => {
+    const { provider, runId } = runDestructiveQaPreflight();
+    const content = buildQaGalleryContent(runId);
+    const proASlug = beautyfolioProject.qaIdentities.professionalA.slug;
+    const proA = await provider.getRow("beautician_profiles", { slug: proASlug });
+    if (!proA) throw new Error("QA professional fixtures not found.");
+    const proAId = proA["id"] as string;
+
+    const baselineStorageObjects = await provider.listStorageObjects(
+      BUCKET,
+      `profiles/${proASlug}/gallery`,
+    );
+    const baselineItemCount = await provider.countRows("portfolio_items", {
+      beautician_profile_id: proAId,
+    });
+
+    const ctx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
+    const page = await ctx.newPage();
+    try {
+      await openGalleryTab(page, proASlug);
+      await page.getByRole("button", { name: "Add item" }).first().click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await page.getByLabel("Title").fill(content.title);
+      // Two files selected — the sequential upload loop uploads
+      // qa-gallery.png first (succeeds for real), then qa-before.png
+      // second (intercepted to fail).
+      await galleryDialogFileInput(page).setInputFiles([FIXTURE_IMAGE, SECOND_FIXTURE_IMAGE]);
+
+      await page.route("**/storage/v1/object/**", async (route) => {
+        const url = route.request().url();
+        if (route.request().method() === "POST" && url.includes("qa-before")) {
+          await route.fulfill({
+            status: 500,
+            contentType: "application/json",
+            body: JSON.stringify({
+              message: "QA_FAULT_INJECTION: simulated second-file upload failure",
+            }),
+          });
+          return;
+        }
+        await route.continue();
+      });
+
+      const errorMsg = await saveAndExpectFailure(page, "Add item");
+      console.log(`[gallery §21B] save-failure toast: ${errorMsg}`);
+      await page.unroute("**/storage/v1/object/**");
+
+      const itemExists = await provider.rowExists("portfolio_items", { title: content.title });
+      expect(itemExists, "no gallery item row from a failed create attempt").toBe(false);
+      const countUnchanged = await provider.countRows("portfolio_items", {
+        beautician_profile_id: proAId,
+      });
+      expect(countUnchanged, "gallery item count must remain at baseline").toBe(baselineItemCount);
+
+      // The FIRST file's real upload must be deleted by the application's
+      // attempt-scoped compensation; the second file never uploaded at all
+      // (its own request was the one intercepted to fail).
+      await expect
+        .poll(
+          async () => {
+            const current = await provider.listStorageObjects(
+              BUCKET,
+              `profiles/${proASlug}/gallery`,
+            );
+            return current.filter((name) => !baselineStorageObjects.includes(name));
+          },
+          {
+            timeout: 10_000,
+            message:
+              "the first file's uploaded object must be deleted after the second file's upload fails",
+          },
+        )
+        .toEqual([]);
+    } finally {
+      await ctx.close();
     }
   });
 });

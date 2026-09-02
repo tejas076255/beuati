@@ -244,33 +244,52 @@ function ItemFormDialog({
     mutationFn: async () => {
       if (!item && newFiles.length === 0) throw new Error("Select at least one image.");
       setUploading(true);
+      // Attempt-scoped only — tracks paths uploaded during THIS save call,
+      // never across save attempts or the dialog's open lifetime (unlike
+      // Videos' pending-thumbnail ref). Compensated in the catch below if
+      // anything after the upload(s) fails; left untouched on success.
+      const uploadedThisAttempt: string[] = [];
       try {
-        if (item) {
-          await onUpdateItem(item.id, {
-            title,
-            category,
-            isPublished,
-            serviceId: serviceId || null,
-          });
-          if (newFiles.length > 0) {
+        try {
+          if (item) {
+            await onUpdateItem(item.id, {
+              title,
+              category,
+              isPublished,
+              serviceId: serviceId || null,
+            });
+            if (newFiles.length > 0) {
+              const images: NewGalleryImage[] = [];
+              for (const file of newFiles) {
+                const storagePath = await uploadPortfolioMedia(uploadSlug, "gallery", file);
+                uploadedThisAttempt.push(storagePath);
+                // No default alt text on upload — leaving it unset lets the
+                // public page's title+category fallback (src/lib/media-alt-text.ts)
+                // generate a more useful description than the bare title until
+                // a real "Photo description" is written.
+                images.push({ storagePath });
+              }
+              await onAddImages(item.id, images);
+            }
+          } else {
             const images: NewGalleryImage[] = [];
             for (const file of newFiles) {
               const storagePath = await uploadPortfolioMedia(uploadSlug, "gallery", file);
-              // No default alt text on upload — leaving it unset lets the
-              // public page's title+category fallback (src/lib/media-alt-text.ts)
-              // generate a more useful description than the bare title until
-              // a real "Photo description" is written.
-              images.push({ storagePath });
+              uploadedThisAttempt.push(storagePath);
+              images.push({ storagePath, altText: title });
             }
-            await onAddImages(item.id, images);
+            await onCreate({ title, category, images, isPublished, serviceId: serviceId || null });
           }
-        } else {
-          const images: NewGalleryImage[] = [];
-          for (const file of newFiles) {
-            const storagePath = await uploadPortfolioMedia(uploadSlug, "gallery", file);
-            images.push({ storagePath, altText: title });
+        } catch (error) {
+          // Compensate whatever this failed attempt uploaded — never an
+          // already-persisted image from a prior successful save. Best-effort:
+          // a cleanup failure must not mask the original error.
+          if (uploadedThisAttempt.length > 0) {
+            await Promise.allSettled(
+              uploadedThisAttempt.map((path) => deletePortfolioMedia(path).catch(() => {})),
+            );
           }
-          await onCreate({ title, category, images, isPublished, serviceId: serviceId || null });
+          throw error;
         }
       } finally {
         setUploading(false);

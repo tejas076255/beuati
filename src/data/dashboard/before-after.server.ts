@@ -111,7 +111,26 @@ export async function createBeforeAfterPairForProfile(
       sort_order: 0,
     },
   ]);
-  if (imagesError) throw new Error(`Failed to save before/after images: ${imagesError.message}`);
+  if (imagesError) {
+    // The parent row above already committed, but a single multi-row
+    // INSERT is atomic — either both image rows exist or (as here) neither
+    // does, so there is nothing partial to remove on the images side. The
+    // parent itself would otherwise be left behind with zero children — a
+    // broken, storage-orphan-adjacent pair. Compensate by removing it;
+    // before_after_images has ON DELETE CASCADE from before_after_items, so
+    // this is also safe if a future change makes the images insert
+    // non-atomic. Best-effort: never mask the original failure.
+    const { error: cleanupError } = await supabase
+      .from("before_after_items")
+      .delete()
+      .eq("id", item.id);
+    if (cleanupError) {
+      throw new Error(
+        `Failed to save before/after images: ${imagesError.message} (and failed to remove the incomplete item: ${cleanupError.message})`,
+      );
+    }
+    throw new Error(`Failed to save before/after images: ${imagesError.message}`);
+  }
 
   return item.id;
 }

@@ -7,7 +7,7 @@
 // text-presence check pass when the actual save just errored (diagnosed
 // during QA-1E). This races the dialog actually closing against an error
 // toast appearing, and throws with the real server message on failure.
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export async function saveAndExpectSuccess(page: Page, buttonName = "Save"): Promise<void> {
   await page.getByRole("button", { name: buttonName, exact: true }).click();
@@ -28,4 +28,34 @@ export async function saveAndExpectSuccess(page: Page, buttonName = "Save"): Pro
       .textContent();
     throw new Error(`Save failed: ${msg}`);
   }
+}
+
+// QA-1M — deliberate counterpart to saveAndExpectSuccess, for the new
+// fault-injection compensation regressions: clicks Save, expects an error
+// toast (never a dialog close — a failed save must never silently look
+// like a success), and returns the toast text for the caller to log.
+// Throws if the dialog closes instead, or if neither happens in time.
+export async function saveAndExpectFailure(page: Page, buttonName = "Save"): Promise<string> {
+  await page.getByRole("button", { name: buttonName, exact: true }).click();
+  const dialogClosed = page
+    .getByRole("dialog")
+    .waitFor({ state: "hidden", timeout: 15_000 })
+    .then(() => "closed" as const);
+  const errorToast = page
+    .getByText(/Failed to|does not belong/)
+    .first()
+    .waitFor({ state: "visible", timeout: 15_000 })
+    .then(() => "error" as const);
+  const outcome = await Promise.race([dialogClosed, errorToast]);
+  if (outcome === "closed") {
+    throw new Error(
+      "Expected the save to fail (fault-injection active), but the dialog closed as if it succeeded.",
+    );
+  }
+  const msg = await page
+    .getByText(/Failed to|does not belong/)
+    .first()
+    .textContent();
+  await expect(page.getByRole("dialog"), "dialog must stay open after a failed save").toBeVisible();
+  return msg ?? "";
 }
