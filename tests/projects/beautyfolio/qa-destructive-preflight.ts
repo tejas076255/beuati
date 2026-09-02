@@ -112,3 +112,17 @@ export function buildQaPackageContent(runId: string) {
     quoteTransitionPrice: "27000",
   };
 }
+
+/** QA-1H — deterministic, run-specific Gallery content. Title is always
+ * QA_E2E_<runId>_-prefixed, never human-looking production data. The
+ * uploaded storage object's path is timestamp-based (app behavior, not
+ * runId-based), so run-attribution happens via the DB row's stored path,
+ * never by parsing the filename for the runId. */
+export function buildQaGalleryContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  return {
+    prefix,
+    title: `${prefix}Gallery`,
+    category: "bridal",
+  };
+}

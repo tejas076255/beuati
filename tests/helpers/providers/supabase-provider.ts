@@ -179,6 +179,11 @@ export class SupabaseQaProvider implements QaProvider {
     return data?.length ?? 0;
   }
 
+  async deleteStorageObject(bucket: string, path: string): Promise<void> {
+    const { error } = await this.client.storage.from(bucket).remove([path]);
+    if (error) throw new Error(`deleteStorageObject(${bucket}/${path}) failed: ${error.message}`);
+  }
+
   private async findAuthUserByEmail(
     email: string,
   ): Promise<{ id: string; email: string | null } | null> {

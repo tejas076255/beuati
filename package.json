@@ -22,6 +22,7 @@
     "test:e2e:qa:crud": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud",
     "test:e2e:qa:services": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/services.spec.ts",
     "test:e2e:qa:packages": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/packages.spec.ts",
+    "test:e2e:qa:gallery": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/gallery.spec.ts",
     "qa:provision-identities": "node tests/projects/beautyfolio/scripts/provision-qa-identities.ts"
   },
   "dependencies": {

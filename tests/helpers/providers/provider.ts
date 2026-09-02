@@ -100,6 +100,13 @@ export interface QaProvider {
    * deleted. Intended for narrow, exact-match cleanup use (e.g. by id),
    * never a broad/unscoped delete. */
   deleteRow(table: string, match: Record<string, unknown>): Promise<number>;
+
+  /** DESTRUCTIVE — see file header contract. QA-1H: removes exactly one
+   * storage object by its full path. Never accepts a folder/prefix — the
+   * caller must supply the exact object path, so this can never become a
+   * broad/folder-wide delete. Safe to call even if the object doesn't
+   * exist (idempotent cleanup). */
+  deleteStorageObject(bucket: string, path: string): Promise<void>;
 }
 
 export interface QaAuthUserInput {
