@@ -5,7 +5,7 @@
 // Generic on purpose: no BeautyFolio table/column names appear here —
 // project-specific test code passes those in as arguments.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { ProviderHealth, ProviderIdentity, QaProvider } from "./provider";
+import type { BucketInfo, ProviderHealth, ProviderIdentity, QaProvider } from "./provider";
 
 export interface SupabaseProviderConfig {
   url: string;
@@ -78,6 +78,18 @@ export class SupabaseQaProvider implements QaProvider {
     const { data, error } = await this.client.storage.from(bucket).list(dir, { search: filename });
     if (error) throw new Error(`storageObjectExists(${bucket}) failed: ${error.message}`);
     return !!data?.some((entry) => entry.name === filename);
+  }
+
+  async getBucketInfo(bucket: string): Promise<BucketInfo | null> {
+    const { data, error } = await this.client.storage.getBucket(bucket);
+    if (error) return null;
+    return { id: data.id, public: data.public };
+  }
+
+  async listStorageObjects(bucket: string, path = ""): Promise<string[]> {
+    const { data, error } = await this.client.storage.from(bucket).list(path);
+    if (error) throw new Error(`listStorageObjects(${bucket}) failed: ${error.message}`);
+    return (data ?? []).map((entry) => entry.name);
   }
 }
 

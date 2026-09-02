@@ -21,6 +21,11 @@ export interface ProviderHealth {
   error?: string;
 }
 
+export interface BucketInfo {
+  id: string;
+  public: boolean;
+}
+
 export interface QaProvider {
   readonly type: string;
 
@@ -36,4 +41,12 @@ export interface QaProvider {
 
   /** Read-only storage object existence check. */
   storageObjectExists(bucket: string, path: string): Promise<boolean>;
+
+  /** Read-only bucket metadata lookup. Returns null if the bucket doesn't exist. */
+  getBucketInfo(bucket: string): Promise<BucketInfo | null>;
+
+  /** Read-only listing of object names directly under `path` in `bucket`
+   * (non-recursive). Used to confirm a bucket is empty, never to browse
+   * or copy content. */
+  listStorageObjects(bucket: string, path?: string): Promise<string[]>;
 }
