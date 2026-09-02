@@ -20,6 +20,7 @@
     "test:e2e:qa": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-chromium",
     "test:e2e:qa:auth": "playwright test --config=playwright.qa.config.ts --project=qa-setup",
     "test:e2e:qa:crud": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud",
+    "test:e2e:qa:services": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/services.spec.ts",
     "qa:provision-identities": "node tests/projects/beautyfolio/scripts/provision-qa-identities.ts"
   },
   "dependencies": {

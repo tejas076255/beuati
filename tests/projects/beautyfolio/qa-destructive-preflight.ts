@@ -65,3 +65,26 @@ export function buildQaFaqContent(runId: string) {
     editedAnswer: `${prefix} Edited answer`,
   };
 }
+
+/** QA-1F — deterministic, run-specific Service content. Names/descriptions
+ * are always QA_E2E_<runId>_-prefixed, never human-looking production data. */
+export function buildQaServiceContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  return {
+    prefix,
+    name: `${prefix}Bridal Service`,
+    description: `${prefix}Initial service description that is long enough to satisfy indexability checks.`,
+    editedDescription: `${prefix}Edited service description that is long enough to satisfy indexability checks.`,
+    category: "Bridal Makeup",
+    price: "1500",
+    durationMinutes: "90",
+    includedItems: [`${prefix}Item A`, `${prefix}Item B`],
+    suitableFor: [`${prefix}Bride`, `${prefix}Engagement`],
+    preparationNotes: `${prefix}Preparation note`,
+    // Focused pricing-regression case (§18) — a second, separate temporary
+    // service exercising the custom_quote transition, cleanup-scoped like
+    // the primary one.
+    quoteName: `${prefix}Quote Service`,
+    quoteDescription: `${prefix}Custom quote service description, long enough for indexability checks.`,
+  };
+}

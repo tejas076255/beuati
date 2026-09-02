@@ -17,6 +17,7 @@ import {
 } from "../../projects/beautyfolio/qa-destructive-preflight.ts";
 import { beautyfolioProject } from "../../projects/beautyfolio/project.ts";
 import type { SupabaseQaProvider } from "../../helpers/providers/supabase-provider.ts";
+import { saveAndExpectSuccess } from "../../helpers/ui/save-dialog.ts";
 
 const AUTH_DIR = "playwright/.auth";
 
@@ -29,33 +30,6 @@ function requireEnv(name: string): string {
 async function openFaqsTab(page: Page, slug: string): Promise<void> {
   await page.goto(`/admin/beauticians/${slug}`);
   await page.getByRole("button", { name: "FAQs", exact: true }).click();
-}
-
-/** Waits for either the dialog to close (success — FaqFormDialog only
- * calls setOpen(false) in its mutation's onSuccess) or an error toast to
- * appear, and throws with the real server message on failure. Toast TEXT
- * existence alone is not a reliable success signal — a still-visible
- * toast from a PRIOR successful action can outlive this one's failure and
- * make a naive text-presence check pass when the actual save just errored. */
-async function saveAndExpectSuccess(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  const dialogClosed = page
-    .getByRole("dialog")
-    .waitFor({ state: "hidden", timeout: 10_000 })
-    .then(() => "closed" as const);
-  const errorToast = page
-    .getByText(/Failed to|does not belong/)
-    .first()
-    .waitFor({ state: "visible", timeout: 10_000 })
-    .then(() => "error" as const);
-  const outcome = await Promise.race([dialogClosed, errorToast]);
-  if (outcome === "error") {
-    const msg = await page
-      .getByText(/Failed to|does not belong/)
-      .first()
-      .textContent();
-    throw new Error(`FAQ save failed: ${msg}`);
-  }
 }
 
 async function createFaqViaAdmin(
