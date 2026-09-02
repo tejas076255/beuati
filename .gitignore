@@ -29,7 +29,9 @@ qa/artifacts/*
 !qa/reports/.gitkeep
 !qa/artifacts/.gitkeep
 playwright-report/*
+playwright-report-qa/*
 test-results/*
+test-results-qa/*
 playwright/.auth/*
 coverage/*
 .env.test

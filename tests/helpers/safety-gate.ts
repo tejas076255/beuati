@@ -5,7 +5,7 @@
 // hold, missing/ambiguous evidence denies rather than assumes intent, and
 // nothing here ever touches or logs secret material (only booleans, backend
 // refs, and non-secret prefix strings flow through this module).
-import { classifyEnvironment, type EnvironmentKind } from "./environment";
+import { classifyEnvironment, type EnvironmentKind } from "./environment.ts";
 
 export interface DestructiveQaRequest {
   /** QA_ALLOW_WRITES — the operator's explicit opt-in. */

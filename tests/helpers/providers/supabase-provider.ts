@@ -5,7 +5,14 @@
 // Generic on purpose: no BeautyFolio table/column names appear here —
 // project-specific test code passes those in as arguments.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { BucketInfo, ProviderHealth, ProviderIdentity, QaProvider } from "./provider";
+import type {
+  BucketInfo,
+  ProviderHealth,
+  ProviderIdentity,
+  QaAuthUser,
+  QaAuthUserInput,
+  QaProvider,
+} from "./provider";
 
 export interface SupabaseProviderConfig {
   url: string;
@@ -71,6 +78,16 @@ export class SupabaseQaProvider implements QaProvider {
     return (data as Record<string, unknown> | null) ?? null;
   }
 
+  async rowExists(table: string, match: Record<string, unknown>): Promise<boolean> {
+    let query = this.client.from(table).select("*", { count: "exact", head: true });
+    for (const [column, value] of Object.entries(match)) {
+      query = query.eq(column, value as never);
+    }
+    const { count, error } = await query;
+    if (error) throw new Error(`rowExists(${table}) failed: ${error.message}`);
+    return (count ?? 0) > 0;
+  }
+
   async storageObjectExists(bucket: string, path: string): Promise<boolean> {
     const lastSlash = path.lastIndexOf("/");
     const dir = lastSlash === -1 ? "" : path.slice(0, lastSlash);
@@ -90,6 +107,52 @@ export class SupabaseQaProvider implements QaProvider {
     const { data, error } = await this.client.storage.from(bucket).list(path);
     if (error) throw new Error(`listStorageObjects(${bucket}) failed: ${error.message}`);
     return (data ?? []).map((entry) => entry.name);
+  }
+
+  // ---- destructive methods — see provider.ts's file-header contract:
+  // callers must have already passed assertDestructiveQaAllowed(). ----
+
+  async insertRow(
+    table: string,
+    values: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const { data, error } = await this.client.from(table).insert(values).select().single();
+    if (error) throw new Error(`insertRow(${table}) failed: ${error.message}`);
+    return data as Record<string, unknown>;
+  }
+
+  async ensureAuthUser(input: QaAuthUserInput): Promise<QaAuthUser> {
+    const created = await this.client.auth.admin.createUser({
+      email: input.email,
+      password: input.password,
+      email_confirm: input.emailConfirm,
+      user_metadata: input.userMetadata,
+    });
+
+    if (!created.error && created.data.user) {
+      return { id: created.data.user.id, email: created.data.user.email ?? null, created: true };
+    }
+
+    // Idempotency: "already registered" is expected on a second run —
+    // look the existing user up by email instead of treating it as fatal.
+    const existing = await this.findAuthUserByEmail(input.email);
+    if (existing) return { ...existing, created: false };
+
+    throw new Error(`ensureAuthUser(${input.email}) failed: ${created.error?.message}`);
+  }
+
+  private async findAuthUserByEmail(
+    email: string,
+  ): Promise<{ id: string; email: string | null } | null> {
+    const normalized = email.toLowerCase();
+    for (let page = 1; page <= 20; page++) {
+      const { data, error } = await this.client.auth.admin.listUsers({ page, perPage: 200 });
+      if (error) throw new Error(`findAuthUserByEmail failed: ${error.message}`);
+      const match = data.users.find((u) => (u.email ?? "").toLowerCase() === normalized);
+      if (match) return { id: match.id, email: match.email ?? null };
+      if (data.users.length === 0) return null;
+    }
+    return null;
   }
 }
 
