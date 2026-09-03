@@ -73,6 +73,33 @@ export function buildPublicMediaUrl(storagePath: string): string {
   return data.publicUrl;
 }
 
+/**
+ * QA-1N-D2 — resolves a persisted portfolio-media public URL (as stored on
+ * `beautician_profiles.profile_image_url`/`cover_image_url` — the ONE
+ * field in the app that persists a full URL rather than a bare
+ * storage_path) back to its exact storage_path, but ONLY when it is
+ * verifiably a BeautyFolio-owned object under the given profile's own
+ * slug. Never trusts the URL blindly: rejects anything external, legacy,
+ * malformed, wrong-bucket, or belonging to a different profile — callers
+ * must treat a `null` return as "do not attempt Storage deletion for this
+ * value," not as an error.
+ */
+export function resolveOwnedMediaPath(url: string, slug: string): string | null {
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl("");
+  const prefix = data.publicUrl;
+  if (!url.startsWith(prefix)) return null;
+
+  let path: string;
+  try {
+    path = decodeURIComponent(url.slice(prefix.length));
+  } catch {
+    return null;
+  }
+  if (!path || path.includes("..") || path.includes("//")) return null;
+  if (!path.startsWith(`profiles/${slug}/`)) return null;
+  return path;
+}
+
 export async function deletePortfolioMedia(storagePath: string): Promise<void> {
   const { error } = await supabase.storage.from(BUCKET).remove([storagePath]);
   if (error) {

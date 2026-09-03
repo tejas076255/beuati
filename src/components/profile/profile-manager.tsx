@@ -31,6 +31,8 @@ import {
 import {
   uploadPortfolioMedia,
   buildPublicMediaUrl,
+  deletePortfolioMedia,
+  resolveOwnedMediaPath,
   IMAGE_GUIDELINES,
   UPLOAD_HINT,
 } from "@/lib/storage-upload";
@@ -346,6 +348,29 @@ export function ProfileManager({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // QA-1N-D2 — independent pending-upload tracking for Profile and Cover,
+  // mirroring the proven Videos fix (pendingThumbnailPathRef). Each ref
+  // holds ONLY a same-session, not-yet-saved upload's storage_path — never
+  // the already-persisted value. Reset to null whenever the persisted
+  // `profile` identity changes (see the effect below) and cleared
+  // (without deleting) the instant a Save successfully persists it.
+  const pendingPhotoPathRef = useRef<string | null>(null);
+  const pendingCoverPathRef = useRef<string | null>(null);
+  // Monotonic per-asset tokens guard against a slower upload's response
+  // arriving after a faster, later upload already superseded it — same
+  // concept as the Videos fix's thumbnailUploadTokenRef, kept independent
+  // per asset since Profile and Cover uploads are otherwise unrelated.
+  const photoUploadTokenRef = useRef(0);
+  const coverUploadTokenRef = useRef(0);
+  // The most recently known PERSISTED value for each asset — the "OLD" a
+  // successful replacement is allowed to delete. Deliberately separate
+  // from photoUrl/coverUrl (the live draft, which may be a pending
+  // upload never yet saved) and from `profile` itself (which only
+  // re-renders after a refetch, not synchronously with this component's
+  // own successful save).
+  const originalPhotoUrlRef = useRef<string | null>(profile?.profile_image_url ?? null);
+  const originalCoverUrlRef = useRef<string | null>(profile?.cover_image_url ?? null);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: EMPTY_VALUES,
@@ -360,6 +385,12 @@ export function ProfileManager({
     if (!profile) return;
     setPhotoUrl(profile.profile_image_url);
     setCoverUrl(profile.cover_image_url);
+    // A pending upload from a PREVIOUS target profile can never be valid
+    // for this one — reset rather than carry it across.
+    pendingPhotoPathRef.current = null;
+    pendingCoverPathRef.current = null;
+    originalPhotoUrlRef.current = profile.profile_image_url;
+    originalCoverUrlRef.current = profile.cover_image_url;
     form.reset(toFormValues(profile));
     // Only render the form (and mount the Radix Select) once reset has
     // actually applied the real values — mounting it one render earlier,
@@ -369,6 +400,28 @@ export function ProfileManager({
     setFormReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
+
+  // QA-1N-D2 §20/§21 — normal SPA navigation-away/unmount cleanup for
+  // whatever is still pending when this component goes away. This is a
+  // full-page form, not a dialog, so there is no onOpenChange seam; TanStack
+  // Router unmounting this component IS the "close" signal. A hard
+  // browser refresh/tab close/process termination cannot be made reliable
+  // from React alone — same residual limitation already documented for the
+  // Videos fix, not addressed here.
+  useEffect(() => {
+    return () => {
+      const pendingPhoto = pendingPhotoPathRef.current;
+      if (pendingPhoto) {
+        pendingPhotoPathRef.current = null;
+        void deletePortfolioMedia(pendingPhoto).catch(() => {});
+      }
+      const pendingCover = pendingCoverPathRef.current;
+      if (pendingCover) {
+        pendingCoverPathRef.current = null;
+        void deletePortfolioMedia(pendingCover).catch(() => {});
+      }
+    };
+  }, []);
 
   // Best-effort protection against losing unsaved edits on an accidental tab
   // close/refresh — uses react-hook-form's own dirty tracking, no new state.
@@ -396,9 +449,39 @@ export function ProfileManager({
         about_highlights: toLineArray(values.about_highlights),
         why_choose_points: toLineArray(values.why_choose_points),
       } as OwnProfileUpdate);
+
+      // Disarm pending-cleanup for whatever this save just persisted —
+      // BEFORE any further await, so an unmount/navigation racing right
+      // after this point can never treat a just-saved asset as abandoned.
+      pendingPhotoPathRef.current = null;
+      pendingCoverPathRef.current = null;
+
+      // The DB now successfully references the new values — safe to
+      // delete the OLD asset each field is replacing. Never earlier than
+      // this. Only ever deletes a value that resolves to a verifiably
+      // BeautyFolio-owned object under this same profile's own slug;
+      // anything external/legacy/malformed/wrong-owner is silently
+      // skipped (DB replacement already succeeded regardless).
+      const previousPhotoUrl = originalPhotoUrlRef.current;
+      const previousCoverUrl = originalCoverUrlRef.current;
+      if (previousPhotoUrl && previousPhotoUrl !== photoUrl && uploadSlug) {
+        const oldPath = resolveOwnedMediaPath(previousPhotoUrl, uploadSlug);
+        if (oldPath) void deletePortfolioMedia(oldPath).catch(() => {});
+      }
+      if (previousCoverUrl && previousCoverUrl !== coverUrl && uploadSlug) {
+        const oldPath = resolveOwnedMediaPath(previousCoverUrl, uploadSlug);
+        if (oldPath) void deletePortfolioMedia(oldPath).catch(() => {});
+      }
+      originalPhotoUrlRef.current = photoUrl;
+      originalCoverUrlRef.current = coverUrl;
+
       toast.success("Profile saved");
       form.reset(values);
     } catch (error) {
+      // Save failed — OLD (still originalPhotoUrlRef/originalCoverUrlRef)
+      // was never touched, and any pending NEW upload stays tracked for a
+      // retry (same values are simply resubmitted) or for unmount cleanup
+      // if the user instead navigates away.
       toast.error(error instanceof Error ? error.message : "Failed to save profile");
     } finally {
       setSaving(false);
@@ -409,8 +492,27 @@ export function ProfileManager({
     const file = e.target.files?.[0];
     if (!file || !uploadSlug) return;
     setUploadingPhoto(true);
+    const token = ++photoUploadTokenRef.current;
     try {
       const path = await uploadPortfolioMedia(uploadSlug, "profile", file);
+      if (token !== photoUploadTokenRef.current) {
+        // A newer selection already superseded this one while this
+        // upload was still in flight — this response is stale. Delete
+        // the object it just created rather than let it silently become
+        // an untracked orphan, and never touch state a later upload
+        // already owns.
+        void deletePortfolioMedia(path).catch(() => {});
+        return;
+      }
+      // Supersede: delete whatever THIS session had pending before
+      // (never the persisted original, which is tracked separately in
+      // originalPhotoUrlRef and only ever deleted after a successful
+      // Save).
+      const previousPending = pendingPhotoPathRef.current;
+      pendingPhotoPathRef.current = path;
+      if (previousPending && previousPending !== path) {
+        void deletePortfolioMedia(previousPending).catch(() => {});
+      }
       setPhotoUrl(buildPublicMediaUrl(path));
       toast.success("Photo uploaded — click Save changes to apply");
     } catch (error) {
@@ -421,11 +523,14 @@ export function ProfileManager({
     }
   };
 
-  // Clears only the draft `photoUrl` state, exactly like a fresh upload
-  // does; nothing is persisted or deleted from Storage until "Save
-  // changes" is clicked. The existing object in the bucket is deliberately
-  // left alone — see profile.server.ts's OwnProfileUpdate doc comment for
-  // the storage-deletion decision.
+  // Clears the draft `photoUrl` state. If it was backed by a same-session
+  // pending upload (never yet saved), that upload is deleted immediately —
+  // it was never referenced by anything, so there's no reason to wait for
+  // unmount cleanup. The persisted OLD asset (if any) is deliberately left
+  // alone here: it's only ever deleted after a successful Save actually
+  // clears the DB field (handleSubmit) — removing it now, before Save,
+  // would leave the DB pointing at a deleted object if the user closes
+  // without saving after all.
   const handleRemovePhoto = () => {
     if (
       !window.confirm(
@@ -433,6 +538,11 @@ export function ProfileManager({
       )
     ) {
       return;
+    }
+    const pending = pendingPhotoPathRef.current;
+    if (pending) {
+      pendingPhotoPathRef.current = null;
+      void deletePortfolioMedia(pending).catch(() => {});
     }
     setPhotoUrl(null);
     if (photoInputRef.current) photoInputRef.current.value = "";
@@ -442,8 +552,18 @@ export function ProfileManager({
     const file = e.target.files?.[0];
     if (!file || !uploadSlug) return;
     setUploadingCover(true);
+    const token = ++coverUploadTokenRef.current;
     try {
       const path = await uploadPortfolioMedia(uploadSlug, "profile", file);
+      if (token !== coverUploadTokenRef.current) {
+        void deletePortfolioMedia(path).catch(() => {});
+        return;
+      }
+      const previousPending = pendingCoverPathRef.current;
+      pendingCoverPathRef.current = path;
+      if (previousPending && previousPending !== path) {
+        void deletePortfolioMedia(previousPending).catch(() => {});
+      }
       setCoverUrl(buildPublicMediaUrl(path));
       toast.success("Cover photo uploaded — click Save changes to apply");
     } catch (error) {
