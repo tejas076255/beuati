@@ -16,8 +16,9 @@ import {
   X,
 } from "lucide-react";
 
+import { createServerFn } from "@tanstack/react-start";
+
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   galleryFilters,
@@ -25,6 +26,7 @@ import {
   type BeauticianProfile,
   type GalleryCategory,
 } from "@/data/portfolio";
+import type { Database } from "@/integrations/supabase/types";
 import { getVideoEmbedSource } from "@/lib/video-embed";
 // Phase 3G.2A §3 — moved to a shared helper so the public form and the
 // dashboard's manual Add Lead form can never enforce divergent phone
@@ -33,6 +35,18 @@ import { getVideoEmbedSource } from "@/lib/video-embed";
 import { isValidPhone } from "@/lib/phone";
 import { AnalyticsEvent, CtaLocation, trackEvent, type CtaLocationValue } from "@/lib/analytics";
 import { getAttributionSnapshot, getConversionPath, recordCtaClick } from "@/lib/attribution";
+
+// Lead-arrival notification phase — was a direct browser ->
+// supabase.rpc("submit_lead") call; now routed through this server
+// function so a best-effort email notification can be attempted
+// server-side after the RPC (unchanged authority for validation/dedup/
+// creation) reports success. See src/data/leads-submit.server.ts.
+const submitPortfolioLeadFn = createServerFn({ method: "POST" })
+  .validator((data: Database["public"]["Functions"]["submit_lead"]["Args"]) => data)
+  .handler(async ({ data }) => {
+    const { submitPortfolioLead } = await import("@/data/leads-submit.server");
+    return submitPortfolioLead(data);
+  });
 
 type P = { profile: BeauticianProfile };
 
@@ -1613,27 +1627,33 @@ export function AvailabilitySection({
                 const attribution = getAttributionSnapshot(profile.slug);
                 const conversionPath = getConversionPath() || `/portfolio/${profile.slug}`;
                 const ctaLocation = attribution.cta_location ?? CtaLocation.AvailabilitySection;
-                const { error: rpcError } = await supabase.rpc("submit_lead", {
-                  _slug: profile.slug,
-                  _name: name,
-                  _phone: phone,
-                  _location: location,
-                  _source: "portfolio",
-                  ...(date ? { _event_date: date } : {}),
-                  ...(service ? { _service_requested: service } : {}),
-                  ...(matchedService?.id ? { _service_id: matchedService.id } : {}),
-                  ...(message.trim() ? { _message: message.trim() } : {}),
-                  ...(attribution.utm_source ? { _utm_source: attribution.utm_source } : {}),
-                  ...(attribution.utm_medium ? { _utm_medium: attribution.utm_medium } : {}),
-                  ...(attribution.utm_campaign ? { _utm_campaign: attribution.utm_campaign } : {}),
-                  ...(attribution.utm_content ? { _utm_content: attribution.utm_content } : {}),
-                  ...(attribution.utm_term ? { _utm_term: attribution.utm_term } : {}),
-                  ...(attribution.landing_path ? { _landing_path: attribution.landing_path } : {}),
-                  _conversion_path: conversionPath,
-                  ...(attribution.referrer_host
-                    ? { _referrer_host: attribution.referrer_host }
-                    : {}),
-                  _cta_location: ctaLocation,
+                const { error: rpcError } = await submitPortfolioLeadFn({
+                  data: {
+                    _slug: profile.slug,
+                    _name: name,
+                    _phone: phone,
+                    _location: location,
+                    _source: "portfolio",
+                    ...(date ? { _event_date: date } : {}),
+                    ...(service ? { _service_requested: service } : {}),
+                    ...(matchedService?.id ? { _service_id: matchedService.id } : {}),
+                    ...(message.trim() ? { _message: message.trim() } : {}),
+                    ...(attribution.utm_source ? { _utm_source: attribution.utm_source } : {}),
+                    ...(attribution.utm_medium ? { _utm_medium: attribution.utm_medium } : {}),
+                    ...(attribution.utm_campaign
+                      ? { _utm_campaign: attribution.utm_campaign }
+                      : {}),
+                    ...(attribution.utm_content ? { _utm_content: attribution.utm_content } : {}),
+                    ...(attribution.utm_term ? { _utm_term: attribution.utm_term } : {}),
+                    ...(attribution.landing_path
+                      ? { _landing_path: attribution.landing_path }
+                      : {}),
+                    _conversion_path: conversionPath,
+                    ...(attribution.referrer_host
+                      ? { _referrer_host: attribution.referrer_host }
+                      : {}),
+                    _cta_location: ctaLocation,
+                  },
                 });
                 setSubmitting(false);
                 if (rpcError) {
