@@ -165,3 +165,21 @@ export function buildQaVideoContent(runId: string) {
     invalidTitle: `${prefix}InvalidVideo`,
   };
 }
+
+/** QA-1O — deterministic, run-specific Review content. There is no public
+ * review-submission flow in this product (reviews are curated testimonials
+ * the beautician records from external sources) and no admin-side create
+ * function either — so QA seeds a review directly via the provider's
+ * insertRow, exactly like a beautician using their own dashboard would,
+ * then exercises admin moderation against it. client_name is always
+ * QA_E2E_<runId>_-prefixed, never a human-looking name. */
+export function buildQaReviewContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  return {
+    prefix,
+    clientName: `${prefix}Client`,
+    rating: 5,
+    reviewText: `${prefix}Absolutely loved the bridal makeup — professional, punctual, and stunning results.`,
+    serviceName: "Bridal Makeup",
+  };
+}

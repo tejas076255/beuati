@@ -14,6 +14,7 @@ import { BeforeAfterManager } from "@/components/before-after/before-after-manag
 import { VideoManager } from "@/components/videos/video-manager";
 import { PackageManager } from "@/components/packages/package-manager";
 import { FaqManager } from "@/components/faqs/faq-manager";
+import { ReviewsManager } from "@/components/reviews/reviews-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -414,16 +415,65 @@ const deleteFaqAdminFn = createServerFn({ method: "POST" })
     await deleteFaqAdmin(context.supabase, context.userId, data.targetProfileId, data.faqId);
   });
 
+const listReviewsAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listReviewsForBeautician } = await import("@/data/admin/reviews.server");
+    return listReviewsForBeautician(context.supabase, context.userId, targetProfileId);
+  });
+
+const updateReviewModerationAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: {
+      targetProfileId: string;
+      reviewId: string;
+      updates: { is_published?: boolean; is_verified?: boolean };
+    }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updateReviewModerationForBeautician } = await import("@/data/admin/reviews.server");
+    await updateReviewModerationForBeautician(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.reviewId,
+      data.updates,
+    );
+  });
+
+const deleteReviewAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; reviewId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteReviewForBeautician } = await import("@/data/admin/reviews.server");
+    await deleteReviewForBeautician(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.reviewId,
+    );
+  });
+
 type TabId =
-  "overview" | "profile" | "services" | "gallery" | "before-after" | "videos" | "packages" | "faqs";
+  | "overview"
+  | "profile"
+  | "services"
+  | "gallery"
+  | "before-after"
+  | "videos"
+  | "packages"
+  | "faqs"
+  | "reviews";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
-// 5.2F / Phase 5.2G — the full future workspace nav; "services" (5.2A),
-// "profile" (5.2B), "gallery" (5.2C), "before-after" (5.2D), "videos"
-// (5.2E), "packages" (5.2F), and "faqs" (5.2G) are wired to real
-// implementations. Every other section is visibly present (so the
-// eventual shape is clear) but explicitly marked unavailable rather than
-// rendering a fake/empty screen.
+// 5.2F / Phase 5.2G / QA-1O — the full future workspace nav; "services"
+// (5.2A), "profile" (5.2B), "gallery" (5.2C), "before-after" (5.2D),
+// "videos" (5.2E), "packages" (5.2F), "faqs" (5.2G), and "reviews" (QA-1O)
+// are wired to real implementations. Every other section is visibly
+// present (so the eventual shape is clear) but explicitly marked
+// unavailable rather than rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
@@ -433,9 +483,9 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "videos", label: "Videos", enabled: true },
   { id: "packages", label: "Packages", enabled: true },
   { id: "faqs", label: "FAQs", enabled: true },
+  { id: "reviews", label: "Reviews", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
-  { id: "reviews", label: "Reviews", enabled: false },
   { id: "leads", label: "Leads", enabled: false },
   { id: "readiness", label: "Readiness", enabled: false },
   { id: "verification", label: "Verification", enabled: false },
@@ -684,6 +734,28 @@ function AdminBeauticianWorkspace() {
       deleteFaqAdminFn({ data: { targetProfileId: targetProfileId!, faqId: id } }),
   });
 
+  const reviewsQueryKey = ["admin-reviews", targetProfileId];
+  const reviewsQuery = useQuery({
+    queryKey: reviewsQueryKey,
+    queryFn: () => listReviewsAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "reviews",
+  });
+  const onReviewsSaved = () => queryClient.invalidateQueries({ queryKey: reviewsQueryKey });
+
+  const moderateReviewMutation = useMutation({
+    mutationFn: (vars: {
+      reviewId: string;
+      updates: { is_published?: boolean; is_verified?: boolean };
+    }) =>
+      updateReviewModerationAdminFn({
+        data: { targetProfileId: targetProfileId!, reviewId: vars.reviewId, updates: vars.updates },
+      }),
+  });
+  const deleteReviewMutation = useMutation({
+    mutationFn: (id: string) =>
+      deleteReviewAdminFn({ data: { targetProfileId: targetProfileId!, reviewId: id } }),
+  });
+
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
       createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
@@ -888,6 +960,20 @@ function AdminBeauticianWorkspace() {
           onUpdate={(id, updates) => updateFaqMutation.mutateAsync({ id, updates })}
           onDelete={(id) => deleteFaqMutation.mutateAsync(id)}
           onSaved={onFaqsSaved}
+        />
+      )}
+
+      {activeTab === "reviews" && targetProfileId && (
+        <ReviewsManager
+          title="Reviews"
+          subtitle={`Moderating testimonials for ${profile.display_name}.`}
+          reviews={reviewsQuery.data ?? []}
+          isLoading={reviewsQuery.isLoading}
+          onModerate={(reviewId, updates) =>
+            moderateReviewMutation.mutateAsync({ reviewId, updates })
+          }
+          onDelete={(id) => deleteReviewMutation.mutateAsync(id)}
+          onSaved={onReviewsSaved}
         />
       )}
     </div>
