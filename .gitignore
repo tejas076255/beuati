@@ -34,6 +34,12 @@ test-results/*
 test-results-qa/*
 playwright/.auth/*
 coverage/*
+# Real local/deploy environment file — was previously tracked (contained
+# only PUBLIC CONFIG values: project ref/URL/publishable key, confirmed via
+# full git-history review, no server secret ever present), now untracked
+# going forward per env-hygiene audit. Use .env.test.example as the
+# variable-name template; never re-add this file with `git add -f`.
+.env
 .env.test
 .env.qa
 
