@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { CheckCircle2, ExternalLink } from "lucide-react";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -15,6 +16,7 @@ import { VideoManager } from "@/components/videos/video-manager";
 import { PackageManager } from "@/components/packages/package-manager";
 import { FaqManager } from "@/components/faqs/faq-manager";
 import { ReviewsManager } from "@/components/reviews/reviews-manager";
+import { LeadsManager } from "@/components/leads/leads-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -32,6 +34,7 @@ import type {
 import type { VideoInput } from "@/data/dashboard/videos.server";
 import type { PackageInput } from "@/data/dashboard/packages.server";
 import type { FaqInput } from "@/data/dashboard/faqs.server";
+import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
   component: AdminBeauticianWorkspace,
@@ -456,6 +459,34 @@ const deleteReviewAdminFn = createServerFn({ method: "POST" })
     );
   });
 
+const listLeadsAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listLeadsForBeautician } = await import("@/data/admin/leads.server");
+    return listLeadsForBeautician(context.supabase, context.userId, targetProfileId);
+  });
+
+const updateLeadStatusAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: {
+      targetProfileId: string;
+      leadId: string;
+      status: Database["public"]["Enums"]["lead_status"];
+    }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updateLeadStatusForBeautician } = await import("@/data/admin/leads.server");
+    await updateLeadStatusForBeautician(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.leadId,
+      data.status,
+    );
+  });
+
 type TabId =
   | "overview"
   | "profile"
@@ -465,15 +496,16 @@ type TabId =
   | "videos"
   | "packages"
   | "faqs"
-  | "reviews";
+  | "reviews"
+  | "leads";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
-// 5.2F / Phase 5.2G / QA-1O — the full future workspace nav; "services"
-// (5.2A), "profile" (5.2B), "gallery" (5.2C), "before-after" (5.2D),
-// "videos" (5.2E), "packages" (5.2F), "faqs" (5.2G), and "reviews" (QA-1O)
-// are wired to real implementations. Every other section is visibly
-// present (so the eventual shape is clear) but explicitly marked
-// unavailable rather than rendering a fake/empty screen.
+// 5.2F / Phase 5.2G / QA-1O / QA-1P — the full future workspace nav;
+// "services" (5.2A), "profile" (5.2B), "gallery" (5.2C), "before-after"
+// (5.2D), "videos" (5.2E), "packages" (5.2F), "faqs" (5.2G), "reviews"
+// (QA-1O), and "leads" (QA-1P) are wired to real implementations. Every
+// other section is visibly present (so the eventual shape is clear) but
+// explicitly marked unavailable rather than rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
@@ -484,9 +516,9 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "packages", label: "Packages", enabled: true },
   { id: "faqs", label: "FAQs", enabled: true },
   { id: "reviews", label: "Reviews", enabled: true },
+  { id: "leads", label: "Leads", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
-  { id: "leads", label: "Leads", enabled: false },
   { id: "readiness", label: "Readiness", enabled: false },
   { id: "verification", label: "Verification", enabled: false },
   { id: "activity", label: "Activity", enabled: false },
@@ -756,6 +788,24 @@ function AdminBeauticianWorkspace() {
       deleteReviewAdminFn({ data: { targetProfileId: targetProfileId!, reviewId: id } }),
   });
 
+  const leadsQueryKey = ["admin-leads", targetProfileId];
+  const leadsQuery = useQuery({
+    queryKey: leadsQueryKey,
+    queryFn: () => listLeadsAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "leads",
+  });
+
+  const updateLeadStatusMutation = useMutation({
+    mutationFn: (vars: { leadId: string; status: Database["public"]["Enums"]["lead_status"] }) =>
+      updateLeadStatusAdminFn({
+        data: { targetProfileId: targetProfileId!, leadId: vars.leadId, status: vars.status },
+      }),
+    onSuccess: () => {
+      toast.success("Lead status updated");
+      queryClient.invalidateQueries({ queryKey: leadsQueryKey });
+    },
+  });
+
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
       createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
@@ -974,6 +1024,18 @@ function AdminBeauticianWorkspace() {
           }
           onDelete={(id) => deleteReviewMutation.mutateAsync(id)}
           onSaved={onReviewsSaved}
+        />
+      )}
+
+      {activeTab === "leads" && targetProfileId && (
+        <LeadsManager
+          title="Leads"
+          subtitle={`Enquiries submitted through ${profile.display_name}'s public page.`}
+          leads={leadsQuery.data ?? []}
+          isLoading={leadsQuery.isLoading}
+          onUpdateStatus={(leadId, status) =>
+            updateLeadStatusMutation.mutateAsync({ leadId, status })
+          }
         />
       )}
     </div>

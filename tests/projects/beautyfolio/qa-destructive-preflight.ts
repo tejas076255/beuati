@@ -183,3 +183,24 @@ export function buildQaReviewContent(runId: string) {
     serviceName: "Bridal Makeup",
   };
 }
+
+/** QA-1P — deterministic, run-specific Lead content. Submitted through the
+ * REAL public "Check availability" form (submit_lead RPC), not seeded
+ * directly — this is the one module in the Portfolio Builder with a
+ * genuine public-facing creation path. client_name is always
+ * QA_E2E_<runId>_-prefixed; phone is a synthetic-but-valid-format
+ * (10-digit) number derived from the current timestamp, never a real
+ * number. A temporary QA service is also seeded so the form's required
+ * "Service" <select> has a real option to choose (a clean QA fixture
+ * profile otherwise has zero services). */
+export function buildQaLeadContent(runId: string) {
+  const prefix = `${process.env["QA_RECORD_PREFIX"] ?? "QA_E2E_"}${runId}_`;
+  return {
+    prefix,
+    clientName: `${prefix}Client`,
+    phone: `90000${Date.now().toString().slice(-5)}`,
+    location: `${prefix}Test Location`,
+    message: `${prefix}Please share your availability for a bridal booking enquiry.`,
+    serviceName: `${prefix}Bridal Makeup`,
+  };
+}

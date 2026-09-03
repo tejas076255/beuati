@@ -26,19 +26,18 @@ import {
 } from "@/components/ui/table";
 import type { Database } from "@/integrations/supabase/types";
 import type { AdminLeadSummary } from "@/data/admin/leads.server";
+// QA-1P — the single canonical lead_status vocabulary, shared with the
+// per-beautician Admin Leads tab (src/components/leads/leads-manager.tsx)
+// and the professional's own dashboard. Previously this file had its own
+// hardcoded 6-value list (missing quoted/negotiation/completed, added to
+// the enum after this page was first built) that had silently drifted out
+// of sync with the real schema — reusing STATUS_ORDER here instead of a
+// second local list is what prevents that class of drift recurring.
+import { STATUS_ORDER } from "@/lib/lead-config";
 
 export const Route = createFileRoute("/admin/leads")({
   component: LeadsPage,
 });
-
-const LEAD_STATUSES: Database["public"]["Enums"]["lead_status"][] = [
-  "new",
-  "contacted",
-  "qualified",
-  "booked",
-  "lost",
-  "archived",
-];
 
 const listLeadsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -230,7 +229,7 @@ function LeadsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>All statuses</SelectItem>
-            {LEAD_STATUSES.map((status) => (
+            {STATUS_ORDER.map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
               </SelectItem>
@@ -341,7 +340,7 @@ function LeadsPage() {
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {LEAD_STATUSES.map((status) => (
+                        {STATUS_ORDER.map((status) => (
                           <SelectItem key={status} value={status}>
                             {status}
                           </SelectItem>
