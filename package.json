@@ -28,6 +28,7 @@
     "test:e2e:qa:profile": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/profile.spec.ts",
     "test:e2e:qa:reviews": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/reviews.spec.ts",
     "test:e2e:qa:leads": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/leads.spec.ts",
+    "test:e2e:qa:readiness": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/readiness.spec.ts",
     "qa:provision-identities": "node tests/projects/beautyfolio/scripts/provision-qa-identities.ts"
   },
   "dependencies": {

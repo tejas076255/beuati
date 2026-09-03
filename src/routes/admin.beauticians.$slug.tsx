@@ -17,6 +17,8 @@ import { PackageManager } from "@/components/packages/package-manager";
 import { FaqManager } from "@/components/faqs/faq-manager";
 import { ReviewsManager } from "@/components/reviews/reviews-manager";
 import { LeadsManager } from "@/components/leads/leads-manager";
+import { ReadinessChecklist } from "@/components/profile/readiness-checklist";
+import { evaluatePortfolioContentReadiness } from "@/lib/seo-helpers";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -497,15 +499,17 @@ type TabId =
   | "packages"
   | "faqs"
   | "reviews"
-  | "leads";
+  | "leads"
+  | "readiness";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
-// 5.2F / Phase 5.2G / QA-1O / QA-1P — the full future workspace nav;
-// "services" (5.2A), "profile" (5.2B), "gallery" (5.2C), "before-after"
-// (5.2D), "videos" (5.2E), "packages" (5.2F), "faqs" (5.2G), "reviews"
-// (QA-1O), and "leads" (QA-1P) are wired to real implementations. Every
-// other section is visibly present (so the eventual shape is clear) but
-// explicitly marked unavailable rather than rendering a fake/empty screen.
+// 5.2F / Phase 5.2G / QA-1O / QA-1P / QA-1Q — the full future workspace
+// nav; "services" (5.2A), "profile" (5.2B), "gallery" (5.2C),
+// "before-after" (5.2D), "videos" (5.2E), "packages" (5.2F), "faqs"
+// (5.2G), "reviews" (QA-1O), "leads" (QA-1P), and "readiness" (QA-1Q) are
+// wired to real implementations. Every other section is visibly present
+// (so the eventual shape is clear) but explicitly marked unavailable
+// rather than rendering a fake/empty screen.
 const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "overview", label: "Overview", enabled: true },
   { id: "profile", label: "Profile", enabled: true },
@@ -517,9 +521,9 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "faqs", label: "FAQs", enabled: true },
   { id: "reviews", label: "Reviews", enabled: true },
   { id: "leads", label: "Leads", enabled: true },
+  { id: "readiness", label: "Readiness", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
-  { id: "readiness", label: "Readiness", enabled: false },
   { id: "verification", label: "Verification", enabled: false },
   { id: "activity", label: "Activity", enabled: false },
 ];
@@ -632,12 +636,14 @@ function AdminBeauticianWorkspace() {
   const adminProfileQuery = useQuery({
     queryKey: profileQueryKey,
     queryFn: () => getProfileAdminFn({ data: targetProfileId! }),
-    enabled: !!targetProfileId && activeTab === "profile",
+    // QA-1Q — also needed by the "readiness" tab (persisted-state
+    // checklist), not just "profile" (live-draft-preview checklist).
+    enabled: !!targetProfileId && (activeTab === "profile" || activeTab === "readiness"),
   });
   const profileReadinessQuery = useQuery({
     queryKey: ["admin-profile-readiness", targetProfileId],
     queryFn: () => getProfileReadinessContextAdminFn({ data: targetProfileId! }),
-    enabled: !!targetProfileId && activeTab === "profile",
+    enabled: !!targetProfileId && (activeTab === "profile" || activeTab === "readiness"),
   });
   const updateProfileMutation = useMutation({
     mutationFn: (updates: OwnProfileUpdate) =>
@@ -860,6 +866,53 @@ function AdminBeauticianWorkspace() {
   };
   const onServicesSaved = () => queryClient.invalidateQueries({ queryKey: servicesQueryKey });
 
+  // QA-1Q — the dedicated Readiness tab's persisted-state checklist:
+  // reuses the exact same evaluatePortfolioContentReadiness() and
+  // already-fetched admin readiness context that ProfileManager's inline
+  // panel uses for its own LIVE-DRAFT preview (profile-manager.tsx's
+  // `liveReadiness`) — but computed from the PERSISTED profile row
+  // (adminProfileQuery.data) instead of unsaved form state, matching how
+  // the professional's own /dashboard/seo full checklist is computed
+  // (persisted, not draft). No new business logic, no new percentage.
+  const portfolioReadiness =
+    adminProfileQuery.data && profileReadinessQuery.data
+      ? evaluatePortfolioContentReadiness({
+          isPublished: adminProfileQuery.data.status === "published",
+          robotsIndex: profileReadinessQuery.data.robotsIndex,
+          professionalName: adminProfileQuery.data.display_name,
+          professionalTitle: adminProfileQuery.data.professional_title,
+          primaryCity: adminProfileQuery.data.primary_city,
+          bio: adminProfileQuery.data.bio,
+          hasProfileImage: !!adminProfileQuery.data.profile_image_url,
+          activeServiceCount: profileReadinessQuery.data.activeServiceCount,
+          locality: adminProfileQuery.data.locality,
+          serviceAreaCount: profileReadinessQuery.data.serviceAreaCount,
+          isVerified: adminProfileQuery.data.is_verified ?? false,
+          yearsExperience: adminProfileQuery.data.years_experience,
+          publishedGalleryImageCount: profileReadinessQuery.data.publishedGalleryImageCount,
+          galleryImagesWithAltCount: profileReadinessQuery.data.galleryImagesWithAltCount,
+          publishedBeforeAfterCount: profileReadinessQuery.data.publishedBeforeAfterCount,
+          publishedReviewCount: profileReadinessQuery.data.publishedReviewCount,
+          publishedFaqCount: profileReadinessQuery.data.publishedFaqCount,
+          publishedVideoCount: profileReadinessQuery.data.publishedVideoCount,
+          hasValidSocialLink: !!(
+            adminProfileQuery.data.instagram_url ||
+            adminProfileQuery.data.facebook_url ||
+            adminProfileQuery.data.youtube_url ||
+            adminProfileQuery.data.website_url
+          ),
+          hasContactInfo: !!(
+            adminProfileQuery.data.phone ||
+            adminProfileQuery.data.email ||
+            adminProfileQuery.data.whatsapp_number
+          ),
+          availabilityConfigured: profileReadinessQuery.data.availabilityConfigured,
+          seoTitle: profileReadinessQuery.data.seoTitle,
+          metaDescription: profileReadinessQuery.data.metaDescription,
+          canonicalUrl: profileReadinessQuery.data.canonicalUrl,
+        })
+      : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -1036,6 +1089,15 @@ function AdminBeauticianWorkspace() {
           onUpdateStatus={(leadId, status) =>
             updateLeadStatusMutation.mutateAsync({ leadId, status })
           }
+        />
+      )}
+
+      {activeTab === "readiness" && targetProfileId && (
+        <ReadinessChecklist
+          title="Readiness"
+          subtitle={`Whether ${profile.display_name}'s portfolio is currently complete and valid for search.`}
+          readiness={portfolioReadiness}
+          isLoading={adminProfileQuery.isLoading || profileReadinessQuery.isLoading}
         />
       )}
     </div>
