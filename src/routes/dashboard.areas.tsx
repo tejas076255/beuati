@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Banknote, Building2, Car, MapPin, Users } from "lucide-react";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -23,13 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Form,
   FormField,
   FormItem,
@@ -37,7 +29,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import type { Tables } from "@/integrations/supabase/types";
+import { ServiceAreasManager } from "@/components/service-areas/service-areas-manager";
 import type { ServiceAreaInput } from "@/data/dashboard/service-areas.server";
 import type { AvailabilityInput } from "@/data/dashboard/availability.server";
 
@@ -405,173 +397,6 @@ function TravelSettingsCard() {
   );
 }
 
-// ---------- add/edit service area dialog ----------
-
-const areaSchema = z.object({
-  area_name: z.string().min(1, "Required"),
-  city: z.string().min(1, "Required"),
-  state: z.string().min(1, "Required"),
-  postal_code: z.string(),
-  is_primary: z.boolean(),
-});
-type AreaFormValues = z.infer<typeof areaSchema>;
-const AREA_EMPTY: AreaFormValues = {
-  area_name: "",
-  city: "",
-  state: "",
-  postal_code: "",
-  is_primary: false,
-};
-
-function AreaFormDialog({
-  area,
-  onSaved,
-}: {
-  area?: Tables<"service_areas">;
-  onSaved: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const form = useForm<AreaFormValues>({
-    resolver: zodResolver(areaSchema),
-    defaultValues: AREA_EMPTY,
-  });
-
-  useEffect(() => {
-    if (!open) return;
-    form.reset(
-      area
-        ? {
-            area_name: area.area_name ?? "",
-            city: area.city,
-            state: area.state ?? "",
-            postal_code: area.postal_code ?? "",
-            is_primary: area.is_primary,
-          }
-        : AREA_EMPTY,
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, area]);
-
-  const save = useMutation({
-    mutationFn: (values: AreaFormValues) => {
-      const payload: ServiceAreaInput = {
-        area_name: values.area_name,
-        city: values.city,
-        state: values.state || null,
-        postal_code: values.postal_code || null,
-        is_primary: values.is_primary,
-      };
-      return area
-        ? updateAreaFn({ data: { id: area.id, ...payload } })
-        : createAreaFn({ data: payload });
-    },
-    onSuccess: () => {
-      toast.success(area ? "Service area updated." : "Service area added.");
-      setOpen(false);
-      onSaved();
-    },
-    onError: (error: Error) => toast.error(error.message || "Failed to save service area"),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {area ? (
-          <Button variant="softline" size="sm">
-            Edit
-          </Button>
-        ) : (
-          <Button variant="hero">+ Add service area</Button>
-        )}
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{area ? "Edit service area" : "Add service area"}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => save.mutate(values))} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="area_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Area / Locality
-                    <span className="text-destructive" aria-hidden="true">
-                      {" "}
-                      *
-                    </span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Satellite" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      City
-                      <span className="text-destructive" aria-hidden="true">
-                        {" "}
-                        *
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ahmedabad" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      State
-                      <span className="text-destructive" aria-hidden="true">
-                        {" "}
-                        *
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Gujarat" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="postal_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>PIN code (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="380015" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" variant="hero" className="w-full" disabled={save.isPending}>
-              {save.isPending ? "Saving…" : "Save"}
-            </Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function AreasPage() {
   const queryClient = useQueryClient();
   const areasQuery = useQuery({ queryKey: ["own-areas"], queryFn: () => listAreasFn() });
@@ -580,17 +405,34 @@ function AreasPage() {
     queryFn: () => getProfileLocationFn(),
   });
 
+  const onSaved = () => queryClient.invalidateQueries({ queryKey: ["own-areas"] });
+
+  const create = useMutation({
+    mutationFn: (input: ServiceAreaInput) => createAreaFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Service area added.");
+      onSaved();
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to add service area"),
+  });
+  const update = useMutation({
+    mutationFn: (vars: { id: string; input: ServiceAreaInput }) =>
+      updateAreaFn({ data: { id: vars.id, ...vars.input } }),
+    onSuccess: () => {
+      toast.success("Service area updated.");
+      onSaved();
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update service area"),
+  });
   const remove = useMutation({
     mutationFn: (id: string) => deleteAreaFn({ data: { id } }),
     onSuccess: () => {
       toast.success("Service area removed.");
-      queryClient.invalidateQueries({ queryKey: ["own-areas"] });
+      onSaved();
     },
     onError: (error: Error) => toast.error(error.message || "Failed to remove service area"),
   });
 
-  const areas = areasQuery.data ?? [];
-  const onSaved = () => queryClient.invalidateQueries({ queryKey: ["own-areas"] });
   const loc = profileLocationQuery.data;
 
   return (
@@ -623,71 +465,14 @@ function AreasPage() {
 
         <TravelSettingsCard />
 
-        <Card className="border-border/70 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-                Areas I serve
-              </CardTitle>
-              <CardDescription>The specific localities/areas you cover.</CardDescription>
-            </div>
-            <AreaFormDialog onSaved={onSaved} />
-          </CardHeader>
-          <CardContent>
-            {areasQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : areas.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border/70 p-6 text-center">
-                <p className="text-sm font-medium">No service areas added yet.</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Add the areas where you provide your beauty services so clients know where you
-                  travel.
-                </p>
-              </div>
-            ) : (
-              <ul className="flex flex-wrap gap-2">
-                {areas.map((area) => (
-                  <li
-                    key={area.id}
-                    className="flex items-center gap-2 rounded-full border border-border bg-secondary/20 py-1.5 pr-1.5 pl-3.5 text-sm"
-                  >
-                    <span className="font-medium">{area.area_name || area.city}</span>
-                    {area.area_name && (
-                      <span className="text-xs text-muted-foreground">{area.city}</span>
-                    )}
-                    {area.is_primary && (
-                      <Badge variant="secondary" className="text-[10px]">
-                        Primary
-                      </Badge>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <AreaFormDialog area={area} onSaved={onSaved} />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2"
-                        aria-label={`Remove ${area.area_name || area.city} from your service areas`}
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              `Remove ${area.area_name || area.city} from your service areas?`,
-                            )
-                          ) {
-                            remove.mutate(area.id);
-                          }
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <ServiceAreasManager
+          areas={areasQuery.data ?? []}
+          isLoading={areasQuery.isLoading}
+          isSaving={create.isPending || update.isPending}
+          onCreate={(input) => create.mutateAsync(input)}
+          onUpdate={(id, input) => update.mutateAsync({ id, input })}
+          onDelete={(id) => remove.mutate(id)}
+        />
       </div>
     </div>
   );

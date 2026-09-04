@@ -32,6 +32,7 @@
     "test:e2e:qa:lead-notification": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/lead-notification.spec.ts",
     "test:e2e:qa:verification": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/verification.spec.ts",
     "test:e2e:qa:activity": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/activity.spec.ts",
+    "test:e2e:qa:availability-service-areas": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/availability-service-areas.spec.ts",
     "qa:provision-identities": "node tests/projects/beautyfolio/scripts/provision-qa-identities.ts"
   },
   "dependencies": {

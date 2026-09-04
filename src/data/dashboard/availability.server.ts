@@ -9,11 +9,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json, Tables, TablesInsert } from "@/integrations/supabase/types";
 import { getOwnBeauticianProfileId } from "./shared.server";
 
-export async function getOwnAvailability(
+// bpId-parameterized core read, reused by both getOwnAvailability (below)
+// and the Admin per-beautician workspace (src/data/admin/availability.server.ts)
+// — same pattern already established for profile/reviews (getProfileForProfile,
+// listReviewsForProfile).
+export async function getAvailabilityForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
 ): Promise<Tables<"availability_settings"> | null> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
   const { data, error } = await supabase
     .from("availability_settings")
     .select("*")
@@ -22,6 +25,14 @@ export async function getOwnAvailability(
 
   if (error) throw new Error(`Failed to load availability: ${error.message}`);
   return data;
+}
+
+export async function getOwnAvailability(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<Tables<"availability_settings"> | null> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return getAvailabilityForProfile(supabase, bpId);
 }
 
 export type AvailabilityInput = Pick<
@@ -40,12 +51,16 @@ export type AvailabilityInput = Pick<
   | "travel_charge_amount"
 >;
 
-export async function saveOwnAvailability(
+// bpId-parameterized core upsert. Accepts a partial input so a caller can
+// safely update a single field (e.g. the Admin workspace's "accepting
+// bookings" toggle) without needing to resend the full settings object —
+// Postgres upsert's ON CONFLICT DO UPDATE only sets the columns present in
+// the payload, leaving every other existing column untouched.
+export async function saveAvailabilityForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
-  input: AvailabilityInput,
+  bpId: string,
+  input: Partial<AvailabilityInput>,
 ): Promise<void> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
   const { error } = await supabase
     .from("availability_settings")
     .upsert({ ...input, beautician_profile_id: bpId }, { onConflict: "beautician_profile_id" });
@@ -53,13 +68,21 @@ export async function saveOwnAvailability(
   if (error) throw new Error(`Failed to save availability: ${error.message}`);
 }
 
-// ---------- blocked dates ----------
-
-export async function listOwnBlockedDates(
+export async function saveOwnAvailability(
   supabase: SupabaseClient<Database>,
   userId: string,
-): Promise<Tables<"availability_blocked_dates">[]> {
+  input: AvailabilityInput,
+): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return saveAvailabilityForProfile(supabase, bpId, input);
+}
+
+// ---------- blocked dates ----------
+
+export async function listBlockedDatesForProfile(
+  supabase: SupabaseClient<Database>,
+  bpId: string,
+): Promise<Tables<"availability_blocked_dates">[]> {
   const { data, error } = await supabase
     .from("availability_blocked_dates")
     .select("*")
@@ -70,12 +93,19 @@ export async function listOwnBlockedDates(
   return data ?? [];
 }
 
-export async function addOwnBlockedDate(
+export async function listOwnBlockedDates(
   supabase: SupabaseClient<Database>,
   userId: string,
+): Promise<Tables<"availability_blocked_dates">[]> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return listBlockedDatesForProfile(supabase, bpId);
+}
+
+export async function addBlockedDateForProfile(
+  supabase: SupabaseClient<Database>,
+  bpId: string,
   input: { blocked_date: string; reason: string | null },
 ): Promise<void> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
   const { error } = await supabase
     .from("availability_blocked_dates")
     .insert({ ...input, beautician_profile_id: bpId });
@@ -85,6 +115,15 @@ export async function addOwnBlockedDate(
     if (error.code === "23505") throw new Error("That date is already blocked.");
     throw new Error(`Failed to add blocked date: ${error.message}`);
   }
+}
+
+export async function addOwnBlockedDate(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  input: { blocked_date: string; reason: string | null },
+): Promise<void> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return addBlockedDateForProfile(supabase, bpId, input);
 }
 
 export async function deleteOwnBlockedDate(

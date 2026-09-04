@@ -20,6 +20,8 @@ import { LeadsManager } from "@/components/leads/leads-manager";
 import { ReadinessChecklist } from "@/components/profile/readiness-checklist";
 import { VerificationPanel } from "@/components/profile/verification-panel";
 import { ActivityPanel } from "@/components/profile/activity-panel";
+import { AvailabilityManager } from "@/components/availability/availability-manager";
+import { ServiceAreasManager } from "@/components/service-areas/service-areas-manager";
 import { evaluatePortfolioContentReadiness } from "@/lib/seo-helpers";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
@@ -38,6 +40,8 @@ import type {
 import type { VideoInput } from "@/data/dashboard/videos.server";
 import type { PackageInput } from "@/data/dashboard/packages.server";
 import type { FaqInput } from "@/data/dashboard/faqs.server";
+import type { AvailabilityInput } from "@/data/dashboard/availability.server";
+import type { ServiceAreaInput } from "@/data/dashboard/service-areas.server";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/admin/beauticians/$slug")({
@@ -139,6 +143,112 @@ const listActivityAdminFn = createServerFn({ method: "GET" })
   .handler(async ({ context, data: targetProfileId }) => {
     const { listAuditLogsForBeautician } = await import("@/data/admin/audit.server");
     return listAuditLogsForBeautician(context.supabase, context.userId, targetProfileId);
+  });
+
+// Reuses the SAME bpId-parameterized core reads the beautician's own
+// /dashboard/availability and /dashboard/areas pages use — see
+// src/data/admin/availability.server.ts.
+const getAvailabilityAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { getAvailabilityAdmin } = await import("@/data/admin/availability.server");
+    return getAvailabilityAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+const updateAvailabilityAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: AvailabilityInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateAvailabilityAdmin } = await import("@/data/admin/availability.server");
+    await updateAvailabilityAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.input,
+    );
+  });
+
+const listBlockedDatesAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listBlockedDatesAdmin } = await import("@/data/admin/availability.server");
+    return listBlockedDatesAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+const addBlockedDateAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; input: { blocked_date: string; reason: string | null } }) =>
+      data,
+  )
+  .handler(async ({ context, data }) => {
+    const { addBlockedDateAdmin } = await import("@/data/admin/availability.server");
+    await addBlockedDateAdmin(context.supabase, context.userId, data.targetProfileId, data.input);
+  });
+
+const deleteBlockedDateAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; blockedDateId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteBlockedDateAdmin } = await import("@/data/admin/availability.server");
+    await deleteBlockedDateAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.blockedDateId,
+    );
+  });
+
+const listServiceAreasAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listServiceAreasAdmin } = await import("@/data/admin/availability.server");
+    return listServiceAreasAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+const createServiceAreaAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; input: ServiceAreaInput }) => data)
+  .handler(async ({ context, data }) => {
+    const { createServiceAreaAdmin } = await import("@/data/admin/availability.server");
+    await createServiceAreaAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.input,
+    );
+  });
+
+const updateServiceAreaAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; areaId: string; updates: Partial<ServiceAreaInput> }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { updateServiceAreaAdmin } = await import("@/data/admin/availability.server");
+    await updateServiceAreaAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.areaId,
+      data.updates,
+    );
+  });
+
+const deleteServiceAreaAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; areaId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { deleteServiceAreaAdmin } = await import("@/data/admin/availability.server");
+    await deleteServiceAreaAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.areaId,
+    );
   });
 
 const getProfileReadinessContextAdminFn = createServerFn({ method: "GET" })
@@ -531,7 +641,8 @@ type TabId =
   | "leads"
   | "readiness"
   | "verification"
-  | "activity";
+  | "activity"
+  | "availability";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
 // 5.2F / Phase 5.2G / QA-1O / QA-1P / QA-1Q — the full future workspace
@@ -557,6 +668,7 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "media", label: "Media", enabled: false },
   { id: "verification", label: "Verification", enabled: true },
   { id: "activity", label: "Activity", enabled: true },
+  { id: "availability", label: "Availability", enabled: true },
 ];
 
 function statusBadgeVariant(status: string) {
@@ -703,6 +815,84 @@ function AdminBeauticianWorkspace() {
       queryClient.invalidateQueries({ queryKey: activityQueryKey });
     },
     onError: (error: Error) => toast.error(error.message || "Failed to update verification"),
+  });
+
+  const availabilityQueryKey = ["admin-availability", targetProfileId];
+  const availabilityQuery = useQuery({
+    queryKey: availabilityQueryKey,
+    queryFn: () => getAvailabilityAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "availability",
+  });
+  const updateAvailabilityMutation = useMutation({
+    mutationFn: (input: AvailabilityInput) =>
+      updateAvailabilityAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+    onSuccess: () => {
+      toast.success("Availability updated");
+      queryClient.invalidateQueries({ queryKey: availabilityQueryKey });
+      queryClient.invalidateQueries({ queryKey: activityQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update availability"),
+  });
+
+  const blockedDatesQueryKey = ["admin-blocked-dates", targetProfileId];
+  const blockedDatesQuery = useQuery({
+    queryKey: blockedDatesQueryKey,
+    queryFn: () => listBlockedDatesAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "availability",
+  });
+  const addBlockedDateMutation = useMutation({
+    mutationFn: (input: { blocked_date: string; reason: string | null }) =>
+      addBlockedDateAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+    onSuccess: () => {
+      toast.success("Date blocked");
+      queryClient.invalidateQueries({ queryKey: blockedDatesQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to block date"),
+  });
+  const deleteBlockedDateMutation = useMutation({
+    mutationFn: (blockedDateId: string) =>
+      deleteBlockedDateAdminFn({ data: { targetProfileId: targetProfileId!, blockedDateId } }),
+    onSuccess: () => {
+      toast.success("Blocked date removed");
+      queryClient.invalidateQueries({ queryKey: blockedDatesQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to remove blocked date"),
+  });
+
+  const serviceAreasQueryKey = ["admin-service-areas", targetProfileId];
+  const serviceAreasQuery = useQuery({
+    queryKey: serviceAreasQueryKey,
+    queryFn: () => listServiceAreasAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "availability",
+  });
+  const createServiceAreaMutation = useMutation({
+    mutationFn: (input: ServiceAreaInput) =>
+      createServiceAreaAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
+    onSuccess: () => {
+      toast.success("Service area added.");
+      queryClient.invalidateQueries({ queryKey: serviceAreasQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to add service area"),
+  });
+  const updateServiceAreaMutation = useMutation({
+    mutationFn: (vars: { areaId: string; updates: Partial<ServiceAreaInput> }) =>
+      updateServiceAreaAdminFn({
+        data: { targetProfileId: targetProfileId!, areaId: vars.areaId, updates: vars.updates },
+      }),
+    onSuccess: () => {
+      toast.success("Service area updated.");
+      queryClient.invalidateQueries({ queryKey: serviceAreasQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update service area"),
+  });
+  const deleteServiceAreaMutation = useMutation({
+    mutationFn: (areaId: string) =>
+      deleteServiceAreaAdminFn({ data: { targetProfileId: targetProfileId!, areaId } }),
+    onSuccess: () => {
+      toast.success("Service area removed.");
+      queryClient.invalidateQueries({ queryKey: serviceAreasQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to remove service area"),
   });
 
   const galleryQueryKey = ["admin-gallery", targetProfileId];
@@ -1168,6 +1358,35 @@ function AdminBeauticianWorkspace() {
           entries={activityQuery.data ?? []}
           isLoading={activityQuery.isLoading}
         />
+      )}
+
+      {activeTab === "availability" && targetProfileId && (
+        <div className="space-y-8">
+          <AvailabilityManager
+            availability={availabilityQuery.data ?? null}
+            isLoading={availabilityQuery.isLoading}
+            onSave={(input) => updateAvailabilityMutation.mutate(input)}
+            isSaving={updateAvailabilityMutation.isPending}
+            blockedDates={blockedDatesQuery.data ?? []}
+            blockedDatesLoading={blockedDatesQuery.isLoading}
+            onAddBlockedDate={(input) => addBlockedDateMutation.mutate(input)}
+            onRemoveBlockedDate={(id) => deleteBlockedDateMutation.mutate(id)}
+            blockedDateSaving={
+              addBlockedDateMutation.isPending || deleteBlockedDateMutation.isPending
+            }
+            showFunnelHint={false}
+          />
+          <ServiceAreasManager
+            areas={serviceAreasQuery.data ?? []}
+            isLoading={serviceAreasQuery.isLoading}
+            isSaving={createServiceAreaMutation.isPending || updateServiceAreaMutation.isPending}
+            onCreate={(input) => createServiceAreaMutation.mutateAsync(input)}
+            onUpdate={(id, input) =>
+              updateServiceAreaMutation.mutateAsync({ areaId: id, updates: input })
+            }
+            onDelete={(id) => deleteServiceAreaMutation.mutate(id)}
+          />
+        </div>
       )}
     </div>
   );

@@ -4,11 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Tables, TablesInsert } from "@/integrations/supabase/types";
 import { getOwnBeauticianProfileId } from "./shared.server";
 
-export async function listOwnServiceAreas(
+// bpId-parameterized core read, reused by both listOwnServiceAreas (below)
+// and the Admin per-beautician workspace (src/data/admin/availability.server.ts)
+// — same pattern already established for profile/reviews.
+export async function listServiceAreasForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
 ): Promise<Tables<"service_areas">[]> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
   const { data, error } = await supabase
     .from("service_areas")
     .select("*")
@@ -17,6 +19,14 @@ export async function listOwnServiceAreas(
 
   if (error) throw new Error(`Failed to load service areas: ${error.message}`);
   return data ?? [];
+}
+
+export async function listOwnServiceAreas(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<Tables<"service_areas">[]> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return listServiceAreasForProfile(supabase, bpId);
 }
 
 export type ServiceAreaInput = Pick<
@@ -28,13 +38,11 @@ function normalize(value: string | null | undefined): string {
   return (value ?? "").trim().toLowerCase();
 }
 
-export async function createServiceArea(
+export async function createServiceAreaForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
   input: ServiceAreaInput,
 ): Promise<void> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
-
   // Duplicate protection: the same city+area combination shouldn't be added
   // twice for one profile. No DB-level UNIQUE constraint is used for this
   // because `area_name` is nullable (NULL never equals NULL in SQL, so a
@@ -61,6 +69,15 @@ export async function createServiceArea(
     .insert({ ...input, beautician_profile_id: bpId });
 
   if (error) throw new Error(`Failed to add service area: ${error.message}`);
+}
+
+export async function createServiceArea(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  input: ServiceAreaInput,
+): Promise<void> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return createServiceAreaForProfile(supabase, bpId, input);
 }
 
 export async function updateServiceArea(
