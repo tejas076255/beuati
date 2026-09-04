@@ -146,13 +146,14 @@ type InquiryRow = {
  * already displays. PRIVACY (§32/§33 from 3G.3B): never selects name/
  * phone/email/message/notes.
  */
-async function fetchOwnInquiriesInRange(
+// bpId-parameterized core, reused by both fetchOwnInquiriesInRange (below)
+// and the Admin per-beautician workspace (src/data/admin/leads.server.ts)
+// — same pattern already established for profile/reviews/availability.
+async function fetchInquiriesForProfileInRange(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
   range: InsightsDateRange,
 ): Promise<InquiryRow[]> {
-  const bpId = await getOwnBeauticianProfileId(supabase, userId);
-
   // §5 (3G.3B) — created_at is the authoritative enquiry-acquisition date,
   // never event_date (which is the customer's event date, not when the
   // enquiry arrived).
@@ -179,12 +180,21 @@ async function fetchOwnInquiriesInRange(
   return data ?? [];
 }
 
-export async function getOwnLeadInsights(
+async function fetchOwnInquiriesInRange(
   supabase: SupabaseClient<Database>,
   userId: string,
   range: InsightsDateRange,
+): Promise<InquiryRow[]> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return fetchInquiriesForProfileInRange(supabase, bpId, range);
+}
+
+export async function getLeadInsightsForProfile(
+  supabase: SupabaseClient<Database>,
+  bpId: string,
+  range: InsightsDateRange,
 ): Promise<LeadInsights> {
-  const rows = await fetchOwnInquiriesInRange(supabase, userId, range);
+  const rows = await fetchInquiriesForProfileInRange(supabase, bpId, range);
   const totalEnquiries = rows.length;
   const uniqueCustomers = new Set(rows.map((r) => r.lead_id)).size;
 
@@ -328,6 +338,15 @@ export async function getOwnLeadInsights(
   };
 }
 
+export async function getOwnLeadInsights(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  range: InsightsDateRange,
+): Promise<LeadInsights> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return getLeadInsightsForProfile(supabase, bpId, range);
+}
+
 // ---------- Phase 3G.3C — Insights -> CRM drill-down ----------
 
 /**
@@ -379,13 +398,13 @@ function inquiryMatchesFilter(row: InquiryRow, filter: InsightFilter): boolean {
  * to all-time), so a drill-down count can never disagree with what the
  * Insights view just showed.
  */
-export async function getInsightDrilldownMatches(
+export async function getInsightDrilldownMatchesForProfile(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  bpId: string,
   range: InsightsDateRange,
   filter: InsightFilter,
 ): Promise<DrilldownMatch[]> {
-  const rows = await fetchOwnInquiriesInRange(supabase, userId, range);
+  const rows = await fetchInquiriesForProfileInRange(supabase, bpId, range);
 
   const byLead = new Map<string, InquiryRow[]>();
   for (const row of rows) {
@@ -406,4 +425,14 @@ export async function getInsightDrilldownMatches(
     });
   }
   return matches;
+}
+
+export async function getInsightDrilldownMatches(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  range: InsightsDateRange,
+  filter: InsightFilter,
+): Promise<DrilldownMatch[]> {
+  const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  return getInsightDrilldownMatchesForProfile(supabase, bpId, range, filter);
 }

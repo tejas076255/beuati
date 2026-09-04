@@ -116,8 +116,13 @@ test.describe.serial("Leads module lifecycle @crud @leads @tenant", () => {
       const adminCtx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
       const adminPage = await adminCtx.newPage();
       await openLeadsTab(adminPage, proASlug);
-      await expect(adminPage.getByText(content.clientName)).toBeVisible({ timeout: 10_000 });
-      await expect(adminPage.getByText(content.phone)).toBeVisible({ timeout: 10_000 });
+      // .first() — the per-beautician Lead Performance dashboard's Recent
+      // Activity feed can also surface this same client name alongside the
+      // Lead List card, which is a legitimate second occurrence, not a bug.
+      await expect(adminPage.getByText(content.clientName).first()).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(adminPage.getByText(content.phone).first()).toBeVisible({ timeout: 10_000 });
 
       // ---- §7 authorized status change works ----
       await adminPage.getByRole("combobox").filter({ hasText: "New" }).click();

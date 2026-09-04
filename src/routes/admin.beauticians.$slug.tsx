@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +17,8 @@ import { PackageManager } from "@/components/packages/package-manager";
 import { FaqManager } from "@/components/faqs/faq-manager";
 import { ReviewsManager } from "@/components/reviews/reviews-manager";
 import { LeadsManager } from "@/components/leads/leads-manager";
+import { LeadInsightsView } from "@/components/leads/lead-insights-view";
+import { LeadPerformanceSummaryView } from "@/components/leads/lead-performance-summary";
 import { ReadinessChecklist } from "@/components/profile/readiness-checklist";
 import { VerificationPanel } from "@/components/profile/verification-panel";
 import { ActivityPanel } from "@/components/profile/activity-panel";
@@ -41,6 +43,8 @@ import type { VideoInput } from "@/data/dashboard/videos.server";
 import type { PackageInput } from "@/data/dashboard/packages.server";
 import type { FaqInput } from "@/data/dashboard/faqs.server";
 import type { AvailabilityInput } from "@/data/dashboard/availability.server";
+import type { InsightFilter, InsightsDateRange } from "@/data/lead-insights.server";
+import { computeLeadPerformanceSummary, buildRecentActivityFeed } from "@/lib/lead-performance";
 import type { ServiceAreaInput } from "@/data/dashboard/service-areas.server";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -628,6 +632,41 @@ const updateLeadStatusAdminFn = createServerFn({ method: "POST" })
     );
   });
 
+// Lead Performance Dashboard — reuses the SAME bpId-parameterized insights/
+// activity core functions the professional's own /dashboard/leads page
+// uses (see src/data/admin/leads.server.ts).
+const getLeadInsightsAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; range: InsightsDateRange }) => data)
+  .handler(async ({ context, data }) => {
+    const { getLeadInsightsAdmin } = await import("@/data/admin/leads.server");
+    return getLeadInsightsAdmin(context.supabase, context.userId, data.targetProfileId, data.range);
+  });
+
+const getLeadDrilldownAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (data: { targetProfileId: string; range: InsightsDateRange; filter: InsightFilter }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const { getLeadDrilldownAdmin } = await import("@/data/admin/leads.server");
+    return getLeadDrilldownAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.range,
+      data.filter,
+    );
+  });
+
+const listLeadActivitiesAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listLeadActivitiesAdmin } = await import("@/data/admin/leads.server");
+    return listLeadActivitiesAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
 type TabId =
   | "overview"
   | "profile"
@@ -1053,6 +1092,55 @@ function AdminBeauticianWorkspace() {
     },
   });
 
+  // ---- Lead Performance Dashboard ----
+  const [insightsRange, setInsightsRange] = useState<InsightsDateRange>("30d");
+  const [insightFilter, setInsightFilter] = useState<InsightFilter | null>(null);
+
+  const leadInsightsQuery = useQuery({
+    queryKey: ["admin-lead-insights", targetProfileId, insightsRange],
+    queryFn: () =>
+      getLeadInsightsAdminFn({ data: { targetProfileId: targetProfileId!, range: insightsRange } }),
+    enabled: !!targetProfileId && activeTab === "leads",
+  });
+  const leadDrilldownQuery = useQuery({
+    queryKey: ["admin-lead-drilldown", targetProfileId, insightsRange, insightFilter],
+    queryFn: () =>
+      getLeadDrilldownAdminFn({
+        data: { targetProfileId: targetProfileId!, range: insightsRange, filter: insightFilter! },
+      }),
+    enabled: !!targetProfileId && activeTab === "leads" && !!insightFilter,
+  });
+  const leadActivitiesQuery = useQuery({
+    queryKey: ["admin-lead-activities", targetProfileId],
+    queryFn: () => listLeadActivitiesAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "leads",
+  });
+
+  const performanceSummary = useMemo(() => {
+    if (!leadsQuery.data || !leadActivitiesQuery.data) return null;
+    return computeLeadPerformanceSummary(leadsQuery.data, leadActivitiesQuery.data);
+  }, [leadsQuery.data, leadActivitiesQuery.data]);
+
+  const recentLeadActivity = useMemo(
+    () => buildRecentActivityFeed(leadActivitiesQuery.data ?? []),
+    [leadActivitiesQuery.data],
+  );
+
+  // Same-shape drill-down filtering as the professional's own /dashboard/
+  // leads page — matches the clicked insight row's customers against the
+  // already-fetched admin leads list, no separate CRM view needed.
+  const drilldownMatchedIds = useMemo(
+    () => (insightFilter ? new Set((leadDrilldownQuery.data ?? []).map((m) => m.leadId)) : null),
+    [insightFilter, leadDrilldownQuery.data],
+  );
+  const visibleLeads = useMemo(
+    () =>
+      drilldownMatchedIds
+        ? (leadsQuery.data ?? []).filter((l) => drilldownMatchedIds.has(l.id))
+        : (leadsQuery.data ?? []),
+    [leadsQuery.data, drilldownMatchedIds],
+  );
+
   const createGalleryItemMutation = useMutation({
     mutationFn: (input: GalleryItemInput) =>
       createGalleryItemAdminFn({ data: { targetProfileId: targetProfileId!, input } }),
@@ -1322,15 +1410,54 @@ function AdminBeauticianWorkspace() {
       )}
 
       {activeTab === "leads" && targetProfileId && (
-        <LeadsManager
-          title="Leads"
-          subtitle={`Enquiries submitted through ${profile.display_name}'s public page.`}
-          leads={leadsQuery.data ?? []}
-          isLoading={leadsQuery.isLoading}
-          onUpdateStatus={(leadId, status) =>
-            updateLeadStatusMutation.mutateAsync({ leadId, status })
-          }
-        />
+        <div className="space-y-8">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">Lead Performance</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Whether {profile.display_name} is receiving and following up enquiries.
+            </p>
+            <LeadPerformanceSummaryView
+              summary={performanceSummary}
+              recentActivity={recentLeadActivity}
+              isLoading={leadsQuery.isLoading || leadActivitiesQuery.isLoading}
+            />
+          </div>
+
+          <div>
+            <h2 className="font-display text-2xl font-semibold">Attribution</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Where {profile.display_name}'s enquiries come from.
+            </p>
+            <LeadInsightsView
+              insights={leadInsightsQuery.data}
+              isLoading={leadInsightsQuery.isLoading}
+              isError={leadInsightsQuery.isError}
+              range={insightsRange}
+              onRangeChange={setInsightsRange}
+              onDrilldown={setInsightFilter}
+            />
+          </div>
+
+          <LeadsManager
+            title="Leads"
+            subtitle={`Enquiries submitted through ${profile.display_name}'s public page.`}
+            leads={visibleLeads}
+            isLoading={leadsQuery.isLoading}
+            onUpdateStatus={(leadId, status) =>
+              updateLeadStatusMutation.mutateAsync({ leadId, status })
+            }
+            filterBanner={
+              insightFilter
+                ? {
+                    text: leadDrilldownQuery.isLoading
+                      ? "Loading matches…"
+                      : `${visibleLeads.length} matching customer${visibleLeads.length === 1 ? "" : "s"}`,
+                    onClear: () => setInsightFilter(null),
+                  }
+                : null
+            }
+          />
+        </div>
       )}
 
       {activeTab === "readiness" && targetProfileId && (

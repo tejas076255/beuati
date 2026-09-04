@@ -97,3 +97,44 @@ export async function updateLeadStatusForBeautician(
   const { error } = await supabase.from("leads").update({ status }).eq("id", leadId);
   if (error) throw new Error(`Failed to update lead: ${error.message}`);
 }
+
+// ---------- Lead Performance Dashboard ----------
+// Reuses the exact same bpId-parameterized core functions the
+// professional's own /dashboard/leads Insights view uses
+// (getLeadInsightsForProfile / getInsightDrilldownMatchesForProfile in
+// src/data/lead-insights.server.ts; fetchLeadActivitiesForProfile in
+// src/data/lead-activity-insights.server.ts) — no analytics logic
+// duplicated here, only the admin authorization gate.
+
+export async function getLeadInsightsAdmin(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  targetProfileId: string,
+  range: import("@/data/lead-insights.server").InsightsDateRange,
+) {
+  await assertIsAdmin(supabase, userId);
+  const { getLeadInsightsForProfile } = await import("@/data/lead-insights.server");
+  return getLeadInsightsForProfile(supabase, targetProfileId, range);
+}
+
+export async function getLeadDrilldownAdmin(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  targetProfileId: string,
+  range: import("@/data/lead-insights.server").InsightsDateRange,
+  filter: import("@/data/lead-insights.server").InsightFilter,
+) {
+  await assertIsAdmin(supabase, userId);
+  const { getInsightDrilldownMatchesForProfile } = await import("@/data/lead-insights.server");
+  return getInsightDrilldownMatchesForProfile(supabase, targetProfileId, range, filter);
+}
+
+export async function listLeadActivitiesAdmin(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  targetProfileId: string,
+) {
+  await assertIsAdmin(supabase, userId);
+  const { fetchLeadActivitiesForProfile } = await import("@/data/lead-activity-insights.server");
+  return fetchLeadActivitiesForProfile(supabase, targetProfileId);
+}

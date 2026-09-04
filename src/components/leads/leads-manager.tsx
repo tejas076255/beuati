@@ -74,12 +74,18 @@ export function LeadsManager({
   leads,
   isLoading,
   onUpdateStatus,
+  filterBanner = null,
 }: {
   title?: string;
   subtitle?: string;
   leads: LeadWithRelations[];
   isLoading: boolean;
   onUpdateStatus: (leadId: string, status: LeadStatus) => Promise<void>;
+  /** Set by a caller applying an external filter (e.g. an Insights
+   * drill-down) — shows a small "N matching — Clear" banner above the
+   * list. This component itself never filters; it only renders whatever
+   * `leads` it's given. */
+  filterBanner?: { text: string; onClear: () => void } | null;
 }) {
   const updateStatus = useMutation({
     mutationFn: (vars: { leadId: string; status: LeadStatus }) =>
@@ -93,6 +99,19 @@ export function LeadsManager({
         <h2 className="font-display text-2xl font-semibold">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
+
+      {filterBanner && (
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm">
+          <span>{filterBanner.text}</span>
+          <button
+            type="button"
+            onClick={filterBanner.onClear}
+            className="font-semibold text-primary hover:underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
 
       <div className="mt-6">
         {isLoading ? (
