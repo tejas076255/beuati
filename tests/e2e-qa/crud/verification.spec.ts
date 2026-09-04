@@ -86,13 +86,17 @@ test.describe.serial("Verification lifecycle @crud @verification @tenant", () =>
       ).toBeVisible({ timeout: 10_000 });
       await publicCtx.close();
 
-      // ---- §5 audit record created for this action ----
-      const auditRow = await provider.getRow("audit_logs", {
+      // ---- §5 audit record created for this action. audit_logs is
+      // append-only, so repeated test runs legitimately accumulate more
+      // than one verification_changed row for this profile over time —
+      // existence, not getRow's single-row shape, is the correct check
+      // (same fix applied to tests/e2e-qa/crud/activity.spec.ts). ----
+      const auditRowExists = await provider.rowExists("audit_logs", {
         entity_type: "beautician_profile",
         entity_id: proAId,
         action: "verification_changed",
       });
-      expect(auditRow, "a verification_changed audit row must exist").not.toBeNull();
+      expect(auditRowExists, "a verification_changed audit row must exist").toBe(true);
 
       // ---- §9 verification must not touch readiness/publication state ----
       const afterVerifyReadinessCheck = await provider.getRow("beautician_profiles", {
@@ -168,12 +172,29 @@ test.describe.serial("Verification lifecycle @crud @verification @tenant", () =>
 
       await adminCtx.close();
     } finally {
-      // ---- §10 restore baseline ----
-      await provider.updateRow(
-        "beautician_profiles",
-        { id: proAId },
-        { is_verified: originalVerified },
+      // ---- §10 restore baseline. is_verified is protected by
+      // guard_beautician_profile_flags(), which checks has_role(auth.uid(),
+      // 'admin') — the service-role provider client carries no auth.uid()
+      // context, so a raw provider.updateRow() here is silently reset by
+      // the same trigger this feature relies on for its own security
+      // guarantee. Restoring it correctly requires a genuinely
+      // admin-authenticated client, exactly like the real feature does
+      // (discovered while hardening tests/e2e-qa/crud/activity.spec.ts's
+      // equivalent cleanup). ----
+      const adminRestoreClient = createClient(
+        requireEnv("SUPABASE_URL"),
+        requireEnv("QA_SUPABASE_PUBLISHABLE_KEY"),
       );
+      await adminRestoreClient.auth.signInWithPassword({
+        email: requireEnv("QA_ADMIN_EMAIL"),
+        password: requireEnv("QA_ADMIN_PASSWORD"),
+      });
+      await adminRestoreClient
+        .from("beautician_profiles")
+        .update({ is_verified: originalVerified })
+        .eq("id", proAId);
+      await adminRestoreClient.auth.signOut();
+
       if (profileTemporarilyPublished) {
         await provider.updateRow("beautician_profiles", { id: proAId }, { status: originalStatus });
       }

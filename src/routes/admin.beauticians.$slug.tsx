@@ -19,6 +19,7 @@ import { ReviewsManager } from "@/components/reviews/reviews-manager";
 import { LeadsManager } from "@/components/leads/leads-manager";
 import { ReadinessChecklist } from "@/components/profile/readiness-checklist";
 import { VerificationPanel } from "@/components/profile/verification-panel";
+import { ActivityPanel } from "@/components/profile/activity-panel";
 import { evaluatePortfolioContentReadiness } from "@/lib/seo-helpers";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
@@ -126,6 +127,18 @@ const updateVerificationAdminFn = createServerFn({ method: "POST" })
     await updateProfileFlags(context.supabase, context.userId, data.targetProfileId, {
       is_verified: data.is_verified,
     });
+  });
+
+// Reuses the SAME audit_logs table + actor-join pattern as the
+// platform-wide /admin/audit-logs page, scoped server-side to this one
+// profile's own admin actions — see listAuditLogsForBeautician in
+// src/data/admin/audit.server.ts.
+const listActivityAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { listAuditLogsForBeautician } = await import("@/data/admin/audit.server");
+    return listAuditLogsForBeautician(context.supabase, context.userId, targetProfileId);
   });
 
 const getProfileReadinessContextAdminFn = createServerFn({ method: "GET" })
@@ -517,7 +530,8 @@ type TabId =
   | "reviews"
   | "leads"
   | "readiness"
-  | "verification";
+  | "verification"
+  | "activity";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
 // 5.2F / Phase 5.2G / QA-1O / QA-1P / QA-1Q — the full future workspace
@@ -542,7 +556,7 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
   { id: "verification", label: "Verification", enabled: true },
-  { id: "activity", label: "Activity", enabled: false },
+  { id: "activity", label: "Activity", enabled: true },
 ];
 
 function statusBadgeVariant(status: string) {
@@ -672,6 +686,13 @@ function AdminBeauticianWorkspace() {
       queryClient.invalidateQueries({ queryKey: ["admin-target-profile", slug] });
     },
   });
+  const activityQueryKey = ["admin-activity", targetProfileId];
+  const activityQuery = useQuery({
+    queryKey: activityQueryKey,
+    queryFn: () => listActivityAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "activity",
+  });
+
   const updateVerificationMutation = useMutation({
     mutationFn: (is_verified: boolean) =>
       updateVerificationAdminFn({ data: { targetProfileId: targetProfileId!, is_verified } }),
@@ -679,6 +700,7 @@ function AdminBeauticianWorkspace() {
       toast.success("Verification updated");
       queryClient.invalidateQueries({ queryKey: profileQueryKey });
       queryClient.invalidateQueries({ queryKey: ["admin-target-profile", slug] });
+      queryClient.invalidateQueries({ queryKey: activityQueryKey });
     },
     onError: (error: Error) => toast.error(error.message || "Failed to update verification"),
   });
@@ -1137,6 +1159,14 @@ function AdminBeauticianWorkspace() {
           isLoading={adminProfileQuery.isLoading}
           isSaving={updateVerificationMutation.isPending}
           onToggle={(next) => updateVerificationMutation.mutate(next)}
+        />
+      )}
+
+      {activeTab === "activity" && targetProfileId && (
+        <ActivityPanel
+          profileDisplayName={profile.display_name}
+          entries={activityQuery.data ?? []}
+          isLoading={activityQuery.isLoading}
         />
       )}
     </div>

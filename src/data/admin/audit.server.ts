@@ -75,3 +75,50 @@ export async function listAuditLogs(
     actorEmail: byId.get(r.actor_user_id)?.email ?? null,
   }));
 }
+
+// Per-beautician Admin Activity tab. Scoped to entity_type='beautician_profile'
+// AND entity_id=profileId only — the unambiguous subset of audit_logs that
+// is genuinely and directly about this one profile (profile_status_changed,
+// verification_changed, featured_changed, profile_updated). Deliberately
+// does NOT attempt to also surface this beautician's review/service/
+// gallery/etc. admin-action rows (entity_type='review' etc.) — those would
+// require joining each entity type back to its owning profile to scope
+// correctly, which is out of this lean phase's scope; the platform-wide
+// /admin/audit-logs page remains the place to see those. Capped at 200
+// (a single profile's own event volume is inherently far smaller than the
+// platform-wide 500 cap above).
+export async function listAuditLogsForBeautician(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  profileId: string,
+): Promise<AdminAuditLogEntry[]> {
+  await assertIsAdmin(supabase, userId);
+
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("*")
+    .eq("entity_type", "beautician_profile")
+    .eq("entity_id", profileId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error(`Failed to load activity: ${error.message}`);
+
+  const rows = data ?? [];
+  const actorIds = Array.from(new Set(rows.map((r) => r.actor_user_id)));
+  if (actorIds.length === 0) {
+    return rows.map((r) => ({ ...r, actorName: null, actorEmail: null }));
+  }
+
+  const { data: actors, error: actorsError } = await supabase
+    .from("profiles")
+    .select("auth_user_id, display_name, email")
+    .in("auth_user_id", actorIds);
+  if (actorsError) throw new Error(`Failed to load audit actors: ${actorsError.message}`);
+
+  const byId = new Map((actors ?? []).map((a) => [a.auth_user_id, a]));
+  return rows.map((r) => ({
+    ...r,
+    actorName: byId.get(r.actor_user_id)?.display_name ?? null,
+    actorEmail: byId.get(r.actor_user_id)?.email ?? null,
+  }));
+}
