@@ -18,6 +18,7 @@ import { FaqManager } from "@/components/faqs/faq-manager";
 import { ReviewsManager } from "@/components/reviews/reviews-manager";
 import { LeadsManager } from "@/components/leads/leads-manager";
 import { ReadinessChecklist } from "@/components/profile/readiness-checklist";
+import { VerificationPanel } from "@/components/profile/verification-panel";
 import { evaluatePortfolioContentReadiness } from "@/lib/seo-helpers";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
@@ -110,6 +111,21 @@ const getProfileAdminFn = createServerFn({ method: "GET" })
   .handler(async ({ context, data: targetProfileId }) => {
     const { getProfileAdmin } = await import("@/data/admin/profile.server");
     return getProfileAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+// Reuses the SAME platform-wide updateProfileFlags() authority already
+// used by /admin/profiles (admin-checked, DB-guard-backed via
+// guard_beautician_profile_flags(), audit-logged as "verification_changed")
+// — no new verification logic, just a thin wrapper scoped to this
+// workspace's target profile.
+const updateVerificationAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; is_verified: boolean }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateProfileFlags } = await import("@/data/admin/profiles.server");
+    await updateProfileFlags(context.supabase, context.userId, data.targetProfileId, {
+      is_verified: data.is_verified,
+    });
   });
 
 const getProfileReadinessContextAdminFn = createServerFn({ method: "GET" })
@@ -500,7 +516,8 @@ type TabId =
   | "faqs"
   | "reviews"
   | "leads"
-  | "readiness";
+  | "readiness"
+  | "verification";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
 // 5.2F / Phase 5.2G / QA-1O / QA-1P / QA-1Q — the full future workspace
@@ -524,7 +541,7 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "readiness", label: "Readiness", enabled: true },
   { id: "portfolio", label: "Portfolio", enabled: false },
   { id: "media", label: "Media", enabled: false },
-  { id: "verification", label: "Verification", enabled: false },
+  { id: "verification", label: "Verification", enabled: true },
   { id: "activity", label: "Activity", enabled: false },
 ];
 
@@ -636,9 +653,11 @@ function AdminBeauticianWorkspace() {
   const adminProfileQuery = useQuery({
     queryKey: profileQueryKey,
     queryFn: () => getProfileAdminFn({ data: targetProfileId! }),
-    // QA-1Q — also needed by the "readiness" tab (persisted-state
-    // checklist), not just "profile" (live-draft-preview checklist).
-    enabled: !!targetProfileId && (activeTab === "profile" || activeTab === "readiness"),
+    // QA-1Q — also needed by "readiness" (persisted-state checklist); now
+    // also by "verification" (same is_verified field, no separate fetch).
+    enabled:
+      !!targetProfileId &&
+      (activeTab === "profile" || activeTab === "readiness" || activeTab === "verification"),
   });
   const profileReadinessQuery = useQuery({
     queryKey: ["admin-profile-readiness", targetProfileId],
@@ -652,6 +671,16 @@ function AdminBeauticianWorkspace() {
       queryClient.invalidateQueries({ queryKey: profileQueryKey });
       queryClient.invalidateQueries({ queryKey: ["admin-target-profile", slug] });
     },
+  });
+  const updateVerificationMutation = useMutation({
+    mutationFn: (is_verified: boolean) =>
+      updateVerificationAdminFn({ data: { targetProfileId: targetProfileId!, is_verified } }),
+    onSuccess: () => {
+      toast.success("Verification updated");
+      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+      queryClient.invalidateQueries({ queryKey: ["admin-target-profile", slug] });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update verification"),
   });
 
   const galleryQueryKey = ["admin-gallery", targetProfileId];
@@ -1098,6 +1127,16 @@ function AdminBeauticianWorkspace() {
           subtitle={`Whether ${profile.display_name}'s portfolio is currently complete and valid for search.`}
           readiness={portfolioReadiness}
           isLoading={adminProfileQuery.isLoading || profileReadinessQuery.isLoading}
+        />
+      )}
+
+      {activeTab === "verification" && targetProfileId && (
+        <VerificationPanel
+          profileDisplayName={profile.display_name}
+          isVerified={adminProfileQuery.data?.is_verified ?? null}
+          isLoading={adminProfileQuery.isLoading}
+          isSaving={updateVerificationMutation.isPending}
+          onToggle={(next) => updateVerificationMutation.mutate(next)}
         />
       )}
     </div>
