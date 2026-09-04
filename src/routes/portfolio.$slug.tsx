@@ -34,7 +34,7 @@ import {
 import { absoluteUrl } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
 import { getVideoEmbedSource } from "@/lib/video-embed";
-import { AnalyticsEvent, useTrackedPageView } from "@/lib/analytics";
+import { AnalyticsEvent, getGtmId, useTrackedPageView } from "@/lib/analytics";
 import type { Json, Tables } from "@/integrations/supabase/types";
 
 type PortfolioLoaderResult = {
@@ -47,6 +47,10 @@ type PortfolioLoaderResult = {
    * the raw bundle (not the mapped `profile`) so it can never drift from
    * either. Drives the robots directive below. */
   indexable: boolean;
+  /** Per-portfolio GTM phase — null when unconfigured/invalid for this
+   * profile. Never loaded on any other profile's page, never on Admin/
+   * dashboard routes (this route is public-portfolio-only). */
+  trackingGtmContainerId: string | null;
 };
 
 // Server-side, read-only: reads the live Supabase portfolio for any slug.
@@ -85,6 +89,7 @@ const loadPortfolioData = createServerFn({ method: "GET" })
       seo: bundle.seo,
       workingHours: bundle.availability?.working_hours ?? null,
       indexable,
+      trackingGtmContainerId: bundle.trackingGtmContainerId,
     };
   });
 
@@ -221,6 +226,7 @@ function buildHead(
   seo: Tables<"portfolio_seo"> | null,
   workingHours: Json | null,
   indexable: boolean,
+  trackingGtmContainerId: string | null,
 ) {
   const path = `/portfolio/${profile.slug}`;
   const pageUrl = absoluteUrl(path);
@@ -275,6 +281,15 @@ function buildHead(
     ...buildOfferEntities(profile.packages, businessId, profile.primaryCity),
   ];
 
+  // Per-portfolio GTM phase — loaded ONLY on this specific profile's own
+  // portfolio route (never on any other profile's page, never on Admin/
+  // dashboard, since this head() is scoped to /portfolio/$slug alone).
+  // Skipped when unconfigured, and skipped when it would just duplicate the
+  // platform-wide container __root.tsx already loads on every route —
+  // never two GTM loaders for the exact same container ID on one page.
+  const platformGtmId = getGtmId();
+  const loadPortfolioGtm = !!trackingGtmContainerId && trackingGtmContainerId !== platformGtmId;
+
   return {
     meta: [
       { title },
@@ -291,6 +306,17 @@ function buildHead(
     ],
     links: [{ rel: "canonical", href: canonical }],
     scripts: [
+      ...(loadPortfolioGtm
+        ? [
+            {
+              // Same standard async GTM loader snippet as the platform-wide
+              // one in __root.tsx — a second, independent container ID,
+              // sharing the same window.dataLayer array (the normal,
+              // supported way to run multiple GTM containers on one page).
+              children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${trackingGtmContainerId}');`,
+            },
+          ]
+        : []),
       {
         type: "application/ld+json",
         // Single @graph so every node (business, person, services, media,
@@ -421,6 +447,7 @@ export const Route = createFileRoute("/portfolio/$slug")({
       seo: result.seo,
       workingHours: result.workingHours,
       indexable: result.indexable,
+      trackingGtmContainerId: result.trackingGtmContainerId,
     };
   },
   head: ({ loaderData }) => {
@@ -429,8 +456,15 @@ export const Route = createFileRoute("/portfolio/$slug")({
       seo: null,
       workingHours: null,
       indexable: true,
+      trackingGtmContainerId: null,
     };
-    return buildHead(data.profile, data.seo, data.workingHours, data.indexable);
+    return buildHead(
+      data.profile,
+      data.seo,
+      data.workingHours,
+      data.indexable,
+      data.trackingGtmContainerId,
+    );
   },
   component: PortfolioPage,
 });
@@ -463,7 +497,7 @@ function buildNavItems(profile: BeauticianProfile) {
 
 function PortfolioPage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { profile } = Route.useLoaderData();
+  const { profile, trackingGtmContainerId } = Route.useLoaderData();
   const { service: initialService } = Route.useSearch();
   const navItems = buildNavItems(profile);
 
@@ -477,8 +511,24 @@ function PortfolioPage() {
     page_path: `/portfolio/${profile.slug}`,
   });
 
+  // Same loadPortfolioGtm condition as buildHead() above — the noscript
+  // fallback must only render alongside a genuinely-loaded portfolio GTM
+  // container, never a duplicate of the platform-wide one.
+  const loadPortfolioGtm = !!trackingGtmContainerId && trackingGtmContainerId !== getGtmId();
+
   return (
     <div className="min-h-screen">
+      {loadPortfolioGtm && (
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${trackingGtmContainerId}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="portfolio-gtm"
+          />
+        </noscript>
+      )}
       <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="section-shell flex h-16 items-center justify-between gap-3">
           <a href="#top" className="font-display text-[15px] font-semibold whitespace-nowrap">

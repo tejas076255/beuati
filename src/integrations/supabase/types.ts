@@ -1056,6 +1056,35 @@ export type Database = {
           },
         ];
       };
+      portfolio_tracking_settings: {
+        Row: {
+          beautician_profile_id: string;
+          created_at: string;
+          gtm_container_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          beautician_profile_id: string;
+          created_at?: string;
+          gtm_container_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          beautician_profile_id?: string;
+          created_at?: string;
+          gtm_container_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_tracking_settings_beautician_profile_id_fkey";
+            columns: ["beautician_profile_id"];
+            isOneToOne: true;
+            referencedRelation: "beautician_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       portfolio_videos: {
         Row: {
           beautician_profile_id: string;
@@ -1527,7 +1556,10 @@ export type Database = {
         | "package_deleted"
         | "faq_created"
         | "faq_updated"
-        | "faq_deleted";
+        | "faq_deleted"
+        | "tracking_settings_created"
+        | "tracking_settings_updated"
+        | "tracking_settings_removed";
       admin_audit_entity_type:
         | "beautician_profile"
         | "user_role"
@@ -1537,7 +1569,8 @@ export type Database = {
         | "before_after_item"
         | "video"
         | "package"
-        | "faq";
+        | "faq"
+        | "tracking_settings";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";

@@ -24,6 +24,7 @@ import { VerificationPanel } from "@/components/profile/verification-panel";
 import { ActivityPanel } from "@/components/profile/activity-panel";
 import { AvailabilityManager } from "@/components/availability/availability-manager";
 import { ServiceAreasManager } from "@/components/service-areas/service-areas-manager";
+import { TrackingSettingsManager } from "@/components/tracking/tracking-settings-manager";
 import { evaluatePortfolioContentReadiness } from "@/lib/seo-helpers";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
@@ -667,6 +668,35 @@ const listLeadActivitiesAdminFn = createServerFn({ method: "GET" })
     return listLeadActivitiesAdmin(context.supabase, context.userId, targetProfileId);
   });
 
+const getTrackingSettingsAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { getTrackingSettingsAdmin } = await import("@/data/admin/tracking.server");
+    return getTrackingSettingsAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
+const saveTrackingSettingsAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { targetProfileId: string; gtmContainerId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const { saveTrackingSettingsAdmin } = await import("@/data/admin/tracking.server");
+    return saveTrackingSettingsAdmin(
+      context.supabase,
+      context.userId,
+      data.targetProfileId,
+      data.gtmContainerId,
+    );
+  });
+
+const removeTrackingSettingsAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((targetProfileId: string) => targetProfileId)
+  .handler(async ({ context, data: targetProfileId }) => {
+    const { removeTrackingSettingsAdmin } = await import("@/data/admin/tracking.server");
+    await removeTrackingSettingsAdmin(context.supabase, context.userId, targetProfileId);
+  });
+
 type TabId =
   | "overview"
   | "profile"
@@ -681,7 +711,8 @@ type TabId =
   | "readiness"
   | "verification"
   | "activity"
-  | "availability";
+  | "availability"
+  | "tracking";
 
 // Phase 5.2A §6 / Phase 5.2B / Phase 5.2C / Phase 5.2D / Phase 5.2E / Phase
 // 5.2F / Phase 5.2G / QA-1O / QA-1P / QA-1Q — the full future workspace
@@ -708,6 +739,7 @@ const TABS: { id: TabId | string; label: string; enabled: boolean }[] = [
   { id: "verification", label: "Verification", enabled: true },
   { id: "activity", label: "Activity", enabled: true },
   { id: "availability", label: "Availability", enabled: true },
+  { id: "tracking", label: "Tracking", enabled: true },
 ];
 
 function statusBadgeVariant(status: string) {
@@ -932,6 +964,30 @@ function AdminBeauticianWorkspace() {
       queryClient.invalidateQueries({ queryKey: serviceAreasQueryKey });
     },
     onError: (error: Error) => toast.error(error.message || "Failed to remove service area"),
+  });
+
+  const trackingSettingsQueryKey = ["admin-tracking-settings", targetProfileId];
+  const trackingSettingsQuery = useQuery({
+    queryKey: trackingSettingsQueryKey,
+    queryFn: () => getTrackingSettingsAdminFn({ data: targetProfileId! }),
+    enabled: !!targetProfileId && activeTab === "tracking",
+  });
+  const saveTrackingSettingsMutation = useMutation({
+    mutationFn: (gtmContainerId: string) =>
+      saveTrackingSettingsAdminFn({ data: { targetProfileId: targetProfileId!, gtmContainerId } }),
+    onSuccess: () => {
+      toast.success("GTM container ID saved");
+      queryClient.invalidateQueries({ queryKey: trackingSettingsQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to save GTM container ID"),
+  });
+  const removeTrackingSettingsMutation = useMutation({
+    mutationFn: () => removeTrackingSettingsAdminFn({ data: targetProfileId! }),
+    onSuccess: () => {
+      toast.success("GTM container ID removed");
+      queryClient.invalidateQueries({ queryKey: trackingSettingsQueryKey });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to remove GTM container ID"),
   });
 
   const galleryQueryKey = ["admin-gallery", targetProfileId];
@@ -1512,6 +1568,18 @@ function AdminBeauticianWorkspace() {
               updateServiceAreaMutation.mutateAsync({ areaId: id, updates: input })
             }
             onDelete={(id) => deleteServiceAreaMutation.mutate(id)}
+          />
+        </div>
+      )}
+
+      {activeTab === "tracking" && targetProfileId && (
+        <div className="space-y-8">
+          <TrackingSettingsManager
+            gtmContainerId={trackingSettingsQuery.data ?? null}
+            isLoading={trackingSettingsQuery.isLoading}
+            isSaving={saveTrackingSettingsMutation.isPending}
+            onSave={(value) => saveTrackingSettingsMutation.mutateAsync(value).then(() => {})}
+            onRemove={() => removeTrackingSettingsMutation.mutate()}
           />
         </div>
       )}

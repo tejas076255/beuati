@@ -98,6 +98,14 @@ function trackWhatsappClick(
   });
 }
 
+function trackPhoneClick(profile: BeauticianProfile, ctaLocation: CtaLocationValue): void {
+  trackEvent(AnalyticsEvent.PhoneClick, {
+    profile_slug: profile.slug,
+    cta_location: ctaLocation,
+    page_path: `/portfolio/${profile.slug}`,
+  });
+}
+
 /** `mapQuery` is meant to hold either a bare Google Maps embed URL or a
  * plain-text location to search for — but the dashboard field also accepts
  * a full pasted <iframe> snippet and normalizes it on save. This defends
@@ -1680,6 +1688,23 @@ export function AvailabilitySection({
                   utm_medium: attribution.utm_medium,
                   utm_campaign: attribution.utm_campaign,
                 });
+                // Per-portfolio GTM phase — the canonical marketing-conversion
+                // event, same trigger point and same non-PII payload as
+                // availability_form_success above (never name/phone/message/
+                // location — see that event's own note). Additive: does not
+                // replace the existing internal product event.
+                trackEvent(AnalyticsEvent.LeadSubmit, {
+                  profile_slug: profile.slug,
+                  page_path: `/portfolio/${profile.slug}`,
+                  service_id: matchedService?.id,
+                  service_name: service || undefined,
+                  event_date_present: !!date,
+                  lead_source: "portfolio",
+                  cta_location: ctaLocation,
+                  utm_source: attribution.utm_source,
+                  utm_medium: attribution.utm_medium,
+                  utm_campaign: attribution.utm_campaign,
+                });
                 setSent(true);
               }}
             >
@@ -1825,18 +1850,23 @@ export function AvailabilitySection({
         <div id="contact">
           <ul className="space-y-3 text-[15px] sm:text-sm lg:mt-[4.5rem]">
             {[
-              { icon: Phone, label: profile.phone, href: telLink(profile) },
+              {
+                icon: Phone,
+                label: profile.phone,
+                href: telLink(profile),
+                onClick: () => trackPhoneClick(profile, CtaLocation.ContactSection),
+              },
               { icon: Mail, label: profile.email, href: `mailto:${profile.email}` },
               { icon: MapPin, label: profile.studio },
               { icon: Clock, label: profile.hours },
-            ].map(({ icon: Icon, label, href }) => (
+            ].map(({ icon: Icon, label, href, onClick }) => (
               <li
                 key={label}
                 className="flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-soft"
               >
                 <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                 {href ? (
-                  <a href={href} className="hover:text-primary">
+                  <a href={href} onClick={onClick} className="hover:text-primary">
                     {label}
                   </a>
                 ) : (
@@ -1969,6 +1999,7 @@ export function MobileStickyCta({ profile }: P) {
         <a
           href={telLink(profile)}
           aria-label={`Call ${profile.name}`}
+          onClick={() => trackPhoneClick(profile, CtaLocation.MobileSticky)}
           className="flex h-12 shrink-0 flex-[0_0_20%] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-[rgba(40,20,40,0.08)] bg-white text-[11px] font-semibold leading-tight text-foreground transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           <Phone className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />

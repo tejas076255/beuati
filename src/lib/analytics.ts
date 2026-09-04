@@ -65,6 +65,16 @@ export const AnalyticsEvent = {
   AvailabilityFormSubmit: "availability_form_submit",
   AvailabilityFormSuccess: "availability_form_success",
   WhatsappClick: "whatsapp_click",
+  // Per-portfolio GTM phase — the standard marketing-conversion event name
+  // GTM/GA4/Meta Pixel tags are typically wired to. Fired at the exact same
+  // confirmed-success point as availability_form_success (never optimistic,
+  // never on validation failure) so a professional's GTM container has one
+  // canonical, non-PII conversion event to bind ad/analytics tags to,
+  // without renaming or removing the existing internal product event.
+  LeadSubmit: "lead_submit",
+  // Mirrors whatsapp_click exactly — the existing tel: contact links had no
+  // click tracking at all before this phase.
+  PhoneClick: "phone_click",
   // Phase 3G.3C §18 — internal dashboard event only (the beautician clicking
   // an Insights row to drill into their own CRM list). Never carries
   // customer data, just the filter type/value/date-range that was clicked.
@@ -87,6 +97,7 @@ export const CtaLocation = {
   FloatingWhatsapp: "floating_whatsapp",
   ServiceDetailHeader: "service_detail_header",
   ServiceDetailHero: "service_detail_hero",
+  ContactSection: "contact_section",
 } as const;
 export type CtaLocationValue = (typeof CtaLocation)[keyof typeof CtaLocation];
 

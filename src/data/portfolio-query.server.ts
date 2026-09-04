@@ -120,6 +120,9 @@ export interface PortfolioBundle {
   blockedDates: Tables<"availability_blocked_dates">[];
   faqs: Tables<"faqs">[];
   seo: Tables<"portfolio_seo"> | null;
+  /** Per-portfolio GTM phase — null when unconfigured/invalid; never a raw
+   * script/snippet, only a canonical GTM-XXXXXXX container ID. */
+  trackingGtmContainerId: string | null;
 }
 
 function throwIfError(scope: string, slug: string, error: { message: string } | null) {
@@ -249,6 +252,29 @@ export async function getPublishedPortfolioBySlug(slug: string): Promise<Portfol
   throwIfError("faqs", slug, faqsRes.error);
   throwIfError("portfolio_seo", slug, seoRes.error);
 
+  // Deliberately NOT throwIfError'd like every other query above: this
+  // table is QA-only until its migration is separately approved for the
+  // protected backend (see the phase report's rollout recommendation), so
+  // on any environment where it doesn't exist yet, the public portfolio
+  // page must still render normally with tracking simply unconfigured —
+  // never a broken page just because this one optional feature's schema
+  // hasn't shipped there yet.
+  let trackingGtmContainerId: string | null = null;
+  try {
+    const { data: trackingRow, error: trackingError } = await supabase
+      .from("portfolio_tracking_settings")
+      .select("gtm_container_id")
+      .eq("beautician_profile_id", bpId)
+      .maybeSingle();
+    if (trackingError) throw trackingError;
+    trackingGtmContainerId = trackingRow?.gtm_container_id ?? null;
+  } catch (err) {
+    console.error(
+      `[portfolio-query] tracking settings unavailable for slug "${slug}" (treated as unconfigured):`,
+      err,
+    );
+  }
+
   const specializationIds = (bspecRes.data ?? []).map((r) => r.specialization_id);
   let specializations: Tables<"specializations">[] = [];
   if (specializationIds.length > 0) {
@@ -322,6 +348,7 @@ export async function getPublishedPortfolioBySlug(slug: string): Promise<Portfol
     blockedDates: blockedDatesRes.data ?? [],
     faqs: faqsRes.data ?? [],
     seo: seoRes.data ?? null,
+    trackingGtmContainerId,
   };
 }
 
