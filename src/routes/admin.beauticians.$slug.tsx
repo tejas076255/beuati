@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -810,6 +810,15 @@ function AdminBeauticianWorkspace() {
   const { slug } = Route.useParams();
   const [activeTab, setActiveTab] = useState<TabId | string>("overview");
   const queryClient = useQueryClient();
+
+  // Admin switching from one professional's workspace to another (e.g. via
+  // an in-app Link) reuses this component instance — reset the selected
+  // tab so a stale tab from the previous professional is never carried
+  // across. Every data query below is independently keyed by
+  // targetProfileId, so this is a UI-only reset, not a data-loading change.
+  useEffect(() => {
+    setActiveTab("overview");
+  }, [slug]);
 
   const profileQuery = useQuery({
     queryKey: ["admin-target-profile", slug],

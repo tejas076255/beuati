@@ -1851,17 +1851,18 @@ export function AvailabilitySection({
           <ul className="space-y-3 text-[15px] sm:text-sm lg:mt-[4.5rem]">
             {[
               {
+                id: "phone",
                 icon: Phone,
                 label: profile.phone,
                 href: telLink(profile),
                 onClick: () => trackPhoneClick(profile, CtaLocation.ContactSection),
               },
-              { icon: Mail, label: profile.email, href: `mailto:${profile.email}` },
-              { icon: MapPin, label: profile.studio },
-              { icon: Clock, label: profile.hours },
-            ].map(({ icon: Icon, label, href, onClick }) => (
+              { id: "email", icon: Mail, label: profile.email, href: `mailto:${profile.email}` },
+              { id: "studio", icon: MapPin, label: profile.studio },
+              { id: "hours", icon: Clock, label: profile.hours },
+            ].map(({ id, icon: Icon, label, href, onClick }) => (
               <li
-                key={label}
+                key={id}
                 className="flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-soft"
               >
                 <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
