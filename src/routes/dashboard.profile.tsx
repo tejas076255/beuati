@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ProfileManager } from "@/components/profile/profile-manager";
+import { CompletionScorePanel } from "@/components/profile/completion-score-panel";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
 
 export const Route = createFileRoute("/dashboard/profile")({
@@ -35,6 +36,17 @@ const updateProfileFn = createServerFn({ method: "POST" })
     await updateOwnProfile(context.supabase, context.userId, data);
   });
 
+// Portfolio Completion Score — system-computed (SQL is the sole
+// authoritative algorithm, see the completion-score migration). This
+// route only fetches the RPC's result; the score refreshes after save,
+// never on unsaved keystrokes.
+const getCompletionScoreFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnCompletionScore } = await import("@/data/dashboard/completion-score.server");
+    return getOwnCompletionScore(context.supabase, context.userId);
+  });
+
 function ProfilePage() {
   const queryClient = useQueryClient();
   const profileQuery = useQuery({ queryKey: ["own-profile"], queryFn: () => getProfileFn() });
@@ -43,10 +55,16 @@ function ProfilePage() {
     queryFn: () => getReadinessContextFn(),
   });
 
+  const completionScoreQuery = useQuery({
+    queryKey: ["own-completion-score"],
+    queryFn: () => getCompletionScoreFn(),
+  });
+
   const saveMutation = useMutation({
     mutationFn: (updates: OwnProfileUpdate) => updateProfileFn({ data: updates }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["own-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["own-completion-score"] });
     },
   });
 
@@ -59,7 +77,11 @@ function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl space-y-6">
+      <CompletionScorePanel
+        breakdown={completionScoreQuery.data}
+        isLoading={completionScoreQuery.isLoading}
+      />
       <ProfileManager
         profile={profileQuery.data}
         readinessContext={readinessContextQuery.data}

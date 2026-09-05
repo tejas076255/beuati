@@ -30,6 +30,7 @@ export type AdminProfileSummary = Pick<
   | "review_count"
   | "client_count"
   | "plan"
+  | "completion_score"
 >;
 
 export async function listAllProfiles(
@@ -41,7 +42,7 @@ export async function listAllProfiles(
   const { data, error } = await supabase
     .from("beautician_profiles")
     .select(
-      "id, slug, display_name, status, is_demo, is_verified, is_featured, created_at, review_count, client_count, plan",
+      "id, slug, display_name, status, is_demo, is_verified, is_featured, created_at, review_count, client_count, plan, completion_score",
     )
     .order("created_at", { ascending: false });
 

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import type { Database } from "@/integrations/supabase/types";
 import { PLAN_LABELS, PORTFOLIO_PLANS, type PortfolioPlan } from "@/lib/plan-limits";
+import { MILESTONE_BANDS, getMilestone } from "@/lib/completion-score";
 
 export const Route = createFileRoute("/admin/profiles")({
   component: ProfilesPage,
@@ -94,6 +95,7 @@ function ProfilesPage() {
   const [verifiedFilter, setVerifiedFilter] = useState<string>(ALL);
   const [featuredFilter, setFeaturedFilter] = useState<string>(ALL);
   const [planFilter, setPlanFilter] = useState<string>(ALL);
+  const [scoreBandFilter, setScoreBandFilter] = useState<string>(ALL);
 
   const updateStatus = useMutation({
     mutationFn: (vars: {
@@ -135,9 +137,12 @@ function ProfilesPage() {
         if (featuredFilter === YES && !p.is_featured) return false;
         if (featuredFilter === NO && p.is_featured) return false;
         if (planFilter !== ALL && p.plan !== planFilter) return false;
+        if (scoreBandFilter !== ALL && getMilestone(p.completion_score).label !== scoreBandFilter) {
+          return false;
+        }
         return true;
       }),
-    [profiles, verifiedFilter, featuredFilter, planFilter],
+    [profiles, verifiedFilter, featuredFilter, planFilter, scoreBandFilter],
   );
 
   return (
@@ -179,6 +184,20 @@ function ProfilesPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={scoreBandFilter} onValueChange={setScoreBandFilter}>
+          <SelectTrigger className="w-[190px]">
+            <SelectValue placeholder="Completion score" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>Completion score: any</SelectItem>
+            {MILESTONE_BANDS.map((band) => (
+              <SelectItem key={band.label} value={band.label}>
+                {band.min}
+                {band.min === band.max ? "" : `-${band.max}`} · {band.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
@@ -203,6 +222,7 @@ function ProfilesPage() {
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Plan</TableHead>
+                <TableHead>Score</TableHead>
                 <TableHead>Manage</TableHead>
               </TableRow>
             </TableHeader>
@@ -298,6 +318,14 @@ function ProfilesPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">{profile.completion_score}</span>
+                      <span className="text-xs text-muted-foreground">
+                        /100 · {getMilestone(profile.completion_score).label}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Button variant="softline" size="sm" asChild>

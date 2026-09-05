@@ -149,6 +149,7 @@ export type Database = {
           bio_secondary: string | null;
           business_name: string | null;
           client_count: number;
+          completion_score: number;
           country: string;
           cover_image_url: string | null;
           created_at: string;
@@ -195,6 +196,7 @@ export type Database = {
           bio_secondary?: string | null;
           business_name?: string | null;
           client_count?: number;
+          completion_score?: number;
           country?: string;
           cover_image_url?: string | null;
           created_at?: string;
@@ -241,6 +243,7 @@ export type Database = {
           bio_secondary?: string | null;
           business_name?: string | null;
           client_count?: number;
+          completion_score?: number;
           country?: string;
           cover_image_url?: string | null;
           created_at?: string;
@@ -1474,6 +1477,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      compute_portfolio_score_by_id: {
+        Args: { _bp_id: string };
+        Returns: Json;
+      };
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"];
