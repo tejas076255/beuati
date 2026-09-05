@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { VideoManager } from "@/components/videos/video-manager";
 import type { VideoInput } from "@/data/dashboard/videos.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/videos")({
   component: VideosPage,
@@ -50,6 +51,13 @@ const deleteVideoFn = createServerFn({ method: "POST" })
     return deleteVideo(context.supabase, context.userId, data.id);
   });
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 const OWN_VIDEOS_QUERY_KEY = ["own-videos"];
 
 function VideosPage() {
@@ -59,6 +67,7 @@ function VideosPage() {
     queryFn: () => getProfileSlugFn(),
   });
   const videosQuery = useQuery({ queryKey: OWN_VIDEOS_QUERY_KEY, queryFn: () => listVideosFn() });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
 
   const onSaved = () => queryClient.invalidateQueries({ queryKey: OWN_VIDEOS_QUERY_KEY });
 
@@ -85,6 +94,12 @@ function VideosPage() {
         onUpdate={(id, updates) => updateMutation.mutateAsync({ id, updates })}
         onDelete={(id) => deleteMutation.mutateAsync(id)}
         onSaved={onSaved}
+        plan={planQuery.data}
+        capacity={
+          planQuery.data
+            ? getPlanCapacity(planQuery.data, "portfolio_videos", (videosQuery.data ?? []).length)
+            : undefined
+        }
       />
     </div>
   );

@@ -26,6 +26,7 @@ import { AvailabilityManager } from "@/components/availability/availability-mana
 import { ServiceAreasManager } from "@/components/service-areas/service-areas-manager";
 import { TrackingSettingsManager } from "@/components/tracking/tracking-settings-manager";
 import { evaluatePortfolioContentReadiness } from "@/lib/seo-helpers";
+import { PLAN_LABELS, planAllowsGtm, GTM_MIN_PLAN } from "@/lib/plan-limits";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
 import type { AdminTargetProfile } from "@/data/admin/services.server";
 import type { OwnProfileUpdate } from "@/data/dashboard/profile.server";
@@ -790,6 +791,7 @@ function TargetProfileHeader({ profile }: { profile: AdminTargetProfile }) {
             <Badge variant={profile.is_verified ? "default" : "outline"}>
               {profile.is_verified ? "Verified" : "Unverified"}
             </Badge>
+            <Badge variant="secondary">{PLAN_LABELS[profile.plan]} plan</Badge>
           </div>
         </div>
       </div>
@@ -1583,13 +1585,25 @@ function AdminBeauticianWorkspace() {
 
       {activeTab === "tracking" && targetProfileId && (
         <div className="space-y-8">
-          <TrackingSettingsManager
-            gtmContainerId={trackingSettingsQuery.data ?? null}
-            isLoading={trackingSettingsQuery.isLoading}
-            isSaving={saveTrackingSettingsMutation.isPending}
-            onSave={(value) => saveTrackingSettingsMutation.mutateAsync(value).then(() => {})}
-            onRemove={() => removeTrackingSettingsMutation.mutate()}
-          />
+          {profileQuery.data && !planAllowsGtm(profileQuery.data.plan) ? (
+            <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-soft">
+              GTM tracking requires the {PLAN_LABELS[GTM_MIN_PLAN]} plan or higher. This portfolio
+              is currently on the {PLAN_LABELS[profileQuery.data.plan]} plan — change the plan from
+              the{" "}
+              <Link to="/admin/profiles" className="text-primary underline underline-offset-2">
+                Profiles
+              </Link>{" "}
+              page to enable tracking.
+            </div>
+          ) : (
+            <TrackingSettingsManager
+              gtmContainerId={trackingSettingsQuery.data ?? null}
+              isLoading={trackingSettingsQuery.isLoading}
+              isSaving={saveTrackingSettingsMutation.isPending}
+              onSave={(value) => saveTrackingSettingsMutation.mutateAsync(value).then(() => {})}
+              onRemove={() => removeTrackingSettingsMutation.mutate()}
+            />
+          )}
         </div>
       )}
     </div>

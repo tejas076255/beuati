@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PackageManager } from "@/components/packages/package-manager";
 import type { PackageInput } from "@/data/dashboard/packages.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/packages")({
   component: PackagesPage,
@@ -42,6 +43,13 @@ const deletePackageFn = createServerFn({ method: "POST" })
     await deletePackage(context.supabase, context.userId, data.id);
   });
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 const OWN_PACKAGES_QUERY_KEY = ["own-packages"];
 
 function PackagesPage() {
@@ -50,6 +58,7 @@ function PackagesPage() {
     queryKey: OWN_PACKAGES_QUERY_KEY,
     queryFn: () => listPackagesFn(),
   });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
 
   const onSaved = () => queryClient.invalidateQueries({ queryKey: OWN_PACKAGES_QUERY_KEY });
 
@@ -73,6 +82,12 @@ function PackagesPage() {
         onUpdate={(id, updates) => updateMutation.mutateAsync({ id, updates })}
         onDelete={(id) => deleteMutation.mutateAsync(id)}
         onSaved={onSaved}
+        plan={planQuery.data}
+        capacity={
+          planQuery.data
+            ? getPlanCapacity(planQuery.data, "packages", (packagesQuery.data ?? []).length)
+            : undefined
+        }
       />
     </div>
   );

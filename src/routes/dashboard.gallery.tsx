@@ -10,6 +10,7 @@ import type {
   PortfolioItemUpdate,
   PortfolioItemWithImages,
 } from "@/data/dashboard/gallery.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/gallery")({
   component: GalleryPage,
@@ -89,11 +90,19 @@ const deleteItemFn = createServerFn({ method: "POST" })
     return deletePortfolioItem(context.supabase, context.userId, data.id);
   });
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 const OWN_GALLERY_QUERY_KEY = ["own-gallery"];
 
 function GalleryPage() {
   const queryClient = useQueryClient();
   const slugQuery = useQuery({ queryKey: ["own-slug"], queryFn: () => getSlugFn() });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
   const itemsQuery = useQuery({
     queryKey: OWN_GALLERY_QUERY_KEY,
     queryFn: () => listItemsFn(),
@@ -146,6 +155,16 @@ function GalleryPage() {
         onUpdateImageAlt={(id, altText) => updateImageAltMutation.mutateAsync({ id, altText })}
         onDeleteItem={(item) => deleteItemMutation.mutateAsync(item)}
         onSaved={onSaved}
+        plan={planQuery.data}
+        capacity={
+          planQuery.data
+            ? getPlanCapacity(
+                planQuery.data,
+                "gallery_photos",
+                (itemsQuery.data ?? []).reduce((sum, item) => sum + item.images.length, 0),
+              )
+            : undefined
+        }
       />
     </div>
   );

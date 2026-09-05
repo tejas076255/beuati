@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { FaqManager } from "@/components/faqs/faq-manager";
 import type { FaqInput } from "@/data/dashboard/faqs.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/faqs")({
   component: FaqsPage,
@@ -42,11 +43,19 @@ const deleteFaqFn = createServerFn({ method: "POST" })
     await deleteFaq(context.supabase, context.userId, data.id);
   });
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 const OWN_FAQS_QUERY_KEY = ["own-faqs"];
 
 function FaqsPage() {
   const queryClient = useQueryClient();
   const faqsQuery = useQuery({ queryKey: OWN_FAQS_QUERY_KEY, queryFn: () => listFaqsFn() });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
 
   const onSaved = () => queryClient.invalidateQueries({ queryKey: OWN_FAQS_QUERY_KEY });
 
@@ -70,6 +79,12 @@ function FaqsPage() {
         onUpdate={(id, updates) => updateMutation.mutateAsync({ id, updates })}
         onDelete={(id) => deleteMutation.mutateAsync(id)}
         onSaved={onSaved}
+        plan={planQuery.data}
+        capacity={
+          planQuery.data
+            ? getPlanCapacity(planQuery.data, "faqs", (faqsQuery.data ?? []).length)
+            : undefined
+        }
       />
     </div>
   );

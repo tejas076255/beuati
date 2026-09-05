@@ -16,6 +16,7 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { assertIsAdmin } from "./shared.server";
 import { logAdminAction } from "./audit.server";
 import { isValidGtmContainerId, normalizeGtmContainerId } from "@/lib/gtm";
+import { planAllowsGtm, PLAN_LABELS, GTM_MIN_PLAN } from "@/lib/plan-limits";
 
 export class InvalidGtmContainerIdError extends Error {
   constructor() {
@@ -54,6 +55,21 @@ export async function saveTrackingSettingsAdmin(
   rawGtmContainerId: string,
 ): Promise<string> {
   await assertIsAdmin(supabase, adminUserId);
+
+  const { data: targetProfile, error: profileError } = await supabase
+    .from("beautician_profiles")
+    .select("plan")
+    .eq("id", targetProfileId)
+    .maybeSingle();
+  if (profileError || !targetProfile) {
+    throw new Error(`Failed to load profile: ${profileError?.message ?? "not found"}`);
+  }
+  if (!planAllowsGtm(targetProfile.plan)) {
+    throw new Error(
+      `GTM tracking requires the ${PLAN_LABELS[GTM_MIN_PLAN]} plan or higher — this portfolio is on the ${PLAN_LABELS[targetProfile.plan]} plan.`,
+    );
+  }
+
   const normalized = normalizeGtmContainerId(rawGtmContainerId);
   if (!isValidGtmContainerId(normalized)) {
     throw new InvalidGtmContainerIdError();

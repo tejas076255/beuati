@@ -167,6 +167,7 @@ export type Database = {
           map_query: string | null;
           metrics_verified: boolean;
           phone: string | null;
+          plan: Database["public"]["Enums"]["portfolio_plan"];
           primary_city: string | null;
           professional_title: string | null;
           profile_id: string;
@@ -212,6 +213,7 @@ export type Database = {
           map_query?: string | null;
           metrics_verified?: boolean;
           phone?: string | null;
+          plan?: Database["public"]["Enums"]["portfolio_plan"];
           primary_city?: string | null;
           professional_title?: string | null;
           profile_id: string;
@@ -257,6 +259,7 @@ export type Database = {
           map_query?: string | null;
           metrics_verified?: boolean;
           phone?: string | null;
+          plan?: Database["public"]["Enums"]["portfolio_plan"];
           primary_city?: string | null;
           professional_title?: string | null;
           profile_id?: string;
@@ -1559,7 +1562,8 @@ export type Database = {
         | "faq_deleted"
         | "tracking_settings_created"
         | "tracking_settings_updated"
-        | "tracking_settings_removed";
+        | "tracking_settings_removed"
+        | "plan_changed";
       admin_audit_entity_type:
         | "beautician_profile"
         | "user_role"
@@ -1587,6 +1591,7 @@ export type Database = {
         | "completed"
         | "lost"
         | "archived";
+      portfolio_plan: "free" | "starter" | "silver" | "gold" | "platinum";
       portfolio_status: "draft" | "published" | "unpublished" | "suspended";
       price_type: "fixed" | "starting_from" | "custom_quote";
       video_platform: "youtube" | "instagram" | "uploaded" | "other";

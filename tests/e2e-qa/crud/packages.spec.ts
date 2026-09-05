@@ -171,6 +171,7 @@ async function runPackageLifecycle(browser: Browser, label: string): Promise<voi
   expect(proAId, "Professional A and B must be distinct").not.toBe(proBId);
 
   const originalStatus = proA["status"] as string;
+  const originalPlan = (proA["plan"] as string) ?? "free";
   const baselinePackageCountA = await provider.countRows("packages", {
     beautician_profile_id: proAId,
   });
@@ -184,12 +185,27 @@ async function runPackageLifecycle(browser: Browser, label: string): Promise<voi
   let packageId: string | null = null;
   let quotePackageId: string | null = null;
   let profileTemporarilyPublished = false;
+  let profileTemporarilyUpgraded = false;
 
   try {
     // ---- fixture prerequisite: make Professional A's public page reachable ----
     if (originalStatus !== "published") {
       await provider.updateRow("beautician_profiles", { id: proAId }, { status: "published" });
       profileTemporarilyPublished = true;
+    }
+
+    // ---- 5-tier entitlements — fixture prerequisite: Packages require
+    // Starter+ (Free locks Packages entirely at 0). This suite exercises
+    // the Package CRUD lifecycle itself, not entitlement caps (that's
+    // entitlements.spec.ts's job) — Silver is used here (comfortably above
+    // the Starter floor) via the same safe service-role fixture path
+    // already used for `status` above (a NULL auth.uid() actor is exempt
+    // from the plan guard specifically so fixture setup like this keeps
+    // working; see the plan-entitlements migration). Free-plan rejection
+    // for Packages remains covered exclusively by entitlements.spec.ts.
+    if (originalPlan !== "silver") {
+      await provider.updateRow("beautician_profiles", { id: proAId }, { plan: "silver" });
+      profileTemporarilyUpgraded = true;
     }
 
     // ---- §11 Admin creates a hidden Package (real UI) ----
@@ -480,10 +496,14 @@ async function runPackageLifecycle(browser: Browser, label: string): Promise<voi
     if (profileTemporarilyPublished) {
       await provider.updateRow("beautician_profiles", { id: proAId }, { status: originalStatus });
     }
+    if (profileTemporarilyUpgraded) {
+      await provider.updateRow("beautician_profiles", { id: proAId }, { plan: originalPlan });
+    }
     const restored = await provider.getRow("beautician_profiles", { id: proAId });
     expect(restored!["status"], "Professional A profile status must be restored exactly").toBe(
       originalStatus,
     );
+    expect(restored!["plan"], "Professional A plan must be restored exactly").toBe(originalPlan);
   }
 
   timings.push({ label, ms: Date.now() - start });

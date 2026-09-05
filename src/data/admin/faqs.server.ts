@@ -41,6 +41,8 @@ export async function createFaqAdmin(
   input: FaqInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanCreate } = await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, targetProfileId, "faqs");
   const { createFaqForProfile } = await import("@/data/dashboard/faqs.server");
   const newId = await createFaqForProfile(supabase, targetProfileId, input);
 

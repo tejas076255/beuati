@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import {
   Dialog,
   DialogContent,
@@ -52,10 +54,12 @@ function AreaFormDialog({
   area,
   isSaving,
   onSubmit,
+  addDisabledReason,
 }: {
   area?: Tables<"service_areas">;
   isSaving: boolean;
   onSubmit: (values: ServiceAreaInput) => Promise<void> | void;
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const form = useForm<AreaFormValues>({
@@ -89,6 +93,14 @@ function AreaFormDialog({
     });
     setOpen(false);
   });
+
+  if (!area && addDisabledReason) {
+    return (
+      <Button variant="hero" disabled title={addDisabledReason}>
+        + Add service area
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -196,6 +208,8 @@ export function ServiceAreasManager({
   onCreate,
   onUpdate,
   onDelete,
+  capacity,
+  plan,
 }: {
   areas: Tables<"service_areas">[];
   isLoading: boolean;
@@ -203,7 +217,13 @@ export function ServiceAreasManager({
   onCreate: (input: ServiceAreaInput) => Promise<void> | void;
   onUpdate: (id: string, input: ServiceAreaInput) => Promise<void> | void;
   onDelete: (id: string) => void;
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} service areas. Upgrade for more capacity.`
+      : null;
   return (
     <Card className="border-border/70 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
@@ -214,8 +234,17 @@ export function ServiceAreasManager({
           </CardTitle>
           <CardDescription>The specific localities/areas covered.</CardDescription>
         </div>
-        <AreaFormDialog isSaving={isSaving} onSubmit={(values) => onCreate(values)} />
+        <AreaFormDialog
+          isSaving={isSaving}
+          onSubmit={(values) => onCreate(values)}
+          addDisabledReason={addDisabledReason}
+        />
       </CardHeader>
+      {capacity && plan && (
+        <div className="px-6">
+          <PlanCapacityBar label="Service areas" plan={plan} capacity={capacity} />
+        </div>
+      )}
       <CardContent>
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>

@@ -38,6 +38,7 @@ export type AdminTargetProfile = Pick<
   | "status"
   | "is_verified"
   | "profile_image_url"
+  | "plan"
 >;
 
 /**
@@ -58,7 +59,7 @@ export async function resolveAdminTargetProfile(
   const { data, error } = await supabase
     .from("beautician_profiles")
     .select(
-      "id, slug, display_name, business_name, professional_title, primary_city, status, is_verified, profile_image_url",
+      "id, slug, display_name, business_name, professional_title, primary_city, status, is_verified, profile_image_url, plan",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -146,6 +147,9 @@ export async function createServiceAdmin(
   input: ServiceInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+
+  const { assertOwnerCanCreate } = await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, targetProfileId, "services");
 
   const { createServiceForProfile } = await import("@/data/dashboard/services.server");
   const newId = await createServiceForProfile(supabase, targetProfileId, input);

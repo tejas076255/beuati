@@ -26,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import {
   Dialog,
   DialogContent,
@@ -57,11 +59,13 @@ function FaqFormDialog({
   onCreate,
   onUpdate,
   onSaved,
+  addDisabledReason,
 }: {
   faq?: Tables<"faqs">;
   onCreate: (input: FaqInput) => Promise<void>;
   onUpdate: (id: string, updates: Partial<FaqInput>) => Promise<void>;
   onSaved: () => void;
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const form = useForm<FaqFormValues>({ resolver: zodResolver(faqSchema), defaultValues: EMPTY });
@@ -83,6 +87,14 @@ function FaqFormDialog({
     },
     onError: (error: Error) => toast.error(error.message || "Failed to save FAQ"),
   });
+
+  if (!faq && addDisabledReason) {
+    return (
+      <Button variant="hero" disabled title={addDisabledReason}>
+        Add FAQ
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -208,6 +220,8 @@ export function FaqManager({
   onUpdate,
   onDelete,
   onSaved,
+  capacity,
+  plan,
 }: {
   title?: string;
   subtitle?: string;
@@ -217,8 +231,14 @@ export function FaqManager({
   onUpdate: (id: string, updates: Partial<FaqInput>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onSaved: () => void;
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} FAQs. Upgrade for more capacity.`
+      : null;
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this FAQ?")) return;
@@ -241,8 +261,19 @@ export function FaqManager({
           <h2 className="font-display text-2xl font-semibold">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <FaqFormDialog onCreate={onCreate} onUpdate={onUpdate} onSaved={onSaved} />
+        <FaqFormDialog
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+          onSaved={onSaved}
+          addDisabledReason={addDisabledReason}
+        />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="FAQs" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       <div className="mt-6">
         {isLoading ? (

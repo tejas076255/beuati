@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ServicesManager } from "@/components/services/services-manager";
 import type { ServiceInput, ServiceReadinessContext } from "@/data/dashboard/services.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/services")({
   component: ServicesPage,
@@ -42,6 +43,13 @@ const deleteServiceFn = createServerFn({ method: "POST" })
     await deleteService(context.supabase, context.userId, data.id);
   });
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 // Phase 3F.8A.1 — dedicated key, never shared with Gallery/Before & After's
 // flat Tables<"services">[] cache slot for the same reason documented
 // there: this page's query returns a differently-shaped
@@ -54,6 +62,7 @@ function ServicesPage() {
     queryKey: OWN_SERVICES_QUERY_KEY,
     queryFn: () => listServicesFn(),
   });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
 
   const createMutation = useMutation({
     mutationFn: (input: ServiceInput) => createServiceFn({ data: input }),
@@ -89,6 +98,10 @@ function ServicesPage() {
         onUpdate={(id, updates) => updateMutation.mutateAsync({ id, updates })}
         onDelete={(id) => deleteMutation.mutateAsync(id)}
         onSaved={onSaved}
+        plan={planQuery.data}
+        capacity={
+          planQuery.data ? getPlanCapacity(planQuery.data, "services", services.length) : undefined
+        }
       />
     </div>
   );

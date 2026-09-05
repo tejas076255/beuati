@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import {
   Dialog,
   DialogContent,
@@ -211,6 +213,7 @@ function PairFormDialog({
   onReplaceImage,
   onUpdateImageAlt,
   onSaved,
+  addDisabledReason,
 }: {
   uploadSlug: string;
   item?: BeforeAfterItemWithImages;
@@ -220,6 +223,7 @@ function PairFormDialog({
   onReplaceImage: (imageId: string, storagePath: string) => Promise<string | null>;
   onUpdateImageAlt: (imageId: string, altText: string) => Promise<void>;
   onSaved: () => void;
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -357,6 +361,14 @@ function PairFormDialog({
     },
     onError: (error: Error) => toast.error(error.message || "Failed to save before/after pair"),
   });
+
+  if (!item && addDisabledReason) {
+    return (
+      <Button variant="hero" disabled title={addDisabledReason}>
+        Add Before &amp; After
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -530,6 +542,8 @@ export function BeforeAfterManager({
   onUpdateImageAlt,
   onDeleteItem,
   onSaved,
+  capacity,
+  plan,
 }: {
   title?: string;
   subtitle?: string;
@@ -543,8 +557,14 @@ export function BeforeAfterManager({
   onUpdateImageAlt: (imageId: string, altText: string) => Promise<void>;
   onDeleteItem: (item: BeforeAfterItemWithImages) => Promise<Tables<"before_after_images">[]>;
   onSaved: () => void;
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} before & after pairs. Upgrade for more capacity.`
+      : null;
   const serviceNameById = new Map(services.map((s) => [s.id, s.name]));
 
   const remove = useMutation({
@@ -580,8 +600,15 @@ export function BeforeAfterManager({
           onReplaceImage={onReplaceImage}
           onUpdateImageAlt={onUpdateImageAlt}
           onSaved={onSaved}
+          addDisabledReason={addDisabledReason}
         />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="Before & After pairs" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       {items.length > 0 && (
         <div className="mt-4 flex gap-1.5">

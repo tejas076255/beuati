@@ -32,6 +32,7 @@ import {
 import { ServiceAreasManager } from "@/components/service-areas/service-areas-manager";
 import type { ServiceAreaInput } from "@/data/dashboard/service-areas.server";
 import type { AvailabilityInput } from "@/data/dashboard/availability.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/areas")({
   component: AreasPage,
@@ -397,6 +398,13 @@ function TravelSettingsCard() {
   );
 }
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 function AreasPage() {
   const queryClient = useQueryClient();
   const areasQuery = useQuery({ queryKey: ["own-areas"], queryFn: () => listAreasFn() });
@@ -404,6 +412,7 @@ function AreasPage() {
     queryKey: ["own-profile-location"],
     queryFn: () => getProfileLocationFn(),
   });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
 
   const onSaved = () => queryClient.invalidateQueries({ queryKey: ["own-areas"] });
 
@@ -472,6 +481,12 @@ function AreasPage() {
           onCreate={(input) => create.mutateAsync(input)}
           onUpdate={(id, input) => update.mutateAsync({ id, input })}
           onDelete={(id) => remove.mutate(id)}
+          plan={planQuery.data}
+          capacity={
+            planQuery.data
+              ? getPlanCapacity(planQuery.data, "service_areas", (areasQuery.data ?? []).length)
+              : undefined
+          }
         />
       </div>
     </div>

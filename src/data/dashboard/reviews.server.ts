@@ -52,6 +52,8 @@ export async function createReview(
   input: ReviewInput,
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanCreate } = await import("./plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, bpId, "reviews");
   const { error } = await supabase
     .from("reviews")
     .insert({ ...input, beautician_profile_id: bpId });

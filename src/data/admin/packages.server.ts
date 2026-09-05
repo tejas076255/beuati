@@ -45,6 +45,8 @@ export async function createPackageAdmin(
   input: PackageInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanCreate } = await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, targetProfileId, "packages");
   const { createPackageForProfile } = await import("@/data/dashboard/packages.server");
   const newId = await createPackageForProfile(supabase, targetProfileId, input);
 

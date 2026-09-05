@@ -77,6 +77,8 @@ export async function createServiceArea(
   input: ServiceAreaInput,
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanCreate } = await import("./plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, bpId, "service_areas");
   return createServiceAreaForProfile(supabase, bpId, input);
 }
 

@@ -77,6 +77,8 @@ export async function createPackage(
   input: PackageInput,
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanCreate } = await import("./plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, bpId, "packages");
   await createPackageForProfile(supabase, bpId, input);
 }
 

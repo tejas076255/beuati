@@ -44,6 +44,8 @@ export async function createVideoAdmin(
   input: VideoInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanCreate } = await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, targetProfileId, "portfolio_videos");
   const { createVideoForProfile } = await import("@/data/dashboard/videos.server");
   const newId = await createVideoForProfile(supabase, targetProfileId, input);
 

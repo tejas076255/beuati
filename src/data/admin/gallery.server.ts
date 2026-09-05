@@ -47,6 +47,9 @@ export async function createGalleryItemAdmin(
   input: GalleryItemInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanAddGalleryPhotos } =
+    await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanAddGalleryPhotos(supabase, targetProfileId, input.images.length);
   const { createPortfolioItemForProfile } = await import("@/data/dashboard/gallery.server");
   const newId = await createPortfolioItemForProfile(supabase, targetProfileId, input);
 
@@ -94,6 +97,9 @@ export async function addGalleryImagesAdmin(
   images: NewGalleryImage[],
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanAddGalleryPhotos } =
+    await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanAddGalleryPhotos(supabase, targetProfileId, images.length);
   const { addPortfolioImagesForProfile } = await import("@/data/dashboard/gallery.server");
   await addPortfolioImagesForProfile(supabase, targetProfileId, itemId, images);
 

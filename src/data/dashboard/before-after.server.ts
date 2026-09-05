@@ -141,6 +141,8 @@ export async function createBeforeAfterPair(
   input: BeforeAfterPairInput,
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanCreate } = await import("./plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, bpId, "before_after_items");
   await createBeforeAfterPairForProfile(supabase, bpId, input);
 }
 

@@ -33,6 +33,13 @@ import {
 } from "@/components/ui/form";
 import type { Tables } from "@/integrations/supabase/types";
 import type { ReviewInput } from "@/data/dashboard/reviews.server";
+import {
+  getPlanCapacity,
+  PLAN_LABELS,
+  type PlanCapacity,
+  type PortfolioPlan,
+} from "@/lib/plan-limits";
+import { LockedModuleNotice, PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 
 export const Route = createFileRoute("/dashboard/reviews")({
   component: ReviewsPage,
@@ -68,6 +75,13 @@ const deleteReviewFn = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { deleteReview } = await import("@/data/dashboard/reviews.server");
     await deleteReview(context.supabase, data.id);
+  });
+
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
   });
 
 const reviewSchema = z.object({
@@ -165,9 +179,11 @@ function ReviewText({ text }: { text: string }) {
 function ReviewFormDialog({
   review,
   onSaved,
+  addDisabledReason,
 }: {
   review?: Tables<"reviews">;
   onSaved: () => void;
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const form = useForm<ReviewFormValues>({
@@ -208,6 +224,14 @@ function ReviewFormDialog({
     },
     onError: (error: Error) => toast.error(error.message || "Failed to save review"),
   });
+
+  if (!review && addDisabledReason) {
+    return (
+      <Button variant="hero" disabled title={addDisabledReason}>
+        Add review
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -358,6 +382,7 @@ function ReviewFormDialog({
 function ReviewsPage() {
   const queryClient = useQueryClient();
   const reviewsQuery = useQuery({ queryKey: ["own-reviews"], queryFn: () => listReviewsFn() });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
 
   const remove = useMutation({
     mutationFn: (id: string) => deleteReviewFn({ data: { id } }),
@@ -371,6 +396,30 @@ function ReviewsPage() {
   const reviews = reviewsQuery.data ?? [];
   const onSaved = () => queryClient.invalidateQueries({ queryKey: ["own-reviews"] });
 
+  const capacity: PlanCapacity | undefined = planQuery.data
+    ? getPlanCapacity(planQuery.data, "reviews", reviews.length)
+    : undefined;
+  const plan: PortfolioPlan | undefined = planQuery.data;
+
+  if (capacity && plan && !capacity.available) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-8">
+        <h1 className="font-display text-2xl font-semibold">Reviews</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Testimonials shown on your public portfolio.
+        </p>
+        <div className="mt-6">
+          <LockedModuleNotice label="Reviews" plan={plan} minimumPlanLabel="Starter" />
+        </div>
+      </div>
+    );
+  }
+
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} reviews. Upgrade for more capacity.`
+      : null;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -380,8 +429,14 @@ function ReviewsPage() {
             Testimonials shown on your public portfolio.
           </p>
         </div>
-        <ReviewFormDialog onSaved={onSaved} />
+        <ReviewFormDialog onSaved={onSaved} addDisabledReason={addDisabledReason} />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="Reviews" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       <div className="mt-6">
         {reviewsQuery.isLoading ? (
@@ -398,7 +453,7 @@ function ReviewsPage() {
                   Add client testimonials to build trust with visitors.
                 </p>
               </div>
-              <ReviewFormDialog onSaved={onSaved} />
+              <ReviewFormDialog onSaved={onSaved} addDisabledReason={addDisabledReason} />
             </CardContent>
           </Card>
         ) : (

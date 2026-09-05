@@ -28,6 +28,8 @@ import {
   IMAGE_GUIDELINES,
   UPLOAD_HINT,
 } from "@/lib/storage-upload";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,6 +197,7 @@ function ItemFormDialog({
   onDeleteImage,
   onUpdateImageAlt,
   onSaved,
+  addDisabledReason,
 }: {
   uploadSlug: string;
   item?: PortfolioItemWithImages;
@@ -205,6 +208,13 @@ function ItemFormDialog({
   onDeleteImage: (id: string) => Promise<string | null>;
   onUpdateImageAlt: (id: string, altText: string) => Promise<void>;
   onSaved: () => void;
+  /** Only meaningful for a NEW item (no `item`) — the gallery photo cap is
+   * already fully used, so starting a brand-new item (which requires at
+   * least one photo) would be rejected anyway. Editing/adding photos to an
+   * EXISTING item still goes through the dialog — the server-side check
+   * (assertOwnerCanAddGalleryPhotos) surfaces a clear error via the
+   * existing onError toast if that would also exceed the cap. */
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -302,6 +312,14 @@ function ItemFormDialog({
     },
     onError: (error: Error) => toast.error(error.message || "Failed to save gallery item"),
   });
+
+  if (!item && addDisabledReason) {
+    return (
+      <Button variant="hero" size="sm" disabled title={addDisabledReason}>
+        Add item
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -469,6 +487,8 @@ export function GalleryManager({
   onUpdateImageAlt,
   onDeleteItem,
   onSaved,
+  capacity,
+  plan,
 }: {
   title?: string;
   subtitle?: string;
@@ -483,8 +503,15 @@ export function GalleryManager({
   onUpdateImageAlt: (id: string, altText: string) => Promise<void>;
   onDeleteItem: (item: PortfolioItemWithImages) => Promise<Tables<"portfolio_images">[]>;
   onSaved: () => void;
+  /** Capacity is on PHOTOS, not gallery items — see plan-limits.ts. */
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} gallery photos. Upgrade for more capacity.`
+      : null;
   const serviceNameById = new Map(services.map((s) => [s.id, s.name]));
 
   const remove = useMutation({
@@ -521,8 +548,15 @@ export function GalleryManager({
           onDeleteImage={onDeleteImage}
           onUpdateImageAlt={onUpdateImageAlt}
           onSaved={onSaved}
+          addDisabledReason={addDisabledReason}
         />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="Gallery photos" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       {items.length > 0 && (
         <div className="mt-4 flex gap-1.5">

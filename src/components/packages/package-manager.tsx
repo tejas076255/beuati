@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { LockedModuleNotice, PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import {
   Select,
   SelectContent,
@@ -98,11 +100,13 @@ function PackageFormDialog({
   onCreate,
   onUpdate,
   onSaved,
+  addDisabledReason,
 }: {
   pkg?: Tables<"packages">;
   onCreate: (input: PackageInput) => Promise<void>;
   onUpdate: (id: string, updates: Partial<PackageInput>) => Promise<void>;
   onSaved: () => void;
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const form = useForm<PackageFormValues>({
@@ -142,6 +146,14 @@ function PackageFormDialog({
     },
     onError: (error: Error) => toast.error(error.message || "Failed to save package"),
   });
+
+  if (!pkg && addDisabledReason) {
+    return (
+      <Button variant="hero" disabled title={addDisabledReason}>
+        Add package
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -322,6 +334,8 @@ export function PackageManager({
   onUpdate,
   onDelete,
   onSaved,
+  capacity,
+  plan,
 }: {
   title?: string;
   subtitle?: string;
@@ -331,8 +345,19 @@ export function PackageManager({
   onUpdate: (id: string, updates: Partial<PackageInput>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onSaved: () => void;
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  if (capacity && plan && !capacity.available) {
+    return <LockedModuleNotice label="Packages" plan={plan} minimumPlanLabel="Starter" />;
+  }
+
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} packages. Upgrade for more capacity.`
+      : null;
 
   const handleDelete = async (id: string, name: string) => {
     if (!window.confirm(`Delete "${name}"?`)) return;
@@ -355,8 +380,19 @@ export function PackageManager({
           <h2 className="font-display text-2xl font-semibold">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <PackageFormDialog onCreate={onCreate} onUpdate={onUpdate} onSaved={onSaved} />
+        <PackageFormDialog
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+          onSaved={onSaved}
+          addDisabledReason={addDisabledReason}
+        />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="Packages" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       <div className="mt-6">
         {isLoading ? (
@@ -373,7 +409,12 @@ export function PackageManager({
                   Create packages to showcase bundled services and pricing.
                 </p>
               </div>
-              <PackageFormDialog onCreate={onCreate} onUpdate={onUpdate} onSaved={onSaved} />
+              <PackageFormDialog
+                onCreate={onCreate}
+                onUpdate={onUpdate}
+                onSaved={onSaved}
+                addDisabledReason={addDisabledReason}
+              />
             </CardContent>
           </Card>
         ) : (

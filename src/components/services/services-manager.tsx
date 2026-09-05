@@ -25,6 +25,8 @@ import {
   type ServiceContentReadinessState,
   type ServiceReadinessCheck,
 } from "@/lib/seo-helpers";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -228,6 +230,7 @@ function ServiceFormDialog({
   onCreate,
   onUpdate,
   onSaved,
+  addDisabledReason,
 }: {
   service?: Tables<"services">;
   readinessContext: ServiceReadinessContext;
@@ -235,6 +238,9 @@ function ServiceFormDialog({
   onCreate: (input: ServiceInput) => Promise<void>;
   onUpdate: (id: string, updates: Partial<ServiceInput>) => Promise<void>;
   onSaved: () => void;
+  /** Non-null (and only meaningful when `service` is unset — this is the
+   * "Add" trigger) disables adding and explains the plan limit instead. */
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   // Lazily computed from the persisted row at mount, not a bare `true`
@@ -356,6 +362,14 @@ function ServiceFormDialog({
       setSaving(false);
     }
   };
+
+  if (!service && addDisabledReason) {
+    return (
+      <Button variant="hero" disabled title={addDisabledReason}>
+        Add Service
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -710,6 +724,8 @@ export function ServicesManager({
   onUpdate,
   onDelete,
   onSaved,
+  capacity,
+  plan,
 }: {
   title?: string;
   subtitle?: string;
@@ -720,7 +736,16 @@ export function ServicesManager({
   onUpdate: (id: string, updates: Partial<ServiceInput>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onSaved: () => void;
+  /** 5-tier entitlements — plan-aware capacity ("3 of 5"). Optional so
+   * Admin's workspace call site (which has no content-count limits) can
+   * omit it entirely. */
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} services. Upgrade for more capacity.`
+      : null;
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (id: string, name: string) => {
@@ -749,8 +774,15 @@ export function ServicesManager({
           onCreate={onCreate}
           onUpdate={onUpdate}
           onSaved={onSaved}
+          addDisabledReason={addDisabledReason}
         />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="Services" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       <div className="mt-6">
         {isLoading ? (

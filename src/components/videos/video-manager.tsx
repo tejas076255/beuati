@@ -30,6 +30,8 @@ import {
   VIDEO_UPLOAD_HINT,
 } from "@/lib/storage-upload";
 import { extractStoragePathFromPublicUrl } from "@/lib/storage-path";
+import { PLAN_LABELS, type PlanCapacity, type PortfolioPlan } from "@/lib/plan-limits";
+import { LockedModuleNotice, PlanCapacityBar } from "@/components/shared/plan-capacity-notice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -140,12 +142,14 @@ function VideoFormDialog({
   onCreate,
   onUpdate,
   onSaved,
+  addDisabledReason,
 }: {
   uploadSlug: string;
   video?: Tables<"portfolio_videos">;
   onCreate: (input: VideoInput) => Promise<void>;
   onUpdate: (id: string, updates: Partial<VideoInput>) => Promise<void>;
   onSaved: () => void;
+  addDisabledReason?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
@@ -357,6 +361,14 @@ function VideoFormDialog({
   const thumbnailUrl = form.watch("thumbnail_url");
   const platform = form.watch("platform");
   const storagePath = form.watch("storage_path");
+
+  if (!video && addDisabledReason) {
+    return (
+      <Button variant="hero" size="sm" disabled title={addDisabledReason}>
+        Add video
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -680,6 +692,8 @@ export function VideoManager({
   onUpdate,
   onDelete,
   onSaved,
+  capacity,
+  plan,
 }: {
   title?: string;
   subtitle?: string;
@@ -690,8 +704,19 @@ export function VideoManager({
   onUpdate: (id: string, updates: Partial<VideoInput>) => Promise<void>;
   onDelete: (id: string) => Promise<DeletedVideoStoragePaths>;
   onSaved: () => void;
+  capacity?: PlanCapacity | undefined;
+  plan?: PortfolioPlan | undefined;
 }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  if (capacity && plan && !capacity.available) {
+    return <LockedModuleNotice label="Videos" plan={plan} minimumPlanLabel="Silver" />;
+  }
+
+  const addDisabledReason =
+    capacity?.atLimit && plan
+      ? `You've reached your ${PLAN_LABELS[plan]} plan's limit of ${capacity.limit} videos. Upgrade for more capacity.`
+      : null;
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this video?")) return;
@@ -729,8 +754,15 @@ export function VideoManager({
           onCreate={onCreate}
           onUpdate={onUpdate}
           onSaved={onSaved}
+          addDisabledReason={addDisabledReason}
         />
       </div>
+
+      {capacity && plan && (
+        <div className="mt-3">
+          <PlanCapacityBar label="Videos" plan={plan} capacity={capacity} />
+        </div>
+      )}
 
       <div className="mt-6 space-y-3">
         {isLoading ? (

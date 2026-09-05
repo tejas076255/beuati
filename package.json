@@ -36,6 +36,7 @@
     "test:e2e:qa:admin-workspace": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/admin-workspace-integrated.spec.ts",
     "test:e2e:qa:lead-performance": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/lead-performance.spec.ts",
     "test:e2e:qa:portfolio-tracking": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/portfolio-tracking.spec.ts",
+    "test:e2e:qa:entitlements": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/entitlements.spec.ts",
     "qa:provision-identities": "node tests/projects/beautyfolio/scripts/provision-qa-identities.ts"
   },
   "dependencies": {

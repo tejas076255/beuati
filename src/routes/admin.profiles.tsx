@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Database } from "@/integrations/supabase/types";
+import { PLAN_LABELS, PORTFOLIO_PLANS, type PortfolioPlan } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/admin/profiles")({
   component: ProfilesPage,
@@ -61,6 +62,14 @@ const updateFlagsFn = createServerFn({ method: "POST" })
     await updateProfileFlags(context.supabase, context.userId, profileId, updates);
   });
 
+const updatePlanFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { profileId: string; plan: PortfolioPlan }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateProfilePlan } = await import("@/data/admin/profiles.server");
+    await updateProfilePlan(context.supabase, context.userId, data.profileId, data.plan);
+  });
+
 function statusBadgeVariant(status: Database["public"]["Enums"]["portfolio_status"]) {
   switch (status) {
     case "published":
@@ -84,6 +93,7 @@ function ProfilesPage() {
 
   const [verifiedFilter, setVerifiedFilter] = useState<string>(ALL);
   const [featuredFilter, setFeaturedFilter] = useState<string>(ALL);
+  const [planFilter, setPlanFilter] = useState<string>(ALL);
 
   const updateStatus = useMutation({
     mutationFn: (vars: {
@@ -106,6 +116,15 @@ function ProfilesPage() {
     onError: (error: Error) => toast.error(error.message || "Failed to update profile"),
   });
 
+  const updatePlan = useMutation({
+    mutationFn: (vars: { profileId: string; plan: PortfolioPlan }) => updatePlanFn({ data: vars }),
+    onSuccess: () => {
+      toast.success("Plan updated");
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update plan"),
+  });
+
   const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
 
   const filtered = useMemo(
@@ -115,9 +134,10 @@ function ProfilesPage() {
         if (verifiedFilter === NO && p.is_verified) return false;
         if (featuredFilter === YES && !p.is_featured) return false;
         if (featuredFilter === NO && p.is_featured) return false;
+        if (planFilter !== ALL && p.plan !== planFilter) return false;
         return true;
       }),
-    [profiles, verifiedFilter, featuredFilter],
+    [profiles, verifiedFilter, featuredFilter, planFilter],
   );
 
   return (
@@ -146,6 +166,19 @@ function ProfilesPage() {
             <SelectItem value={NO}>Not featured</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={planFilter} onValueChange={setPlanFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Plan" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>Plan: any</SelectItem>
+            {PORTFOLIO_PLANS.map((plan) => (
+              <SelectItem key={plan} value={plan}>
+                {PLAN_LABELS[plan]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
@@ -169,6 +202,7 @@ function ProfilesPage() {
                 <TableHead>Verified</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Plan</TableHead>
                 <TableHead>Manage</TableHead>
               </TableRow>
             </TableHeader>
@@ -239,6 +273,27 @@ function ProfilesPage() {
                         {STATUSES.map((status) => (
                           <SelectItem key={status} value={status}>
                             {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={profile.plan}
+                      onValueChange={(value) =>
+                        updatePlan.mutate({ profileId: profile.id, plan: value as PortfolioPlan })
+                      }
+                    >
+                      <SelectTrigger className="h-8 w-[130px]">
+                        <SelectValue>
+                          <Badge variant="outline">{PLAN_LABELS[profile.plan]}</Badge>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PORTFOLIO_PLANS.map((plan) => (
+                          <SelectItem key={plan} value={plan}>
+                            {PLAN_LABELS[plan]}
                           </SelectItem>
                         ))}
                       </SelectContent>

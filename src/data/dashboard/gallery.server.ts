@@ -117,6 +117,8 @@ export async function createPortfolioItemWithImages(
   input: GalleryItemInput,
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanAddGalleryPhotos } = await import("./plan-enforcement.server");
+  await assertOwnerCanAddGalleryPhotos(supabase, bpId, input.images.length);
   await createPortfolioItemForProfile(supabase, bpId, input);
 }
 
@@ -272,6 +274,8 @@ export async function addPortfolioImages(
   images: NewGalleryImage[],
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanAddGalleryPhotos } = await import("./plan-enforcement.server");
+  await assertOwnerCanAddGalleryPhotos(supabase, bpId, images.length);
   await addPortfolioImagesForProfile(supabase, bpId, itemId, images);
 }
 

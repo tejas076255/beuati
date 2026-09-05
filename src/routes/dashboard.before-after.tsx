@@ -9,6 +9,7 @@ import type {
   BeforeAfterItemWithImages,
   BeforeAfterPairInput,
 } from "@/data/dashboard/before-after.server";
+import { getPlanCapacity } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/dashboard/before-after")({
   component: BeforeAfterPage,
@@ -85,11 +86,19 @@ const updateImageAltFn = createServerFn({ method: "POST" })
     await updateImageAltText(context.supabase, context.userId, data.id, data.altText);
   });
 
+const getOwnPlanFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getOwnPortfolioPlan } = await import("@/data/dashboard/plan-enforcement.server");
+    return getOwnPortfolioPlan(context.supabase, context.userId);
+  });
+
 const OWN_BEFORE_AFTER_QUERY_KEY = ["own-before-after"];
 
 function BeforeAfterPage() {
   const queryClient = useQueryClient();
   const slugQuery = useQuery({ queryKey: ["own-slug"], queryFn: () => getSlugFn() });
+  const planQuery = useQuery({ queryKey: ["own-plan"], queryFn: () => getOwnPlanFn() });
   const itemsQuery = useQuery({
     queryKey: OWN_BEFORE_AFTER_QUERY_KEY,
     queryFn: () => listItemsFn(),
@@ -137,6 +146,12 @@ function BeforeAfterPage() {
         onUpdateImageAlt={(id, altText) => updateImageAltMutation.mutateAsync({ id, altText })}
         onDeleteItem={(item) => deleteItemMutation.mutateAsync(item)}
         onSaved={onSaved}
+        plan={planQuery.data}
+        capacity={
+          planQuery.data
+            ? getPlanCapacity(planQuery.data, "before_after_items", (itemsQuery.data ?? []).length)
+            : undefined
+        }
       />
     </div>
   );

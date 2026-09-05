@@ -201,6 +201,7 @@ async function runVideoLifecycle(browser: Browser, label: string): Promise<void>
   expect(proAId, "Professional A and B must be distinct").not.toBe(proBId);
 
   const originalStatus = proA["status"] as string;
+  const originalPlan = (proA["plan"] as string) ?? "free";
   const baselineCountA = await provider.countRows("portfolio_videos", {
     beautician_profile_id: proAId,
   });
@@ -224,12 +225,27 @@ async function runVideoLifecycle(browser: Browser, label: string): Promise<void>
   // a product defect: the same would happen on a real user's plain Cancel.
   let invalidAttemptThumbnailPath: string | null = null;
   let profileTemporarilyPublished = false;
+  let profileTemporarilyUpgraded = false;
 
   try {
     // ---- fixture prerequisite: make Professional A's public page reachable ----
     if (originalStatus !== "published") {
       await provider.updateRow("beautician_profiles", { id: proAId }, { status: "published" });
       profileTemporarilyPublished = true;
+    }
+
+    // ---- 5-tier entitlements — fixture prerequisite: Videos require
+    // Silver+ (Free and Starter both lock Videos at 0). This suite
+    // exercises the Video CRUD lifecycle itself, not entitlement caps
+    // (that's entitlements.spec.ts's job) — via the same safe service-role
+    // fixture path already used for `status` above (a NULL auth.uid()
+    // actor is exempt from the plan guard specifically so fixture setup
+    // like this keeps working; see the plan-entitlements migration).
+    // Free/Starter-plan rejection for Videos remains covered exclusively
+    // by entitlements.spec.ts.
+    if (originalPlan !== "silver") {
+      await provider.updateRow("beautician_profiles", { id: proAId }, { plan: "silver" });
+      profileTemporarilyUpgraded = true;
     }
 
     const adminCtx = await browser.newContext({ storageState: `${AUTH_DIR}/qa-admin.json` });
@@ -575,10 +591,14 @@ async function runVideoLifecycle(browser: Browser, label: string): Promise<void>
     if (profileTemporarilyPublished) {
       await provider.updateRow("beautician_profiles", { id: proAId }, { status: originalStatus });
     }
+    if (profileTemporarilyUpgraded) {
+      await provider.updateRow("beautician_profiles", { id: proAId }, { plan: originalPlan });
+    }
     const restored = await provider.getRow("beautician_profiles", { id: proAId });
     expect(restored!["status"], "Professional A profile status must be restored exactly").toBe(
       originalStatus,
     );
+    expect(restored!["plan"], "Professional A plan must be restored exactly").toBe(originalPlan);
   }
 
   timings.push({ label, ms: Date.now() - start });
@@ -608,6 +628,44 @@ test.describe
 // QA-side fallback deletion — proving the fix, not just tolerating the
 // defect.
 test.describe.serial("Videos thumbnail orphan-fix regression @crud @videos @storage", () => {
+  // 5-tier entitlements — this whole block creates real video rows via
+  // Admin against professional A, so (like the lifecycle describe above)
+  // it needs Silver+ for the duration. Handled once for the whole block
+  // via beforeAll/afterAll rather than per-test, since every test here
+  // targets the same professional and none of them exercise plan behavior
+  // itself (that remains entitlements.spec.ts's job).
+  let orphanFixOriginalPlan = "free";
+  let orphanFixProfileTemporarilyUpgraded = false;
+
+  test.beforeAll(async () => {
+    const { provider } = runDestructiveQaPreflight();
+    const proASlug = beautyfolioProject.qaIdentities.professionalA.slug;
+    const proA = await provider.getRow("beautician_profiles", { slug: proASlug });
+    if (!proA) throw new Error("QA professional fixture not found.");
+    orphanFixOriginalPlan = (proA["plan"] as string) ?? "free";
+    if (orphanFixOriginalPlan !== "silver") {
+      await provider.updateRow(
+        "beautician_profiles",
+        { id: proA["id"] as string },
+        { plan: "silver" },
+      );
+      orphanFixProfileTemporarilyUpgraded = true;
+    }
+  });
+
+  test.afterAll(async () => {
+    if (!orphanFixProfileTemporarilyUpgraded) return;
+    const { provider } = runDestructiveQaPreflight();
+    const proASlug = beautyfolioProject.qaIdentities.professionalA.slug;
+    const proA = await provider.getRow("beautician_profiles", { slug: proASlug });
+    if (!proA) return;
+    await provider.updateRow(
+      "beautician_profiles",
+      { id: proA["id"] as string },
+      { plan: orphanFixOriginalPlan },
+    );
+  });
+
   test("close via X deletes the pending thumbnail (§18)", async ({ browser }) => {
     const start = Date.now();
     const { provider } = runDestructiveQaPreflight();

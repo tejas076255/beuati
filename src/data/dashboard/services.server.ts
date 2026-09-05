@@ -141,6 +141,8 @@ export async function createService(
   input: ServiceInput,
 ): Promise<void> {
   const bpId = await getOwnBeauticianProfileId(supabase, userId);
+  const { assertOwnerCanCreate } = await import("./plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, bpId, "services");
   await createServiceForProfile(supabase, bpId, input);
 }
 

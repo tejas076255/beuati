@@ -52,6 +52,8 @@ export async function createBeforeAfterPairAdmin(
   input: BeforeAfterPairInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanCreate } = await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, targetProfileId, "before_after_items");
   const { createBeforeAfterPairForProfile } = await import("@/data/dashboard/before-after.server");
   const newId = await createBeforeAfterPairForProfile(supabase, targetProfileId, input);
 

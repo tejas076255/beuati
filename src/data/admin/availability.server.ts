@@ -158,6 +158,8 @@ export async function createServiceAreaAdmin(
   input: ServiceAreaInput,
 ): Promise<void> {
   await assertIsAdmin(supabase, adminUserId);
+  const { assertOwnerCanCreate } = await import("@/data/dashboard/plan-enforcement.server");
+  await assertOwnerCanCreate(supabase, targetProfileId, "service_areas");
   const { createServiceAreaForProfile } = await import("@/data/dashboard/service-areas.server");
   await createServiceAreaForProfile(supabase, targetProfileId, input);
 }
