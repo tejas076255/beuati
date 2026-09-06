@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/home/motion-primitives";
@@ -19,19 +20,11 @@ export function FinalCta() {
               Start Building Your Digital Beauty Brand Today.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-primary-foreground/85">
-              Join 12,400+ Indian beauty professionals turning Google searches into direct,
-              commission-free bookings.
+              Turn Google searches into direct, commission-free bookings.
             </p>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <Button variant="invert" size="xl">
-                Create Free Portfolio
-              </Button>
-              <Button
-                variant="ghost"
-                size="xl"
-                className="border border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-              >
-                Book Demo
+              <Button variant="invert" size="xl" asChild>
+                <Link to="/signup">Create Free Portfolio</Link>
               </Button>
             </div>
 

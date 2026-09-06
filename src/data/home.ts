@@ -10,60 +10,17 @@ export const navLinks = [
   { label: "Features", href: "#features" },
   { label: "Portfolio", href: "#portfolio" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Resources", href: "#how-it-works" },
-  { label: "Blog", href: "#stories" },
+  { label: "How it works", href: "#how-it-works" },
   { label: "About", href: "#why" },
 ];
 
-export const heroTrustSignals = [
-  "Free to start",
-  "No credit card required",
-  "Ready in 10 minutes",
-];
+export const heroTrustSignals = ["Free to start", "No credit card required", "Ready in 10 minutes"];
 
 export const heroBadges = [
   "Free Forever Plan",
   "SEO Optimized",
   "Mobile Friendly",
   "No Technical Skills Required",
-];
-
-export const stats = [
-  {
-    value: 12400,
-    suffix: "+",
-    label: "Beauticians Joined",
-    detail: "Artists, salons and academies building an owned digital identity.",
-    icon: "Users",
-  },
-  {
-    value: 180,
-    suffix: "+",
-    label: "Cities Covered",
-    detail: "From metros to tier-3 towns with real local search demand.",
-    icon: "MapPin",
-  },
-  {
-    value: 2400000,
-    suffix: "+",
-    label: "Portfolio Views",
-    detail: "Search-driven visits landing on portfolios, not feeds.",
-    icon: "Eye",
-  },
-  {
-    value: 460000,
-    suffix: "+",
-    label: "Monthly Visitors",
-    detail: "High-intent clients actively looking to book a professional.",
-    icon: "TrendingUp",
-  },
-  {
-    value: 38000,
-    suffix: "+",
-    label: "Verified Reviews",
-    detail: "Structured reviews that feed rich snippets and AI answers.",
-    icon: "Star",
-  },
 ];
 
 export const instagramJourney = [
@@ -78,52 +35,66 @@ export const googleJourney = [
   { step: "Booking", detail: "She calls or WhatsApps you directly." },
 ];
 
+// Capability-oriented labels only — no ranking position, local-pack
+// placement, or citation-count numbers, since none of those are
+// measurable/guaranteed outcomes this product can verify or promise.
 export const discoverySurfaces = [
   {
     title: "Google Search",
     detail:
-      "Every portfolio ships with schema-backed service, city and area pages, so you rank for the exact phrases brides type at midnight.",
-    metric: "Position #2",
+      "Every portfolio ships with schema-backed service and location details, so Google understands exactly what you offer and where.",
+    metric: "Search-ready structure",
     icon: "Search",
     kind: "serp",
   },
   {
     title: "Google Maps & Local",
     detail:
-      "Service-area pages reinforce your Google Business Profile and push you into the three-result local pack that gets the calls.",
-    metric: "Top 3 local pack",
+      "Your service areas and business details are structured consistently to support your existing Google Business Profile.",
+    metric: "Local business signals",
     icon: "MapPin",
     kind: "score",
   },
   {
     title: "AI Search Answers",
     detail:
-      "Answer-first, structured content that ChatGPT, Gemini and AI Overviews can quote — and recommend you by name.",
-    metric: "Cited 41 times",
+      "Answer-first, structured content that AI assistants like ChatGPT and Gemini can read and quote.",
+    metric: "AI-crawlable content",
     icon: "Sparkles",
     kind: "chart",
   },
 ];
 
+// Illustrative example only — a mockup of what a well-optimized search
+// result and portfolio page can look like, not a real customer's data.
+// The `outcomes` list is deliberately capability-oriented rather than a
+// specific percentage, since no such figure has a verified source.
 export const searchVisibility = {
   query: "Bridal Makeup Artist in Ahmedabad",
   result: {
     rank: "#3",
     source: "BeautyFolio Portfolio",
-    breadcrumb: "beautyfolio.in › riya-patel › bridal-makeup-ahmedabad",
-    title: "Riya Patel — Bridal Makeup Artist in Ahmedabad | BeautyFolio",
+    breadcrumb: "beautyfolio.in › your-name › bridal-makeup-ahmedabad",
+    title: "Your Name — Bridal Makeup Artist in Ahmedabad | BeautyFolio",
     description:
-      "12 years of bridal experience. HD & airbrush bridal packages from ₹18,000. 120 verified reviews. Book directly on WhatsApp — no commission.",
+      "12 years of bridal experience. HD & airbrush bridal packages from ₹18,000. Book directly on WhatsApp — no commission.",
     rating: "4.9",
-    reviews: "120 reviews",
-    chips: ["12 Years Experience", "HD & Airbrush", "Serving 12 areas", "Book Now"],
+    reviews: "Client reviews",
+    chips: ["Years of experience", "HD & Airbrush", "Serving your areas", "Book Now"],
   },
   outcomes: [
-    { label: "Portfolio Views", delta: "+312%", detail: "First 6 months after ranking on page 1" },
-    { label: "WhatsApp Enquiries", delta: "+180%", detail: "One-tap enquiries, zero commission" },
+    {
+      label: "Portfolio Views",
+      delta: "Search-driven",
+      detail: "Visits from people actively searching, not a social feed",
+    },
+    {
+      label: "WhatsApp Enquiries",
+      delta: "Direct to you",
+      detail: "One-tap enquiries, zero commission",
+    },
   ],
 };
-
 
 export const instagramLimits = [
   "Algorithm decides who sees your work",
@@ -149,7 +120,7 @@ export const features = [
   },
   {
     title: "Local SEO",
-    description: "City, area and service pages tuned for “bridal makeup near me” searches.",
+    description: "Service and location details tuned for “bridal makeup near me” searches.",
     icon: "MapPin",
   },
   {
@@ -159,7 +130,7 @@ export const features = [
   },
   {
     title: "Reviews",
-    description: "Collect, display and syndicate client reviews that build instant trust.",
+    description: "Showcase client testimonials that build instant trust.",
     icon: "Star",
   },
   {
@@ -174,7 +145,7 @@ export const features = [
   },
   {
     title: "Analytics",
-    description: "See views, keywords, calls and enquiries in one simple dashboard.",
+    description: "See portfolio views, calls and enquiries in one simple dashboard.",
     icon: "BarChart3",
   },
   {
@@ -191,8 +162,14 @@ export const features = [
 
 export const steps = [
   { title: "Create Account", detail: "Sign up free in under a minute — no card, no code." },
-  { title: "Build Portfolio", detail: "Add services, gallery, packages and reviews with guided prompts." },
-  { title: "Rank on Google", detail: "We handle SEO, schema, speed and local optimisation for you." },
+  {
+    title: "Build Portfolio",
+    detail: "Add services, gallery, packages and reviews with guided prompts.",
+  },
+  {
+    title: "Rank on Google",
+    detail: "We handle SEO, schema, speed and local optimisation for you.",
+  },
   { title: "Receive Enquiries", detail: "Clients call or WhatsApp you directly. Zero commission." },
   { title: "Grow Business", detail: "Track what works and scale with content and reputation." },
 ];
@@ -205,72 +182,32 @@ export const bento = [
     icon: "Search",
     kind: "rank",
   },
-  { title: "Google Business Ready", detail: "Sync profile, service areas and hours.", icon: "MapPin" },
-  { title: "AI Search Ready", detail: "Answer-first content built for AI assistants.", icon: "Sparkles", kind: "ai" },
-  { title: "Portfolio Builder", detail: "Drag, drop, publish. No design skills needed.", icon: "LayoutTemplate" },
-  { title: "Analytics", detail: "Rankings, views and enquiry sources at a glance.", icon: "BarChart3", kind: "chart" },
-  { title: "Reviews", detail: "Verified testimonials with rich snippets.", icon: "Star" },
-  { title: "Blog", detail: "Publish authority content that keeps ranking.", icon: "PenLine" },
+  {
+    title: "AI Search Ready",
+    detail: "Answer-first content built for AI assistants.",
+    icon: "Sparkles",
+    kind: "ai",
+  },
+  {
+    title: "Portfolio Builder",
+    detail: "Drag, drop, publish. No design skills needed.",
+    icon: "LayoutTemplate",
+  },
+  {
+    title: "Analytics",
+    detail: "Views and enquiry sources at a glance.",
+    icon: "BarChart3",
+    kind: "chart",
+  },
+  { title: "Reviews", detail: "Client testimonials with rich snippets.", icon: "Star" },
   { title: "Personal Branding", detail: "A brand that looks as good as your work.", icon: "Crown" },
-  { title: "Fast Loading", detail: "Sub-second pages on Indian mobile networks.", icon: "Zap" },
-  { title: "Professional Design", detail: "Premium templates crafted for beauty.", icon: "Palette" },
-  { title: "Custom Domain Ready", detail: "Bring yourname.in whenever you\u2019re ready.", icon: "Globe" },
-];
-
-export const testimonials = [
+  { title: "Fast Loading", detail: "Built for fast performance on mobile networks.", icon: "Zap" },
   {
-    name: "Ritika Sharma",
-    role: "Bridal Makeup Artist",
-    location: "Ahmedabad, Gujarat",
-    quote:
-      "I had 40k Instagram followers and barely 3 bridal bookings a month. Within 90 days on BeautyFolio I ranked on page one for \u201cbridal makeup artist Ahmedabad\u201d.",
-    metric: "3 \u2192 19 bookings / month",
-    timeline: "90 days on BeautyFolio",
-    beforeState: ["Instagram only", "2 leads a month", "Invisible on Google"],
-    outcomes: [
-      { label: "Google ranking", value: "#2", note: "bridal makeup Ahmedabad" },
-      { label: "Portfolio views", value: "4,318", note: "per month" },
-      { label: "Enquiries", value: "47", note: "from 2 / month" },
-      { label: "Revenue", value: "+218%", note: "vs. last season" },
-    ],
-    rating: 5,
-  },
-  {
-    name: "Meera Nair",
-    role: "Salon Owner",
-    location: "Kochi, Kerala",
-    quote:
-      "Google now sends me clients who are ready to book. My portfolio does the selling before they even call the salon.",
-    metric: "6.4\u00d7 more enquiries",
-    timeline: "6 months on BeautyFolio",
-    beforeState: ["Walk-ins only", "90 site visits a month", "No local pack presence"],
-    outcomes: [
-      { label: "Google ranking", value: "Top 3", note: "Kochi local pack" },
-      { label: "Portfolio views", value: "2,140", note: "per month" },
-      { label: "Enquiries", value: "6.4\u00d7", note: "vs. before" },
-      { label: "Revenue", value: "+164%", note: "salon bookings" },
-    ],
-    rating: 5,
-  },
-  {
-    name: "Arjun Deshmukh",
-    role: "Hair Stylist & Academy",
-    location: "Pune, Maharashtra",
-    quote:
-      "Zero commissions, zero middlemen. My academy admissions come straight to WhatsApp from search.",
-    metric: "\u20b94.2L extra revenue",
-    timeline: "4 months on BeautyFolio",
-    beforeState: ["Paid ads only", "6 admissions a batch", "Leads lost in DMs"],
-    outcomes: [
-      { label: "Google ranking", value: "#1", note: "hair academy Pune" },
-      { label: "Portfolio views", value: "3,020", note: "per month" },
-      { label: "Admissions", value: "31", note: "per batch" },
-      { label: "Revenue", value: "\u20b94.2L", note: "extra this year" },
-    ],
-    rating: 5,
+    title: "Professional Design",
+    detail: "Premium templates crafted for beauty.",
+    icon: "Palette",
   },
 ];
-
 
 export const plans = [
   {
@@ -278,21 +215,32 @@ export const plans = [
     monthly: 0,
     yearly: 0,
     tagline: "Get discoverable",
-    features: ["Portfolio page", "Gallery (12 photos)", "WhatsApp button", "Basic SEO"],
+    features: [
+      "Portfolio page",
+      "Up to 5 services",
+      "Gallery (12 photos)",
+      "WhatsApp button",
+      "Basic SEO",
+    ],
   },
   {
     name: "Starter",
     monthly: 399,
     yearly: 3990,
     tagline: "Look professional",
-    features: ["Everything in Free", "Services & packages", "Reviews module", "Basic analytics"],
+    features: ["Everything in Free", "Packages", "Reviews", "Higher content limits"],
   },
   {
     name: "Silver",
     monthly: 799,
     yearly: 7990,
     tagline: "Get found locally",
-    features: ["Everything in Starter", "Local SEO pages", "Google Business sync", "Video section"],
+    features: [
+      "Everything in Starter",
+      "Video section",
+      "Advanced tracking support",
+      "Higher content limits",
+    ],
     popular: true,
   },
   {
@@ -300,22 +248,29 @@ export const plans = [
     monthly: 1499,
     yearly: 14990,
     tagline: "Build authority",
-    features: ["Everything in Silver", "Blog & content engine", "AI search optimisation", "Priority support"],
+    features: ["Everything in Silver", "Higher content limits across every module"],
   },
   {
     name: "Platinum",
     monthly: 2999,
     yearly: 29990,
-    tagline: "Dominate your city",
-    features: ["Everything in Gold", "Custom domain", "Dedicated SEO manager", "Monthly growth report"],
+    tagline: "Maximum visibility",
+    features: ["Everything in Gold", "Highest content limits across every module"],
   },
 ];
 
+// Every row below corresponds to a real, code-enforced distinction in
+// src/lib/plan-limits.ts — never a claim without a matching entitlement.
 export const planComparison: { label: string; values: (string | boolean)[] }[] = [
-  { label: "Portfolio pages", values: ["1", "1", "3", "8", "Unlimited"] },
-  { label: "Local SEO pages", values: [false, false, true, true, true] },
-  { label: "AI search optimisation", values: [false, false, false, true, true] },
-  { label: "Custom domain", values: [false, false, false, false, true] },
+  { label: "Services", values: ["5", "10", "20", "50", "150"] },
+  { label: "Packages", values: ["—", "5", "15", "40", "100"] },
+  { label: "Gallery photos", values: ["12", "30", "75", "150", "300"] },
+  { label: "Before & after pairs", values: ["3", "10", "25", "60", "120"] },
+  { label: "Videos", values: ["—", "—", "5", "15", "30"] },
+  { label: "FAQs", values: ["5", "10", "20", "40", "80"] },
+  { label: "Service areas", values: ["3", "8", "20", "50", "100"] },
+  { label: "Reviews", values: ["—", "20", "50", "100", "200"] },
+  { label: "Advanced tracking support", values: [false, false, true, true, true] },
   { label: "Commission on bookings", values: ["0%", "0%", "0%", "0%", "0%"] },
 ];
 
@@ -334,7 +289,7 @@ export const faqs = [
   },
   {
     q: "Is the free plan really free?",
-    a: "Yes. The Free Forever plan includes a live portfolio, gallery and WhatsApp enquiries with no card required. Upgrade only when you want deeper SEO and growth tools.",
+    a: "Yes. The Free Forever plan includes a live portfolio, gallery and WhatsApp enquiries with no card required. Move to a paid plan later if you want higher content limits and more capacity.",
   },
   {
     q: "Do you take commission on my bookings?",
@@ -342,41 +297,32 @@ export const faqs = [
   },
   {
     q: "Will my portfolio work well on mobile?",
-    a: "Most of your clients search on mobile, so every portfolio is mobile-first, loads in under a second and is designed for one-tap calling and WhatsApp.",
+    a: "Most of your clients search on mobile, so every portfolio is mobile-first and designed for one-tap calling and WhatsApp.",
   },
   {
-    q: "Can I upgrade or add a custom domain later?",
-    a: "Yes. You can move between plans anytime and connect your own domain on Platinum. Your content, rankings and reviews carry over.",
+    q: "Can I upgrade my plan later?",
+    a: "Yes. You can move between plans anytime. Paid plan upgrades are currently activated by the BeautyFolio team — self-serve payments are coming later. Your content and reviews carry over.",
   },
 ];
 
-export const footerColumns = [
+// Every link below points to a real, existing destination (an in-app
+// route or an actual anchor on this page) — no placeholder links. A
+// column/link is included only if it has one; see the implementation
+// report for what was removed and why (Blog, Careers, Privacy Policy,
+// etc. have no real destination yet).
+export const footerColumns: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Platform",
-    links: ["Portfolio Builder", "Local SEO", "Google Business Sync", "Reviews", "Analytics", "WhatsApp Leads"],
-  },
-  {
-    title: "Resources",
     links: [
-      "Blog",
-      "SEO Learning Center",
-      "SEO Guides",
-      "Portfolio Templates",
-      "Beauty Academy",
-      "Portfolio Examples",
-      "Keyword Ideas",
+      { label: "Portfolio Builder", href: "#portfolio" },
+      { label: "Local SEO", href: "#discovery" },
+      { label: "Reviews", href: "#features" },
+      { label: "Analytics", href: "#features" },
+      { label: "WhatsApp Leads", href: "#features" },
     ],
   },
-
   {
-    title: "For Professionals",
-    links: ["Bridal Makeup Artists", "Salon Owners", "Hair Stylists", "Nail Artists", "Mehndi Artists", "Academies"],
+    title: "Company",
+    links: [{ label: "About", href: "#why" }],
   },
-  { title: "Company", links: ["About", "Careers", "Partners", "Press", "Contact"] },
-  {
-    title: "Support",
-    links: ["Help Center", "Book a Demo", "WhatsApp Support", "Community", "Partner Program", "Roadmap", "Status"],
-  },
-  { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Refund Policy", "Sitemap"] },
-
 ];

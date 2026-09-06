@@ -23,9 +23,7 @@ function SurfaceVisual({ kind }: { kind?: string | undefined }) {
               <span
                 className={
                   "flex h-6 w-6 items-center justify-center rounded-lg font-semibold " +
-                  (r.ok
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground")
+                  (r.ok ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")
                 }
               >
                 {r.n}

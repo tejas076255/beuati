@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  BarChart3,
-  Check,
-  MessageCircle,
-  Sparkles,
-  Star,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { BarChart3, Check, MessageCircle, Sparkles, Star, TrendingUp, Users } from "lucide-react";
+
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { DeviceSwitcher } from "@/components/home/device-switcher";
@@ -53,7 +47,6 @@ const floatCards = [
     pos: "right-2 bottom-32 sm:right-4",
   },
 ];
-
 
 const enquiries = [
   "Priya · Bridal trial, 14 Feb",
@@ -166,8 +159,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.22 }}
             className="mt-9 flex flex-wrap gap-3"
           >
-            <Button variant="hero" size="xl">
-              Create My Free Portfolio
+            <Button variant="hero" size="xl" asChild>
+              <Link to="/signup">Create My Free Portfolio</Link>
             </Button>
             <Button variant="softline" size="xl" asChild>
               <a href="#how-it-works">See How It Works</a>
@@ -215,7 +208,11 @@ export function Hero() {
 
         <div className="relative">
           <div className="mb-4 flex justify-center lg:justify-end">
-            <DeviceSwitcher value={device} onChange={setDevice} label="Hero portfolio preview device" />
+            <DeviceSwitcher
+              value={device}
+              onChange={setDevice}
+              label="Hero portfolio preview device"
+            />
           </div>
 
           <div className="relative px-2 pb-8">
@@ -255,7 +252,6 @@ export function Hero() {
                       ) : (
                         value
                       )}
-
                     </p>
                   </div>
                 </div>

@@ -5,7 +5,6 @@ import { safeJsonLd } from "@/lib/json-ld";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Hero } from "@/components/home/hero";
-import { SocialProof } from "@/components/home/social-proof";
 import { ProblemSection } from "@/components/home/problem-section";
 import { SolutionSection } from "@/components/home/solution-section";
 import { DiscoverySection } from "@/components/home/discovery-section";
@@ -14,7 +13,6 @@ import { PortfolioShowcase } from "@/components/home/portfolio-showcase";
 
 import { HowItWorks } from "@/components/home/how-it-works";
 import { WhyBeautyFolio } from "@/components/home/why-beautyfolio";
-import { SuccessStories } from "@/components/home/success-stories";
 import { PricingPreview } from "@/components/home/pricing-preview";
 import { FaqSection } from "@/components/home/faq-section";
 import { FinalCta } from "@/components/home/final-cta";
@@ -82,7 +80,6 @@ function HomePage() {
       <SiteHeader />
       <main>
         <Hero />
-        <SocialProof />
         <ProblemSection />
         <DiscoverySection />
         <SolutionSection />
@@ -91,7 +88,6 @@ function HomePage() {
 
         <HowItWorks />
         <WhyBeautyFolio />
-        <SuccessStories />
         <PricingPreview />
         <FaqSection />
         <FinalCta />

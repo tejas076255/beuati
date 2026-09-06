@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Minus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/home/motion-primitives";
@@ -15,10 +16,14 @@ export function PricingPreview() {
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="eyebrow">Pricing</span>
           <h2 className="mt-5 text-3xl font-semibold sm:text-4xl">
-            Start free. Upgrade when Google starts sending clients.
+            Start free. Grow into more capacity as you need it.
           </h2>
           <p className="mt-4 text-muted-foreground">
             No commissions on any plan — every enquiry belongs to you.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Paid plan upgrades are currently activated by the BeautyFolio team. Self-serve payments
+            are coming later.
           </p>
         </Reveal>
 
@@ -83,13 +88,20 @@ export function PricingPreview() {
                   <ul className="mt-6 flex-1 space-y-3">
                     {plan.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                        <Check
+                          className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                          aria-hidden="true"
+                        />
                         {f}
                       </li>
                     ))}
                   </ul>
-                  <Button variant={plan.popular ? "hero" : "softline"} className="mt-6 w-full">
-                    {plan.name === "Free" ? "Create Free Portfolio" : `Choose ${plan.name}`}
+                  <Button
+                    variant={plan.popular ? "hero" : "softline"}
+                    className="mt-6 w-full"
+                    asChild
+                  >
+                    <Link to="/signup">Start Free</Link>
                   </Button>
                 </article>
               </Reveal>
@@ -143,8 +155,8 @@ export function PricingPreview() {
         </Reveal>
 
         <Reveal className="mt-10 text-center">
-          <Button variant="plum" size="lg">
-            View Pricing
+          <Button variant="plum" size="lg" asChild>
+            <Link to="/signup">Start Free</Link>
           </Button>
         </Reveal>
       </div>

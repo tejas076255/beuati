@@ -1,16 +1,5 @@
-import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/site/logo";
 import { footerColumns } from "@/data/home";
-
-const socials = [
-  { label: "Instagram", Icon: Instagram },
-  { label: "Facebook", Icon: Facebook },
-  { label: "YouTube", Icon: Youtube },
-  { label: "LinkedIn", Icon: Linkedin },
-];
 
 export function SiteFooter() {
   return (
@@ -23,40 +12,6 @@ export function SiteFooter() {
               India&rsquo;s digital growth platform for beauty professionals. Portfolios, local SEO
               and direct enquiries — never commissions.
             </p>
-
-            <form
-              className="mt-6 flex max-w-sm gap-2"
-              onSubmit={(e) => e.preventDefault()}
-              aria-label="Newsletter signup"
-            >
-              <label htmlFor="newsletter-email" className="sr-only">
-                Email address
-              </label>
-              <Input
-                id="newsletter-email"
-                type="email"
-                required
-                placeholder="you@salon.in"
-                className="h-11"
-              />
-              <Button type="submit" variant="hero" className="h-11">
-                Subscribe
-              </Button>
-            </form>
-
-            <ul className="mt-6 flex gap-2">
-              {socials.map(({ label, Icon }) => (
-                <li key={label}>
-                  <a
-                    href="#top"
-                    aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background transition-colors hover:border-primary/40"
-                  >
-                    <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
 
           <nav aria-label="Footer" className="hidden gap-8 sm:grid sm:grid-cols-3 lg:grid-cols-5">
@@ -65,12 +20,12 @@ export function SiteFooter() {
                 <h3 className="text-sm font-semibold">{col.title}</h3>
                 <ul className="mt-4 space-y-2.5">
                   {col.links.map((link) => (
-                    <li key={link}>
+                    <li key={link.label}>
                       <a
-                        href="#top"
+                        href={link.href}
                         className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        {link}
+                        {link.label}
                       </a>
                     </li>
                   ))}
@@ -80,7 +35,10 @@ export function SiteFooter() {
           </nav>
 
           {/* Mobile: collapsible groups */}
-          <nav aria-label="Footer" className="-mt-4 divide-y divide-border border-y border-border sm:hidden">
+          <nav
+            aria-label="Footer"
+            className="-mt-4 divide-y divide-border border-y border-border sm:hidden"
+          >
             {footerColumns.map((col) => (
               <details key={col.title} className="group">
                 <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-[15px] font-semibold">
@@ -94,12 +52,12 @@ export function SiteFooter() {
                 </summary>
                 <ul className="pb-3">
                   {col.links.map((link) => (
-                    <li key={link}>
+                    <li key={link.label}>
                       <a
-                        href="#top"
+                        href={link.href}
                         className="flex min-h-11 items-center text-[15px] text-muted-foreground"
                       >
-                        {link}
+                        {link.label}
                       </a>
                     </li>
                   ))}
@@ -107,7 +65,6 @@ export function SiteFooter() {
               </details>
             ))}
           </nav>
-
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
