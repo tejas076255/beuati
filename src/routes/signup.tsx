@@ -41,6 +41,12 @@ function SignupPage() {
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  // Only set when Supabase itself explicitly discloses a duplicate account
+  // (its `user_already_exists` error code — see the onSubmit comment below).
+  // Distinct from confirmationSent so the two states can carry different,
+  // deliberately-worded copy without either one leaking more than Supabase
+  // itself already chose to.
+  const [duplicateEmail, setDuplicateEmail] = useState(false);
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: { display_name: "", email: "", password: "" },
@@ -48,12 +54,23 @@ function SignupPage() {
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setFormError(null);
+    setDuplicateEmail(false);
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: { data: { display_name: values.display_name } },
     });
     if (error) {
+      // Supabase only returns this specific, structured error code when its
+      // own project config has decided disclosure is safe (Confirm email OR
+      // Confirm phone disabled) — see the GoTrue SDK's own documented
+      // behavior for signUp(). We key off this stable `.code`, never a
+      // message substring, and only map this one documented case to
+      // friendlier copy; every other error is shown exactly as before.
+      if (error.code === "user_already_exists") {
+        setDuplicateEmail(true);
+        return;
+      }
       setFormError(error.message);
       return;
     }
@@ -68,8 +85,13 @@ function SignupPage() {
       navigate({ to: "/dashboard/profile" });
       return;
     }
-    // No session yet: the project requires email confirmation before sign-in.
-    // Provisioning happens later, in the dashboard layout, once they do log in.
+    // No session yet. This covers two cases Supabase deliberately makes
+    // indistinguishable when both Confirm email and Confirm phone are
+    // enabled: a genuine new signup awaiting confirmation, and an
+    // obfuscated response for an email that already has an account. The
+    // visible message must therefore be identical either way — only the
+    // secondary links below are always shown, giving a genuine existing
+    // user an escape hatch without the message itself confirming anything.
     setConfirmationSent(true);
   };
 
@@ -81,14 +103,44 @@ function SignupPage() {
           <CardDescription>Sign up to manage your portfolio leads.</CardDescription>
         </CardHeader>
         <CardContent>
-          {confirmationSent ? (
-            <p role="status" className="text-sm text-muted-foreground">
-              Check your email to confirm your account, then{" "}
-              <Link to="/login" className="font-semibold text-primary">
-                sign in
-              </Link>
-              .
-            </p>
+          {duplicateEmail ? (
+            <div className="space-y-3">
+              <p role="status" className="text-sm text-muted-foreground">
+                It looks like you already have an account with this email.
+              </p>
+              <div className="flex flex-col gap-1 text-sm">
+                <Link to="/login" className="font-semibold text-primary">
+                  Sign in instead
+                </Link>
+                <Link to="/forgot-password" className="font-semibold text-primary">
+                  Forgot your password? Reset it
+                </Link>
+              </div>
+            </div>
+          ) : confirmationSent ? (
+            <div className="space-y-3">
+              <p role="status" className="text-sm text-muted-foreground">
+                Check your email to confirm your account, then{" "}
+                <Link to="/login" className="font-semibold text-primary">
+                  sign in
+                </Link>
+                .
+              </p>
+              <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                <span>
+                  Already registered?{" "}
+                  <Link to="/login" className="font-semibold text-primary">
+                    Sign in
+                  </Link>
+                </span>
+                <span>
+                  Forgot your password?{" "}
+                  <Link to="/forgot-password" className="font-semibold text-primary">
+                    Reset it
+                  </Link>
+                </span>
+              </div>
+            </div>
           ) : (
             <>
               <Form {...form}>

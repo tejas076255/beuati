@@ -38,6 +38,7 @@
     "test:e2e:qa:portfolio-tracking": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/portfolio-tracking.spec.ts",
     "test:e2e:qa:entitlements": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/entitlements.spec.ts",
     "test:e2e:qa:completion-score": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/completion-score.spec.ts",
+    "test:e2e:qa:auth-completeness": "playwright test --config=playwright.qa.config.ts --project=qa-setup --project=qa-crud tests/e2e-qa/crud/auth-completeness.spec.ts",
     "qa:provision-identities": "node tests/projects/beautyfolio/scripts/provision-qa-identities.ts"
   },
   "dependencies": {

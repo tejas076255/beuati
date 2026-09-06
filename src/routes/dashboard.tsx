@@ -110,7 +110,7 @@ const NAV_GROUPS: {
   },
   {
     heading: "Account",
-    items: [{ label: "Settings", icon: Settings, to: undefined }],
+    items: [{ label: "Settings", icon: Settings, to: "/dashboard/settings" }],
   },
 ];
 

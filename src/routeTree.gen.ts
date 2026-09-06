@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
@@ -32,6 +34,7 @@ import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile
 import { Route as DashboardReviewsRouteImport } from './routes/dashboard.reviews'
 import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
 import { Route as DashboardServicesRouteImport } from './routes/dashboard.services'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardVideosRouteImport } from './routes/dashboard.videos'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as AdminBeauticiansSlugRouteImport } from './routes/admin.beauticians.$slug'
@@ -52,9 +55,19 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -152,6 +165,11 @@ const DashboardServicesRoute = DashboardServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardVideosRoute = DashboardVideosRouteImport.update({
   id: '/videos',
   path: '/videos',
@@ -178,7 +196,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/leads': typeof AdminLeadsRoute
@@ -197,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reviews': typeof DashboardReviewsRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/services': typeof DashboardServicesRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -206,7 +227,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/leads': typeof AdminLeadsRoute
@@ -225,6 +248,7 @@ export interface FileRoutesByTo {
   '/dashboard/reviews': typeof DashboardReviewsRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/services': typeof DashboardServicesRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin': typeof AdminIndexRoute
@@ -236,7 +260,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/leads': typeof AdminLeadsRoute
@@ -255,6 +281,7 @@ export interface FileRoutesById {
   '/dashboard/reviews': typeof DashboardReviewsRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/services': typeof DashboardServicesRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -267,7 +294,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/admin/audit-logs'
     | '/admin/leads'
@@ -286,6 +315,7 @@ export interface FileRouteTypes {
     | '/dashboard/reviews'
     | '/dashboard/seo'
     | '/dashboard/services'
+    | '/dashboard/settings'
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin/'
@@ -295,7 +325,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/admin/audit-logs'
     | '/admin/leads'
@@ -314,6 +346,7 @@ export interface FileRouteTypes {
     | '/dashboard/reviews'
     | '/dashboard/seo'
     | '/dashboard/services'
+    | '/dashboard/settings'
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin'
@@ -324,7 +357,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/admin/audit-logs'
     | '/admin/leads'
@@ -343,6 +378,7 @@ export interface FileRouteTypes {
     | '/dashboard/reviews'
     | '/dashboard/seo'
     | '/dashboard/services'
+    | '/dashboard/settings'
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin/'
@@ -354,7 +390,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   PortfolioSlugServicesServiceSlugRoute: typeof PortfolioSlugServicesServiceSlugRoute
@@ -383,11 +421,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -523,6 +575,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardServicesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/videos': {
       id: '/dashboard/videos'
       path: '/videos'
@@ -590,6 +649,7 @@ interface DashboardRouteChildren {
   DashboardReviewsRoute: typeof DashboardReviewsRoute
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardServicesRoute: typeof DashboardServicesRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardVideosRoute: typeof DashboardVideosRoute
 }
 
@@ -605,6 +665,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReviewsRoute: DashboardReviewsRoute,
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardServicesRoute: DashboardServicesRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardVideosRoute: DashboardVideosRoute,
 }
 
@@ -616,7 +677,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   PortfolioSlugServicesServiceSlugRoute: PortfolioSlugServicesServiceSlugRoute,
