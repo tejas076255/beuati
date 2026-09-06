@@ -197,6 +197,17 @@ function SignupPage() {
                   >
                     {form.formState.isSubmitting ? "Creating account…" : "Sign up"}
                   </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    By creating an account, you agree to the{" "}
+                    <Link to="/terms" className="font-medium text-primary underline">
+                      Terms of Service
+                    </Link>{" "}
+                    and acknowledge the{" "}
+                    <Link to="/privacy" className="font-medium text-primary underline">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
                 </form>
               </Form>
               <p className="mt-4 text-center text-sm text-muted-foreground">

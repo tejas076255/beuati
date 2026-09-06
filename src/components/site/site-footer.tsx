@@ -1,5 +1,33 @@
+import { Link } from "@tanstack/react-router";
+
 import { Logo } from "@/components/site/logo";
 import { footerColumns } from "@/data/home";
+
+/** Real app routes ("/privacy") get client-side navigation; same-page
+ * hash anchors ("#pricing") stay plain <a> tags — matches the same
+ * distinction already used in the site header. */
+function FooterLink({
+  href,
+  className,
+  children,
+}: {
+  href: string;
+  className: string;
+  children: string;
+}) {
+  if (href.startsWith("/")) {
+    return (
+      <Link to={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  );
+}
 
 export function SiteFooter() {
   return (
@@ -21,12 +49,12 @@ export function SiteFooter() {
                 <ul className="mt-4 space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      <a
+                      <FooterLink
                         href={link.href}
                         className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {link.label}
-                      </a>
+                      </FooterLink>
                     </li>
                   ))}
                 </ul>
@@ -53,12 +81,12 @@ export function SiteFooter() {
                 <ul className="pb-3">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      <a
+                      <FooterLink
                         href={link.href}
                         className="flex min-h-11 items-center text-[15px] text-muted-foreground"
                       >
                         {link.label}
-                      </a>
+                      </FooterLink>
                     </li>
                   ))}
                 </ul>

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { createServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -1817,6 +1818,15 @@ export function AvailabilitySection({
                   className={cn(field, "min-h-20 resize-none py-2.5")}
                 />
               </label>
+
+              <p className="text-xs text-muted-foreground">
+                By submitting this enquiry, you agree that your information may be shared with this
+                professional so they can respond to your request. See our{" "}
+                <Link to="/privacy" className="font-medium text-primary underline">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
 
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button

@@ -325,4 +325,12 @@ export const footerColumns: { title: string; links: { label: string; href: strin
     title: "Company",
     links: [{ label: "About", href: "#why" }],
   },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Refund Policy", href: "/refund-policy" },
+    ],
+  },
 ];
