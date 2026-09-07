@@ -27,7 +27,7 @@ export async function ensureOwnPortfolio(
 
   const { data: existing, error: existingError } = await supabase
     .from("beautician_profiles")
-    .select("slug")
+    .select("id, slug")
     .eq("profile_id", profile.id)
     .maybeSingle();
 
@@ -35,6 +35,25 @@ export async function ensureOwnPortfolio(
     throw new Error(`Failed to check for an existing portfolio: ${existingError.message}`);
   }
   if (existing) {
+    // Billing Phase A: reconcile commercial state on every dashboard visit
+    // (this function runs on every load via dashboard.tsx's ensurePortfolioFn,
+    // plus once right after signup). Trusted server-side only — the
+    // authenticated browser session never receives direct RPC EXECUTE on
+    // reconcile_commercial_state(); supabaseAdmin is dynamically imported
+    // here, same convention as every other service-role call site. Non-
+    // fatal on failure: dashboard availability never depends on this
+    // succeeding, matching how this function's own callers already treat
+    // provisioning errors as non-fatal (see signup.tsx).
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { reconcileCommercialState } = await import("@/data/billing/commercial-state.server");
+      await reconcileCommercialState(supabaseAdmin, existing.id);
+    } catch (err) {
+      console.error(
+        `[provisioning] commercial-state reconciliation failed for profile ${existing.id}`,
+        err,
+      );
+    }
     return { slug: existing.slug, created: false };
   }
 

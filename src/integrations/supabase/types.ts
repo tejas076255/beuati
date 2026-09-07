@@ -4,7 +4,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15";
+    PostgrestVersion: "14.5";
   };
   public: {
     Tables: {
@@ -44,71 +44,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      availability_settings: {
-        Row: {
-          accepting_bookings: boolean;
-          advance_booking_days: number | null;
-          appointment_type: string;
-          beautician_profile_id: string;
-          created_at: string;
-          id: string;
-          minimum_notice_hours: number | null;
-          timezone: string;
-          travel_available: boolean;
-          travel_radius_km: number | null;
-          travel_charge_enabled: boolean;
-          travel_charge_type: string | null;
-          travel_charge_amount: number | null;
-          updated_at: string;
-          working_hours: Json | null;
-          working_hours_note: string | null;
-        };
-        Insert: {
-          accepting_bookings?: boolean;
-          advance_booking_days?: number | null;
-          appointment_type?: string;
-          beautician_profile_id: string;
-          created_at?: string;
-          id?: string;
-          minimum_notice_hours?: number | null;
-          timezone?: string;
-          travel_available?: boolean;
-          travel_radius_km?: number | null;
-          travel_charge_enabled?: boolean;
-          travel_charge_type?: string | null;
-          travel_charge_amount?: number | null;
-          updated_at?: string;
-          working_hours?: Json | null;
-          working_hours_note?: string | null;
-        };
-        Update: {
-          accepting_bookings?: boolean;
-          advance_booking_days?: number | null;
-          appointment_type?: string;
-          beautician_profile_id?: string;
-          created_at?: string;
-          id?: string;
-          minimum_notice_hours?: number | null;
-          timezone?: string;
-          travel_available?: boolean;
-          travel_radius_km?: number | null;
-          travel_charge_enabled?: boolean;
-          travel_charge_type?: string | null;
-          travel_charge_amount?: number | null;
-          updated_at?: string;
-          working_hours?: Json | null;
-          working_hours_note?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "availability_settings_beautician_profile_id_fkey";
-            columns: ["beautician_profile_id"];
-            isOneToOne: true;
-            referencedRelation: "beautician_profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       availability_blocked_dates: {
         Row: {
           beautician_profile_id: string;
@@ -141,14 +76,81 @@ export type Database = {
           },
         ];
       };
+      availability_settings: {
+        Row: {
+          accepting_bookings: boolean;
+          advance_booking_days: number | null;
+          appointment_type: string;
+          beautician_profile_id: string;
+          created_at: string;
+          id: string;
+          minimum_notice_hours: number | null;
+          timezone: string;
+          travel_available: boolean;
+          travel_charge_amount: number | null;
+          travel_charge_enabled: boolean;
+          travel_charge_type: string | null;
+          travel_radius_km: number | null;
+          updated_at: string;
+          working_hours: Json | null;
+          working_hours_note: string | null;
+        };
+        Insert: {
+          accepting_bookings?: boolean;
+          advance_booking_days?: number | null;
+          appointment_type?: string;
+          beautician_profile_id: string;
+          created_at?: string;
+          id?: string;
+          minimum_notice_hours?: number | null;
+          timezone?: string;
+          travel_available?: boolean;
+          travel_charge_amount?: number | null;
+          travel_charge_enabled?: boolean;
+          travel_charge_type?: string | null;
+          travel_radius_km?: number | null;
+          updated_at?: string;
+          working_hours?: Json | null;
+          working_hours_note?: string | null;
+        };
+        Update: {
+          accepting_bookings?: boolean;
+          advance_booking_days?: number | null;
+          appointment_type?: string;
+          beautician_profile_id?: string;
+          created_at?: string;
+          id?: string;
+          minimum_notice_hours?: number | null;
+          timezone?: string;
+          travel_available?: boolean;
+          travel_charge_amount?: number | null;
+          travel_charge_enabled?: boolean;
+          travel_charge_type?: string | null;
+          travel_radius_km?: number | null;
+          updated_at?: string;
+          working_hours?: Json | null;
+          working_hours_note?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "availability_settings_beautician_profile_id_fkey";
+            columns: ["beautician_profile_id"];
+            isOneToOne: true;
+            referencedRelation: "beautician_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       beautician_profiles: {
         Row: {
           about_highlights: string[];
           address: string | null;
+          billing_hold: boolean;
           bio: string | null;
           bio_secondary: string | null;
           business_name: string | null;
           client_count: number;
+          commercial_state_version: number;
           completion_score: number;
           country: string;
           cover_image_url: string | null;
@@ -169,6 +171,8 @@ export type Database = {
           metrics_verified: boolean;
           phone: string | null;
           plan: Database["public"]["Enums"]["portfolio_plan"];
+          plan_expires_at: string | null;
+          plan_source: Database["public"]["Enums"]["plan_source"];
           primary_city: string | null;
           professional_title: string | null;
           profile_id: string;
@@ -192,10 +196,12 @@ export type Database = {
         Insert: {
           about_highlights?: string[];
           address?: string | null;
+          billing_hold?: boolean;
           bio?: string | null;
           bio_secondary?: string | null;
           business_name?: string | null;
           client_count?: number;
+          commercial_state_version?: number;
           completion_score?: number;
           country?: string;
           cover_image_url?: string | null;
@@ -216,6 +222,8 @@ export type Database = {
           metrics_verified?: boolean;
           phone?: string | null;
           plan?: Database["public"]["Enums"]["portfolio_plan"];
+          plan_expires_at?: string | null;
+          plan_source?: Database["public"]["Enums"]["plan_source"];
           primary_city?: string | null;
           professional_title?: string | null;
           profile_id: string;
@@ -239,10 +247,12 @@ export type Database = {
         Update: {
           about_highlights?: string[];
           address?: string | null;
+          billing_hold?: boolean;
           bio?: string | null;
           bio_secondary?: string | null;
           business_name?: string | null;
           client_count?: number;
+          commercial_state_version?: number;
           completion_score?: number;
           country?: string;
           cover_image_url?: string | null;
@@ -263,6 +273,8 @@ export type Database = {
           metrics_verified?: boolean;
           phone?: string | null;
           plan?: Database["public"]["Enums"]["portfolio_plan"];
+          plan_expires_at?: string | null;
+          plan_source?: Database["public"]["Enums"]["plan_source"];
           primary_city?: string | null;
           professional_title?: string | null;
           profile_id?: string;
@@ -439,6 +451,110 @@ export type Database = {
           },
         ];
       };
+      billing_events: {
+        Row: {
+          created_at: string;
+          event_type: string;
+          gateway: string;
+          gateway_event_id: string;
+          id: string;
+          last_attempted_at: string | null;
+          last_error: string | null;
+          payload: Json;
+          processed_at: string | null;
+          processing_attempts: number;
+        };
+        Insert: {
+          created_at?: string;
+          event_type: string;
+          gateway: string;
+          gateway_event_id: string;
+          id?: string;
+          last_attempted_at?: string | null;
+          last_error?: string | null;
+          payload: Json;
+          processed_at?: string | null;
+          processing_attempts?: number;
+        };
+        Update: {
+          created_at?: string;
+          event_type?: string;
+          gateway?: string;
+          gateway_event_id?: string;
+          id?: string;
+          last_attempted_at?: string | null;
+          last_error?: string | null;
+          payload?: Json;
+          processed_at?: string | null;
+          processing_attempts?: number;
+        };
+        Relationships: [];
+      };
+      billing_orders: {
+        Row: {
+          access_expires_at: string | null;
+          access_starts_at: string | null;
+          activated_at: string | null;
+          amount_paise: number;
+          beautician_profile_id: string;
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"];
+          created_at: string;
+          currency: string;
+          expected_state_version: number;
+          gateway: string;
+          gateway_creation_started_at: string | null;
+          gateway_order_id: string | null;
+          id: string;
+          plan: Database["public"]["Enums"]["portfolio_plan"];
+          status: Database["public"]["Enums"]["billing_order_status"];
+          updated_at: string;
+        };
+        Insert: {
+          access_expires_at?: string | null;
+          access_starts_at?: string | null;
+          activated_at?: string | null;
+          amount_paise: number;
+          beautician_profile_id: string;
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"];
+          created_at?: string;
+          currency?: string;
+          expected_state_version: number;
+          gateway: string;
+          gateway_creation_started_at?: string | null;
+          gateway_order_id?: string | null;
+          id?: string;
+          plan: Database["public"]["Enums"]["portfolio_plan"];
+          status?: Database["public"]["Enums"]["billing_order_status"];
+          updated_at?: string;
+        };
+        Update: {
+          access_expires_at?: string | null;
+          access_starts_at?: string | null;
+          activated_at?: string | null;
+          amount_paise?: number;
+          beautician_profile_id?: string;
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"];
+          created_at?: string;
+          currency?: string;
+          expected_state_version?: number;
+          gateway?: string;
+          gateway_creation_started_at?: string | null;
+          gateway_order_id?: string | null;
+          id?: string;
+          plan?: Database["public"]["Enums"]["portfolio_plan"];
+          status?: Database["public"]["Enums"]["billing_order_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "billing_orders_beautician_profile_id_fkey";
+            columns: ["beautician_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "beautician_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       faqs: {
         Row: {
           answer: string;
@@ -476,94 +592,6 @@ export type Database = {
             columns: ["beautician_profile_id"];
             isOneToOne: false;
             referencedRelation: "beautician_profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      leads: {
-        Row: {
-          beautician_profile_id: string;
-          created_at: string;
-          email: string | null;
-          event_date: string | null;
-          id: string;
-          last_contacted_at: string | null;
-          location: string | null;
-          message: string | null;
-          name: string | null;
-          next_followup_at: string | null;
-          next_followup_reason: string | null;
-          notes: string | null;
-          package_id: string | null;
-          phone: string | null;
-          service_id: string | null;
-          service_requested: string | null;
-          source: string | null;
-          status: Database["public"]["Enums"]["lead_status"];
-          updated_at: string;
-        };
-        Insert: {
-          beautician_profile_id: string;
-          created_at?: string;
-          email?: string | null;
-          event_date?: string | null;
-          id?: string;
-          last_contacted_at?: string | null;
-          location?: string | null;
-          message?: string | null;
-          name?: string | null;
-          next_followup_at?: string | null;
-          next_followup_reason?: string | null;
-          notes?: string | null;
-          package_id?: string | null;
-          phone?: string | null;
-          service_id?: string | null;
-          service_requested?: string | null;
-          source?: string | null;
-          status?: Database["public"]["Enums"]["lead_status"];
-          updated_at?: string;
-        };
-        Update: {
-          beautician_profile_id?: string;
-          created_at?: string;
-          email?: string | null;
-          event_date?: string | null;
-          id?: string;
-          last_contacted_at?: string | null;
-          location?: string | null;
-          message?: string | null;
-          name?: string | null;
-          next_followup_at?: string | null;
-          next_followup_reason?: string | null;
-          notes?: string | null;
-          package_id?: string | null;
-          phone?: string | null;
-          service_id?: string | null;
-          service_requested?: string | null;
-          source?: string | null;
-          status?: Database["public"]["Enums"]["lead_status"];
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "leads_beautician_profile_id_fkey";
-            columns: ["beautician_profile_id"];
-            isOneToOne: false;
-            referencedRelation: "beautician_profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "leads_package_id_fkey";
-            columns: ["package_id"];
-            isOneToOne: false;
-            referencedRelation: "packages";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "leads_service_id_fkey";
-            columns: ["service_id"];
-            isOneToOne: false;
-            referencedRelation: "services";
             referencedColumns: ["id"];
           },
         ];
@@ -733,6 +761,94 @@ export type Database = {
           },
         ];
       };
+      leads: {
+        Row: {
+          beautician_profile_id: string;
+          created_at: string;
+          email: string | null;
+          event_date: string | null;
+          id: string;
+          last_contacted_at: string | null;
+          location: string | null;
+          message: string | null;
+          name: string | null;
+          next_followup_at: string | null;
+          next_followup_reason: string | null;
+          notes: string | null;
+          package_id: string | null;
+          phone: string | null;
+          service_id: string | null;
+          service_requested: string | null;
+          source: string | null;
+          status: Database["public"]["Enums"]["lead_status"];
+          updated_at: string;
+        };
+        Insert: {
+          beautician_profile_id: string;
+          created_at?: string;
+          email?: string | null;
+          event_date?: string | null;
+          id?: string;
+          last_contacted_at?: string | null;
+          location?: string | null;
+          message?: string | null;
+          name?: string | null;
+          next_followup_at?: string | null;
+          next_followup_reason?: string | null;
+          notes?: string | null;
+          package_id?: string | null;
+          phone?: string | null;
+          service_id?: string | null;
+          service_requested?: string | null;
+          source?: string | null;
+          status?: Database["public"]["Enums"]["lead_status"];
+          updated_at?: string;
+        };
+        Update: {
+          beautician_profile_id?: string;
+          created_at?: string;
+          email?: string | null;
+          event_date?: string | null;
+          id?: string;
+          last_contacted_at?: string | null;
+          location?: string | null;
+          message?: string | null;
+          name?: string | null;
+          next_followup_at?: string | null;
+          next_followup_reason?: string | null;
+          notes?: string | null;
+          package_id?: string | null;
+          phone?: string | null;
+          service_id?: string | null;
+          service_requested?: string | null;
+          source?: string | null;
+          status?: Database["public"]["Enums"]["lead_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "leads_beautician_profile_id_fkey";
+            columns: ["beautician_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "beautician_profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leads_package_id_fkey";
+            columns: ["package_id"];
+            isOneToOne: false;
+            referencedRelation: "packages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leads_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       package_services: {
         Row: {
           created_at: string;
@@ -839,6 +955,53 @@ export type Database = {
             columns: ["beautician_profile_id"];
             isOneToOne: false;
             referencedRelation: "beautician_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payments: {
+        Row: {
+          amount_paise: number;
+          billing_order_id: string;
+          created_at: string;
+          currency: string;
+          gateway: string;
+          gateway_payment_id: string;
+          id: string;
+          raw_gateway_payload: Json | null;
+          status: Database["public"]["Enums"]["payment_status"];
+          verified_at: string | null;
+        };
+        Insert: {
+          amount_paise: number;
+          billing_order_id: string;
+          created_at?: string;
+          currency?: string;
+          gateway: string;
+          gateway_payment_id: string;
+          id?: string;
+          raw_gateway_payload?: Json | null;
+          status: Database["public"]["Enums"]["payment_status"];
+          verified_at?: string | null;
+        };
+        Update: {
+          amount_paise?: number;
+          billing_order_id?: string;
+          created_at?: string;
+          currency?: string;
+          gateway?: string;
+          gateway_payment_id?: string;
+          id?: string;
+          raw_gateway_payload?: Json | null;
+          status?: Database["public"]["Enums"]["payment_status"];
+          verified_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_billing_order_id_fkey";
+            columns: ["billing_order_id"];
+            isOneToOne: false;
+            referencedRelation: "billing_orders";
             referencedColumns: ["id"];
           },
         ];
@@ -1477,9 +1640,49 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      compute_portfolio_score_by_id: {
-        Args: { _bp_id: string };
+      check_plan_compatibility: {
+        Args: {
+          _bp_id: string;
+          _ignore_gtm?: boolean;
+          _target_plan: Database["public"]["Enums"]["portfolio_plan"];
+        };
+        Returns: {
+          compatible: boolean;
+          current_count: number;
+          limit_count: number;
+          module: string;
+        }[];
+      };
+      commercial_grace_period: { Args: never; Returns: string };
+      compute_portfolio_score: {
+        Args: {
+          _profile: Database["public"]["Tables"]["beautician_profiles"]["Row"];
+        };
         Returns: Json;
+      };
+      compute_portfolio_score_by_id: { Args: { _bp_id: string }; Returns: Json };
+      confirm_continue_on_free: { Args: { _bp_id: string }; Returns: undefined };
+      get_own_billing_summary: {
+        Args: { _bp_id: string };
+        Returns: {
+          access_expires_at: string;
+          access_starts_at: string;
+          activated_at: string;
+          amount_paise: number;
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"];
+          created_at: string;
+          currency: string;
+          order_id: string;
+          plan: Database["public"]["Enums"]["portfolio_plan"];
+          status: Database["public"]["Enums"]["billing_order_status"];
+        }[];
+      };
+      get_plan_content_limit: {
+        Args: {
+          _key: string;
+          _plan: Database["public"]["Enums"]["portfolio_plan"];
+        };
+        Returns: number;
       };
       has_role: {
         Args: {
@@ -1488,45 +1691,11 @@ export type Database = {
         };
         Returns: boolean;
       };
+      is_commercial_access_current: {
+        Args: { _bp_id: string };
+        Returns: boolean;
+      };
       is_published_profile: { Args: { _bp_id: string }; Returns: boolean };
-      owns_beautician_profile: { Args: { _bp_id: string }; Returns: boolean };
-      owns_beautician_profile_by_slug: { Args: { _slug: string }; Returns: boolean };
-      record_portfolio_event: {
-        Args: {
-          _device_type?: string;
-          _event_type: string;
-          _metadata?: Json;
-          _referrer?: string;
-          _session_id?: string;
-          _slug: string;
-        };
-        Returns: undefined;
-      };
-      submit_lead: {
-        Args: {
-          _conversion_path?: string;
-          _cta_location?: string;
-          _email?: string;
-          _event_date?: string;
-          _landing_path?: string;
-          _location?: string;
-          _message?: string;
-          _name: string;
-          _package_id?: string;
-          _phone: string;
-          _referrer_host?: string;
-          _service_id?: string;
-          _service_requested?: string;
-          _slug: string;
-          _source?: string;
-          _utm_campaign?: string;
-          _utm_content?: string;
-          _utm_medium?: string;
-          _utm_source?: string;
-          _utm_term?: string;
-        };
-        Returns: string;
-      };
       log_admin_action: {
         Args: {
           _action: Database["public"]["Enums"]["admin_audit_action"];
@@ -1538,6 +1707,72 @@ export type Database = {
         };
         Returns: string;
       };
+      owns_beautician_profile: { Args: { _bp_id: string }; Returns: boolean };
+      owns_beautician_profile_by_slug: {
+        Args: { _slug: string };
+        Returns: boolean;
+      };
+      plan_allows_gtm: {
+        Args: { _plan: Database["public"]["Enums"]["portfolio_plan"] };
+        Returns: boolean;
+      };
+      reconcile_commercial_state: {
+        Args: { _bp_id: string };
+        Returns: undefined;
+      };
+      record_portfolio_event: {
+        Args: {
+          _device_type?: string;
+          _event_type: string;
+          _metadata?: Json;
+          _referrer?: string;
+          _session_id?: string;
+          _slug: string;
+        };
+        Returns: undefined;
+      };
+      submit_lead:
+        | {
+            Args: {
+              _email?: string;
+              _event_date?: string;
+              _location?: string;
+              _message?: string;
+              _name: string;
+              _package_id?: string;
+              _phone: string;
+              _service_id?: string;
+              _service_requested?: string;
+              _slug: string;
+              _source?: string;
+            };
+            Returns: string;
+          }
+        | {
+            Args: {
+              _conversion_path?: string;
+              _cta_location?: string;
+              _email?: string;
+              _event_date?: string;
+              _landing_path?: string;
+              _location?: string;
+              _message?: string;
+              _name: string;
+              _package_id?: string;
+              _phone: string;
+              _referrer_host?: string;
+              _service_id?: string;
+              _service_requested?: string;
+              _slug: string;
+              _source?: string;
+              _utm_campaign?: string;
+              _utm_content?: string;
+              _utm_medium?: string;
+              _utm_source?: string;
+              _utm_term?: string;
+            };
+            Returns: string;
+          };
     };
     Enums: {
       admin_audit_action:
@@ -1584,6 +1819,9 @@ export type Database = {
         | "tracking_settings";
       app_role: "beautician" | "admin";
       before_after_image_type: "before" | "after";
+      billing_cycle: "monthly" | "yearly";
+      billing_order_status:
+        "created" | "activated" | "failed" | "cancelled" | "needs_review" | "superseded";
       lead_activity_channel: "phone" | "whatsapp" | "sms" | "email" | "manual";
       lead_activity_direction: "inbound" | "outbound";
       lead_activity_type:
@@ -1598,6 +1836,8 @@ export type Database = {
         | "completed"
         | "lost"
         | "archived";
+      payment_status: "captured" | "failed" | "refunded";
+      plan_source: "free" | "manual" | "paid";
       portfolio_plan: "free" | "starter" | "silver" | "gold" | "platinum";
       portfolio_status: "draft" | "published" | "unpublished" | "suspended";
       price_type: "fixed" | "starting_from" | "custom_quote";
@@ -1723,8 +1963,61 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_audit_action: [
+        "profile_status_changed",
+        "verification_changed",
+        "featured_changed",
+        "admin_role_granted",
+        "admin_role_revoked",
+        "review_moderated",
+        "review_deleted",
+        "service_created",
+        "service_updated",
+        "service_deleted",
+        "profile_updated",
+        "gallery_item_created",
+        "gallery_item_updated",
+        "gallery_item_deleted",
+        "before_after_created",
+        "before_after_updated",
+        "before_after_deleted",
+        "video_created",
+        "video_updated",
+        "video_deleted",
+        "package_created",
+        "package_updated",
+        "package_deleted",
+        "faq_created",
+        "faq_updated",
+        "faq_deleted",
+        "tracking_settings_created",
+        "tracking_settings_updated",
+        "tracking_settings_removed",
+        "plan_changed",
+      ],
+      admin_audit_entity_type: [
+        "beautician_profile",
+        "user_role",
+        "review",
+        "service",
+        "gallery_item",
+        "before_after_item",
+        "video",
+        "package",
+        "faq",
+        "tracking_settings",
+      ],
       app_role: ["beautician", "admin"],
       before_after_image_type: ["before", "after"],
+      billing_cycle: ["monthly", "yearly"],
+      billing_order_status: [
+        "created",
+        "activated",
+        "failed",
+        "cancelled",
+        "needs_review",
+        "superseded",
+      ],
       lead_activity_channel: ["phone", "whatsapp", "sms", "email", "manual"],
       lead_activity_direction: ["inbound", "outbound"],
       lead_activity_type: [
@@ -1748,6 +2041,9 @@ export const Constants = {
         "lost",
         "archived",
       ],
+      payment_status: ["captured", "failed", "refunded"],
+      plan_source: ["free", "manual", "paid"],
+      portfolio_plan: ["free", "starter", "silver", "gold", "platinum"],
       portfolio_status: ["draft", "published", "unpublished", "suspended"],
       price_type: ["fixed", "starting_from", "custom_quote"],
       video_platform: ["youtube", "instagram", "uploaded", "other"],

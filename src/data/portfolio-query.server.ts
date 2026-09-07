@@ -136,22 +136,79 @@ function throwIfError(scope: string, slug: string, error: { message: string } | 
  * Fetches a fully-assembled, read-only portfolio bundle for a published
  * beautician profile by slug.
  *
- * Returns `null` when the profile does not exist OR is not published — the
- * two cases are indistinguishable by design (the RLS policy + explicit
- * `status = 'published'` filter never reveal whether an unpublished slug
- * exists), so this function must never be used to tell those apart.
+ * Returns `null` when the profile does not exist, is not published, OR its
+ * billing-commercial state could not be safely confirmed as current (see
+ * the fail-closed gate below) — all three cases are indistinguishable by
+ * design (the RLS policy + explicit `status = 'published'`/`billing_hold`
+ * filters never reveal which one applied), so this function must never be
+ * used to tell them apart. This is deliberately the narrowest Stage-1
+ * failure UX: a billing-fail-closed portfolio surfaces as the exact same
+ * "not found" state a nonexistent or unpublished slug already does — no
+ * new error page, and never a misleading "profile deleted" message.
  *
- * Throws on genuine query/connectivity failures so callers can log/handle
- * them distinctly from a legitimate "not found".
+ * Throws on genuine query/connectivity failures in the CONTENT read
+ * itself so callers can log/handle them distinctly from a legitimate
+ * "not found". The billing-safety gate below never throws — a failure
+ * there resolves to `null`, not an exception.
  */
 export async function getPublishedPortfolioBySlug(slug: string): Promise<PortfolioBundle | null> {
+  // Billing Phase A public-safety gate, run before the public content
+  // read. This is billing-sensitive: an expired-and-grace-ended paid
+  // profile must never be served merely because reconciliation happened
+  // to fail. Policy (fully implemented in ensurePublicAccessSafe(), which
+  // is the ONLY place this decision is made — never re-derived here):
+  //   1. Reconciliation succeeds -> stored state is current -> proceed.
+  //   2. Reconciliation fails -> fall back to the narrow, read-only
+  //      is_commercial_access_current() SQL check (never an independent
+  //      TS recomputation of Free-compatibility, and never a duplicated
+  //      7-day grace literal — both remain the SQL side's sole authority).
+  //   3. That check is inconclusive/fails too -> FAIL CLOSED: this
+  //      function returns `null`, exactly as it already does for a
+  //      genuinely nonexistent or unpublished slug.
+  // The service-role client is used only for this narrow safety gate — it
+  // never replaces or is exposed to the read-only content query below
+  // (same convention as client.server.ts: "load inside server handlers").
+  // Never mutates `status`/publication choice.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  let publicAccessSafe = true; // no profile found yet -> nothing to gate; the read below will itself return null.
+  try {
+    const { data: idLookup, error: idLookupError } = await supabaseAdmin
+      .from("beautician_profiles")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (idLookupError) throw idLookupError;
+    if (idLookup) {
+      const { ensurePublicAccessSafe } = await import("@/data/billing/commercial-state.server");
+      publicAccessSafe = await ensurePublicAccessSafe(supabaseAdmin, idLookup.id);
+    }
+  } catch (err) {
+    // The id lookup itself is part of the required billing-state lookup —
+    // if we cannot even determine which profile to check, we cannot prove
+    // access is safe, so this fails closed rather than proceeding.
+    console.error(`[portfolio-query] billing-safety lookup failed for slug "${slug}"`, err);
+    publicAccessSafe = false;
+  }
+
+  if (!publicAccessSafe) {
+    return null;
+  }
+
   const supabase = createReadOnlyClient();
 
+  // billing_hold=false is required alongside status='published': a
+  // portfolio on billing hold keeps every piece of content and its
+  // owner's publication choice untouched, but is not publicly reachable
+  // until the account is renewed/recovered. Grace remains fully public —
+  // only a hold (set once grace has ended and the portfolio is
+  // Free-incompatible) removes visibility. Existing Free/manual profiles
+  // are unaffected: billing_hold defaults false for every row.
   const { data: profile, error: profileError } = await supabase
     .from("beautician_profiles")
     .select(PUBLIC_BEAUTICIAN_PROFILE_COLUMNS)
     .eq("slug", slug)
     .eq("status", "published")
+    .eq("billing_hold", false)
     .maybeSingle();
 
   throwIfError("beautician_profiles", slug, profileError);

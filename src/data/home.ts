@@ -1,3 +1,5 @@
+import { getDisplayPricing } from "@/lib/billing-prices";
+
 export type DeviceKey = "desktop" | "tablet" | "mobile";
 
 export const deviceWidths: Record<DeviceKey, string> = {
@@ -209,7 +211,16 @@ export const bento = [
   },
 ];
 
-export const plans = [
+export interface PricingPlanCard {
+  name: string;
+  monthly: number;
+  yearly: number;
+  tagline: string;
+  features: string[];
+  popular?: boolean;
+}
+
+export const plans: PricingPlanCard[] = [
   {
     name: "Free",
     monthly: 0,
@@ -225,15 +236,13 @@ export const plans = [
   },
   {
     name: "Starter",
-    monthly: 399,
-    yearly: 3990,
+    ...getDisplayPricing("starter"),
     tagline: "Look professional",
     features: ["Everything in Free", "Packages", "Reviews", "Higher content limits"],
   },
   {
     name: "Silver",
-    monthly: 799,
-    yearly: 7990,
+    ...getDisplayPricing("silver"),
     tagline: "Get found locally",
     features: [
       "Everything in Starter",
@@ -245,15 +254,13 @@ export const plans = [
   },
   {
     name: "Gold",
-    monthly: 1499,
-    yearly: 14990,
+    ...getDisplayPricing("gold"),
     tagline: "Build authority",
     features: ["Everything in Silver", "Higher content limits across every module"],
   },
   {
     name: "Platinum",
-    monthly: 2999,
-    yearly: 29990,
+    ...getDisplayPricing("platinum"),
     tagline: "Maximum visibility",
     features: ["Everything in Gold", "Highest content limits across every module"],
   },
