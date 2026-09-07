@@ -18,6 +18,12 @@ import {
 } from "@/components/ui/form";
 
 export const Route = createFileRoute("/forgot-password")({
+  // Auth page — never indexed. No shared layout route exists for
+  // login/signup/forgot-password/reset-password, so each carries its own
+  // identical head() rather than introducing a new layout route for it.
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   component: ForgotPasswordPage,
 });
 

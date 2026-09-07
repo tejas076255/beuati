@@ -6,6 +6,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
+  // Private/auth-gated area — every child route (/admin/*) inherits this
+  // via TanStack Router's head merging, so no per-child duplication is
+  // needed. Never indexed, regardless of what any child page renders.
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   component: AdminLayout,
 });
 

@@ -42,6 +42,12 @@ import {
 } from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/dashboard")({
+  // Private/auth-gated area — every child route (/dashboard/*) inherits
+  // this via TanStack Router's head merging, so no per-child duplication
+  // is needed. Never indexed, regardless of what any child page renders.
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   component: DashboardLayout,
 });
 
