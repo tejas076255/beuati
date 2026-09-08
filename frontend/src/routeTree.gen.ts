@@ -26,9 +26,11 @@ import { Route as AdminProfilesRouteImport } from './routes/admin.profiles'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminServicesRouteImport } from './routes/admin.services'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardAreasRouteImport } from './routes/dashboard.areas'
 import { Route as DashboardAvailabilityRouteImport } from './routes/dashboard.availability'
 import { Route as DashboardBeforeAfterRouteImport } from './routes/dashboard.before-after'
+import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardFaqsRouteImport } from './routes/dashboard.faqs'
 import { Route as DashboardGalleryRouteImport } from './routes/dashboard.gallery'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
@@ -39,8 +41,6 @@ import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
 import { Route as DashboardServicesRouteImport } from './routes/dashboard.services'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardVideosRouteImport } from './routes/dashboard.videos'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as AdminBeauticiansSlugRouteImport } from './routes/admin.beauticians.$slug'
 import { Route as PortfolioSlugServicesServiceSlugRouteImport } from './routes/portfolio.$slug_.services.$serviceSlug'
@@ -130,6 +130,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAreasRoute = DashboardAreasRouteImport.update({
   id: '/areas',
   path: '/areas',
@@ -143,6 +148,11 @@ const DashboardAvailabilityRoute = DashboardAvailabilityRouteImport.update({
 const DashboardBeforeAfterRoute = DashboardBeforeAfterRouteImport.update({
   id: '/before-after',
   path: '/before-after',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBillingRoute = DashboardBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardFaqsRoute = DashboardFaqsRouteImport.update({
@@ -195,16 +205,6 @@ const DashboardVideosRoute = DashboardVideosRouteImport.update({
   path: '/videos',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardBillingRoute = DashboardBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
   id: '/portfolio/$slug',
   path: '/portfolio/$slug',
@@ -255,12 +255,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -290,7 +290,7 @@ export interface FileRoutesByTo {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin': typeof AdminIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
@@ -373,7 +373,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
     | '/forgot-password'
     | '/login'
     | '/privacy'
@@ -403,7 +402,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin'
-    | '/dashboard/'
+    | '/dashboard'
     | '/admin/beauticians/$slug'
     | '/portfolio/$slug/services/$serviceSlug'
   id:
@@ -581,6 +580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/areas': {
       id: '/dashboard/areas'
       path: '/areas'
@@ -600,6 +606,13 @@ declare module '@tanstack/react-router' {
       path: '/before-after'
       fullPath: '/dashboard/before-after'
       preLoaderRoute: typeof DashboardBeforeAfterRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/billing': {
+      id: '/dashboard/billing'
+      path: '/billing'
+      fullPath: '/dashboard/billing'
+      preLoaderRoute: typeof DashboardBillingRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/faqs': {
@@ -670,20 +683,6 @@ declare module '@tanstack/react-router' {
       path: '/videos'
       fullPath: '/dashboard/videos'
       preLoaderRoute: typeof DashboardVideosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/billing': {
-      id: '/dashboard/billing'
-      path: '/billing'
-      fullPath: '/dashboard/billing'
-      preLoaderRoute: typeof DashboardBillingRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/portfolio/$slug': {

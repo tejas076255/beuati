@@ -67,20 +67,29 @@ type PortfolioLoaderResult = {
 const loadPortfolioData = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
   .handler(async ({ data: slug, request }): Promise<PortfolioLoaderResult | null> => {
-    // Backend proxy: FastAPI owns the public portfolio read (billing-safety
-    // gate + published-content bundle assembly). A 404 from the backend is
-    // the same "not found" as the TS loader returning null.
-    const { callApi, ApiError } = await import("@/lib/api-client.server");
+    const { isFastApiConfigured, callApi, ApiError } = await import("@/lib/api-client.server");
+
     let bundle: PortfolioBundle;
-    try {
-      bundle = await callApi<PortfolioBundle>({
-        path: `/api/portfolio/${encodeURIComponent(slug)}`,
-        method: "GET",
-        request: { request },
-      });
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) return null;
-      throw error;
+
+    if (isFastApiConfigured()) {
+      // FastAPI path: billing-safety gate + published-content bundle assembly.
+      try {
+        bundle = await callApi<PortfolioBundle>({
+          path: `/api/portfolio/${encodeURIComponent(slug)}`,
+          method: "GET",
+          request: { request },
+        });
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    } else {
+      // Direct Supabase fallback (used when FASTAPI_URL is not set, e.g. Vercel
+      // production without a deployed Python backend).
+      const { getPublishedPortfolioBySlug } = await import("@/data/portfolio-query.server");
+      const result = await getPublishedPortfolioBySlug(slug);
+      if (!result) return null;
+      bundle = result;
     }
 
     const { mapPortfolioBundleToProfile } = await import("@/data/portfolio-mapper");
@@ -91,8 +100,6 @@ const loadPortfolioData = createServerFn({ method: "GET" })
       professionalTitle: bundle.profile.professional_title,
       primaryCity: bundle.profile.primary_city,
       bio: bundle.profile.bio,
-      // `bundle.services` is already filtered to is_active=true by the
-      // backend query, matching the prior portfolio-query.server.ts behavior.
       activeServiceCount: bundle.services.length,
     });
     return {

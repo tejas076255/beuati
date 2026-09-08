@@ -3,7 +3,17 @@
 // authenticate. Load this ONLY from server function handlers (`.handler{...}`)
 // — never import it into a route/component file directly, or it ships to the
 // browser bundle.
-const FASTAPI_URL = (process.env["FASTAPI_URL"] ?? "").replace(/\/+$/, "");
+const FASTAPI_URL = (
+  process.env["FASTAPI_URL"] ??
+  process.env["VITE_BACKEND_URL"] ??
+  ""
+).replace(/\/+$/, "");
+
+/** True when the FastAPI backend is configured and reachable. When false,
+ * callers that have a direct-Supabase fallback should use it instead. */
+export function isFastApiConfigured(): boolean {
+  return FASTAPI_URL.length > 0;
+}
 
 function requireApiUrl(): string {
   if (!FASTAPI_URL) {

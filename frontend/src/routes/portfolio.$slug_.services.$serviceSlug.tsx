@@ -47,19 +47,29 @@ type ServicePageLoaderResult = {
 const loadServicePageData = createServerFn({ method: "GET" })
   .validator((data: { profileSlug: string; serviceSlug: string }) => data)
   .handler(async ({ data, request }): Promise<ServicePageLoaderResult | null> => {
-    // Backend proxy: FastAPI owns the public service-page bundle read.
-    const { callApi, ApiError } = await import("@/lib/api-client.server");
+    const { isFastApiConfigured, callApi, ApiError } = await import("@/lib/api-client.server");
+
     let bundle: ServicePageBundle;
-    try {
-      bundle = await callApi<ServicePageBundle>({
-        path: `/api/portfolio/${encodeURIComponent(data.profileSlug)}/services/${encodeURIComponent(data.serviceSlug)}`,
-        method: "GET",
-        request: { request },
-      });
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) return null;
-      throw error;
+
+    if (isFastApiConfigured()) {
+      try {
+        bundle = await callApi<ServicePageBundle>({
+          path: `/api/portfolio/${encodeURIComponent(data.profileSlug)}/services/${encodeURIComponent(data.serviceSlug)}`,
+          method: "GET",
+          request: { request },
+        });
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    } else {
+      // Direct Supabase fallback when FastAPI is not configured.
+      const { getPublishedServicePage } = await import("@/data/service-page-query.server");
+      const result = await getPublishedServicePage(data.profileSlug, data.serviceSlug);
+      if (!result) return null;
+      bundle = result;
     }
+
     return { bundle };
   });
 
