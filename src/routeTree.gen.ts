@@ -39,6 +39,8 @@ import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
 import { Route as DashboardServicesRouteImport } from './routes/dashboard.services'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardVideosRouteImport } from './routes/dashboard.videos'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as AdminBeauticiansSlugRouteImport } from './routes/admin.beauticians.$slug'
 import { Route as PortfolioSlugServicesServiceSlugRouteImport } from './routes/portfolio.$slug_.services.$serviceSlug'
@@ -193,6 +195,16 @@ const DashboardVideosRoute = DashboardVideosRouteImport.update({
   path: '/videos',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBillingRoute = DashboardBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
   id: '/portfolio/$slug',
   path: '/portfolio/$slug',
@@ -230,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/areas': typeof DashboardAreasRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/before-after': typeof DashboardBeforeAfterRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/faqs': typeof DashboardFaqsRoute
   '/dashboard/gallery': typeof DashboardGalleryRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
@@ -264,6 +277,7 @@ export interface FileRoutesByTo {
   '/dashboard/areas': typeof DashboardAreasRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/before-after': typeof DashboardBeforeAfterRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/faqs': typeof DashboardFaqsRoute
   '/dashboard/gallery': typeof DashboardGalleryRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
@@ -276,6 +290,7 @@ export interface FileRoutesByTo {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
@@ -300,6 +315,7 @@ export interface FileRoutesById {
   '/dashboard/areas': typeof DashboardAreasRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/before-after': typeof DashboardBeforeAfterRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/faqs': typeof DashboardFaqsRoute
   '/dashboard/gallery': typeof DashboardGalleryRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
@@ -312,6 +328,7 @@ export interface FileRoutesById {
   '/dashboard/videos': typeof DashboardVideosRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug_/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
@@ -337,6 +354,7 @@ export interface FileRouteTypes {
     | '/dashboard/areas'
     | '/dashboard/availability'
     | '/dashboard/before-after'
+    | '/dashboard/billing'
     | '/dashboard/faqs'
     | '/dashboard/gallery'
     | '/dashboard/leads'
@@ -349,6 +367,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin/'
+    | '/dashboard/'
     | '/admin/beauticians/$slug'
     | '/portfolio/$slug/services/$serviceSlug'
   fileRoutesByTo: FileRoutesByTo
@@ -371,6 +390,7 @@ export interface FileRouteTypes {
     | '/dashboard/areas'
     | '/dashboard/availability'
     | '/dashboard/before-after'
+    | '/dashboard/billing'
     | '/dashboard/faqs'
     | '/dashboard/gallery'
     | '/dashboard/leads'
@@ -383,6 +403,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin'
+    | '/dashboard/'
     | '/admin/beauticians/$slug'
     | '/portfolio/$slug/services/$serviceSlug'
   id:
@@ -406,6 +427,7 @@ export interface FileRouteTypes {
     | '/dashboard/areas'
     | '/dashboard/availability'
     | '/dashboard/before-after'
+    | '/dashboard/billing'
     | '/dashboard/faqs'
     | '/dashboard/gallery'
     | '/dashboard/leads'
@@ -418,6 +440,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/portfolio/$slug'
     | '/admin/'
+    | '/dashboard/'
     | '/admin/beauticians/$slug'
     | '/portfolio/$slug_/services/$serviceSlug'
   fileRoutesById: FileRoutesById
@@ -649,6 +672,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardVideosRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/billing': {
+      id: '/dashboard/billing'
+      path: '/billing'
+      fullPath: '/dashboard/billing'
+      preLoaderRoute: typeof DashboardBillingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/portfolio/$slug': {
       id: '/portfolio/$slug'
       path: '/portfolio/$slug'
@@ -701,6 +738,7 @@ interface DashboardRouteChildren {
   DashboardAreasRoute: typeof DashboardAreasRoute
   DashboardAvailabilityRoute: typeof DashboardAvailabilityRoute
   DashboardBeforeAfterRoute: typeof DashboardBeforeAfterRoute
+  DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardFaqsRoute: typeof DashboardFaqsRoute
   DashboardGalleryRoute: typeof DashboardGalleryRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
@@ -711,12 +749,14 @@ interface DashboardRouteChildren {
   DashboardServicesRoute: typeof DashboardServicesRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardVideosRoute: typeof DashboardVideosRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAreasRoute: DashboardAreasRoute,
   DashboardAvailabilityRoute: DashboardAvailabilityRoute,
   DashboardBeforeAfterRoute: DashboardBeforeAfterRoute,
+  DashboardBillingRoute: DashboardBillingRoute,
   DashboardFaqsRoute: DashboardFaqsRoute,
   DashboardGalleryRoute: DashboardGalleryRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
@@ -727,6 +767,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardServicesRoute: DashboardServicesRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardVideosRoute: DashboardVideosRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
