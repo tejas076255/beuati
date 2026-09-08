@@ -44,9 +44,17 @@ import { getAttributionSnapshot, getConversionPath, recordCtaClick } from "@/lib
 // creation) reports success. See src/data/leads-submit.server.ts.
 const submitPortfolioLeadFn = createServerFn({ method: "POST" })
   .validator((data: Database["public"]["Functions"]["submit_lead"]["Args"]) => data)
-  .handler(async ({ data }) => {
-    const { submitPortfolioLead } = await import("@/data/leads-submit.server");
-    return submitPortfolioLead(data);
+  .handler(async ({ data, request }) => {
+    // Backend proxy: FastAPI owns lead creation + best-effort email notify.
+    // The RPC (submit_lead) remains the sole authority for validation/dedup.
+    const { callApi } = await import("@/lib/api-client.server");
+    const result = await callApi<{ error: string | null; lead_id: string }>({
+      path: "/api/leads",
+      method: "POST",
+      body: data,
+      request: { request },
+    });
+    return { error: result.error, leadId: result.lead_id };
   });
 
 type P = { profile: BeauticianProfile };

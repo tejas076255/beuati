@@ -36,6 +36,9 @@ import { safeJsonLd } from "@/lib/json-ld";
 import { getVideoEmbedSource } from "@/lib/video-embed";
 import { AnalyticsEvent, getGtmId, useTrackedPageView } from "@/lib/analytics";
 import type { Json, Tables } from "@/integrations/supabase/types";
+// Type-only import — erased at compile time, never ships to the client
+// bundle; the bundle shape now comes from the FastAPI backend response.
+import type { PortfolioBundle } from "@/data/portfolio-query.server";
 
 type PortfolioLoaderResult = {
   status: "ok";
@@ -63,12 +66,21 @@ type PortfolioLoaderResult = {
 // handlers").
 const loadPortfolioData = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
-  .handler(async ({ data: slug }): Promise<PortfolioLoaderResult | null> => {
-    const { getPublishedPortfolioBySlug } = await import("@/data/portfolio-query.server");
-    const bundle = await getPublishedPortfolioBySlug(slug);
-
-    if (!bundle) {
-      return null;
+  .handler(async ({ data: slug, request }): Promise<PortfolioLoaderResult | null> => {
+    // Backend proxy: FastAPI owns the public portfolio read (billing-safety
+    // gate + published-content bundle assembly). A 404 from the backend is
+    // the same "not found" as the TS loader returning null.
+    const { callApi, ApiError } = await import("@/lib/api-client.server");
+    let bundle: PortfolioBundle;
+    try {
+      bundle = await callApi<PortfolioBundle>({
+        path: `/api/portfolio/${encodeURIComponent(slug)}`,
+        method: "GET",
+        request: { request },
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
     }
 
     const { mapPortfolioBundleToProfile } = await import("@/data/portfolio-mapper");
@@ -80,7 +92,7 @@ const loadPortfolioData = createServerFn({ method: "GET" })
       primaryCity: bundle.profile.primary_city,
       bio: bundle.profile.bio,
       // `bundle.services` is already filtered to is_active=true by the
-      // query in portfolio-query.server.ts.
+      // backend query, matching the prior portfolio-query.server.ts behavior.
       activeServiceCount: bundle.services.length,
     });
     return {

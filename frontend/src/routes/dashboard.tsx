@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
   Clock,
+  CreditCard,
   ExternalLink,
   HelpCircle,
   Image,
@@ -85,7 +86,7 @@ const NAV_GROUPS: {
 }[] = [
   {
     heading: "Overview",
-    items: [{ label: "Dashboard", icon: LayoutDashboard, to: undefined }],
+    items: [{ label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" }],
   },
   {
     heading: "My Portfolio",
@@ -116,7 +117,10 @@ const NAV_GROUPS: {
   },
   {
     heading: "Account",
-    items: [{ label: "Settings", icon: Settings, to: "/dashboard/settings" }],
+    items: [
+      { label: "Billing & Plan", icon: CreditCard, to: "/dashboard/billing" },
+      { label: "Settings", icon: Settings, to: "/dashboard/settings" },
+    ],
   },
 ];
 
