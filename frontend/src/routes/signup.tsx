@@ -84,17 +84,35 @@ function SignupPage() {
     setDuplicateEmail(false);
 
     const hasPhone = !!values.phone?.trim();
+    const phone = hasPhone ? toE164(values.phone!) : undefined;
 
-    // ── Sign up with email ────────────────────────────────────────────────
+    if (hasPhone && phone) {
+      // ── Phone signup path — use phone as primary identifier ────────────
+      // signUp with phone sends OTP via SMS (Twilio). Password is set so
+      // the account supports phone+password login after verification.
+      const { error } = await supabase.auth.signUp({
+        phone,
+        password: values.password,
+        options: {
+          data: { display_name: values.display_name, email: values.email },
+        },
+      });
+      if (error) {
+        if (error.code === "user_already_exists") { setDuplicateEmail(true); return; }
+        setFormError(error.message);
+        return;
+      }
+      setPendingPhone(phone);
+      setStep("otp");
+      startResendCooldown();
+      return;
+    }
+
+    // ── Email-only signup path ────────────────────────────────────────────
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
-      options: {
-        data: {
-          display_name: values.display_name,
-          ...(hasPhone ? { phone_number: toE164(values.phone!) } : {}),
-        },
-      },
+      options: { data: { display_name: values.display_name } },
     });
 
     if (error) {
@@ -103,27 +121,11 @@ function SignupPage() {
       return;
     }
 
-    // If phone provided, also trigger SMS OTP for phone verification
-    if (hasPhone && data.session) {
-      const phone = toE164(values.phone!);
-      // Update the user's phone number so they can log in with it later
-      await supabase.auth.updateUser({ phone });
-      setPendingPhone(phone);
-    }
-
     if (data.session) {
       try { await ensurePortfolioFn(); } catch (e) {
         console.error("[signup] portfolio provisioning failed", e);
       }
       navigate({ to: "/dashboard/profile" });
-      return;
-    }
-
-    // Phone-only OTP path (if Supabase requires phone confirmation)
-    if (hasPhone && !data.session) {
-      setPendingPhone(toE164(values.phone!));
-      setStep("otp");
-      startResendCooldown();
       return;
     }
 
