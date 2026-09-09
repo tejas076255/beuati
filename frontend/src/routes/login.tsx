@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +19,6 @@ import {
 } from "@/components/ui/form";
 
 export const Route = createFileRoute("/login")({
-  // Auth page — never indexed. No shared layout route exists for
-  // login/signup/forgot-password/reset-password, so each carries its own
-  // identical head() rather than introducing a new layout route for it.
   head: () => ({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
@@ -36,6 +33,19 @@ const loginSchema = z.object({
 function LoginPage() {
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        navigate({ to: "/dashboard" });
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [navigate]);
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -48,8 +58,16 @@ function LoginPage() {
       setFormError(error.message);
       return;
     }
-    navigate({ to: "/dashboard/leads" });
+    navigate({ to: "/dashboard" });
   };
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Checking session…
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
