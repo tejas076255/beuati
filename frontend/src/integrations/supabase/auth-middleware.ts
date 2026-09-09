@@ -67,7 +67,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       throw new Error('Unauthorized: No token provided');
     }
 
-    if (token.split('.').length !== 3) {
+    if (token.split('.').length !== 3 && !token.startsWith('sb_')) {
       throw new Error('Unauthorized: Invalid token');
     }
 
