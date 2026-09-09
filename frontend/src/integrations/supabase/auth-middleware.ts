@@ -90,19 +90,26 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     );
 
     const { data, error } = await supabase.auth.getClaims(token);
-    if (error || !data?.claims) {
-      throw new Error('Unauthorized: Invalid token');
-    }
-
-    if (!data.claims.sub) {
-      throw new Error('Unauthorized: No user ID found in token');
+    
+    let userId: string;
+    
+    if (!error && data?.claims?.sub) {
+      // getClaims succeeded (HS256 or cached ECC)
+      userId = data.claims.sub;
+    } else {
+      // Fallback: verify via Supabase getUser API (works with ECC P-256 keys)
+      const { data: userData, error: userError } = await supabase.auth.getUser(token);
+      if (userError || !userData?.user?.id) {
+        throw new Error('Unauthorized: Invalid token');
+      }
+      userId = userData.user.id;
     }
 
     return next({
       context: {
         supabase,
-        userId: data.claims.sub,
-        claims: data.claims,
+        userId,
+        claims: data?.claims ?? {},
       },
     });
   },
