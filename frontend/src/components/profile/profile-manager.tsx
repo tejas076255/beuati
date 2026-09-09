@@ -630,7 +630,7 @@ export function ProfileManager({
       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+            <div className="sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background pb-4 pt-2">
               <div>
                 <h2 className="font-display text-2xl font-semibold">{title}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>

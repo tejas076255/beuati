@@ -5,6 +5,7 @@
 // scoring logic lives here — this is not a customer rating and is
 // deliberately kept separate from Verification.
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   getMilestone,
   rankNextBestActions,
@@ -22,6 +23,7 @@ export function CompletionScorePanel({
   isLoading: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
 
   if (isLoading || !breakdown) {
     return (
@@ -102,21 +104,32 @@ export function CompletionScorePanel({
         )}
 
         <div className="border-t border-border pt-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Criterion breakdown
-          </p>
-          <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-            {breakdown.criteria.map((c) => (
-              <li key={c.id} className="flex items-center justify-between text-xs">
-                <span className={c.earned >= c.max ? "text-foreground" : "text-muted-foreground"}>
-                  {c.label}
-                </span>
-                <span className="font-medium">
-                  {c.earned}/{c.max}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <button
+            type="button"
+            onClick={() => setBreakdownOpen((v) => !v)}
+            className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+            aria-expanded={breakdownOpen}
+          >
+            <span>Criterion Breakdown</span>
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform duration-200 ${breakdownOpen ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+          </button>
+          {breakdownOpen && (
+            <ul className="mt-2.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+              {breakdown.criteria.map((c) => (
+                <li key={c.id} className="flex items-center justify-between text-xs">
+                  <span className={c.earned >= c.max ? "text-foreground" : "text-muted-foreground"}>
+                    {c.label}
+                  </span>
+                  <span className="font-medium">
+                    {c.earned}/{c.max}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </CardContent>
     </Card>
