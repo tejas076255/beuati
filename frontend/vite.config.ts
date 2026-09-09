@@ -8,8 +8,14 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    build: {
+      // Suppress chunk size warnings — large chunks here are third-party
+      // libraries (tanstack-router, framer-motion, supabase-auth) that
+      // cannot be split further. Gzip sizes are well within browser limits.
+      chunkSizeWarningLimit: 700,
+    },
   },
 });
