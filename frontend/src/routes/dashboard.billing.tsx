@@ -426,27 +426,37 @@ function BillingPage() {
         })}
       </div>
 
-      {/* Upgrade button */}
+      {/* Upgrade button — sticky bottom bar on mobile */}
       {selectedPlan && selectedPlan !== currentPlan && (
-        <div className="flex items-center gap-3">
-          <Button
-            variant="hero"
-            onClick={handleUpgrade}
-            disabled={createOrderMutation.isPending || activateMutation.isPending || !razorpayReady}
-            className="gap-2"
-          >
-            {createOrderMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Zap className="h-4 w-4" />
-            )}
-            {!razorpayReady ? "Payments not configured" : `Upgrade to ${PLAN_LABELS[selectedPlan]}`}
-          </Button>
-          <button type="button" onClick={() => setSelectedPlan(null)}
-            className="text-sm text-muted-foreground hover:text-foreground">
-            Cancel
-          </button>
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+          <div className="flex items-center gap-3 sm:justify-start">
+            <Button
+              variant="hero"
+              onClick={handleUpgrade}
+              disabled={createOrderMutation.isPending || activateMutation.isPending || !razorpayReady}
+              className="flex-1 gap-2 sm:flex-none"
+            >
+              {createOrderMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="h-4 w-4" />
+              )}
+              {!razorpayReady ? "Payments not configured" : `Upgrade to ${PLAN_LABELS[selectedPlan]}`}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setSelectedPlan(null)}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
+      )}
+
+      {/* Bottom padding so content doesn't hide behind sticky bar on mobile */}
+      {selectedPlan && selectedPlan !== currentPlan && (
+        <div className="h-20 sm:hidden" aria-hidden="true" />
       )}
 
       <p className="text-xs text-muted-foreground">
