@@ -35,18 +35,11 @@ const ensurePortfolioFn = createServerFn({ method: "GET" })
     return ensureOwnPortfolio(context.supabase, context.userId);
   });
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
+// ─── Schemas ──────────────────────────────────────────────────────────────────
 
 const signupSchema = z.object({
   display_name: z.string().min(1, "Enter your full name"),
   email: z.string().email("Enter a valid email address"),
-  phone: z
-    .string()
-    .optional()
-    .refine(
-      (v) => !v || /^\d{10,15}$/.test(v.replace(/\D/g, "")),
-      "Enter a valid phone number",
-    ),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -54,65 +47,33 @@ const otpSchema = z.object({
   otp: z.string().length(6, "Enter the 6-digit code"),
 });
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
-
-function toE164(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (raw.trim().startsWith("+")) return `+${digits}`;
-  return `+91${digits}`;
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function SignupPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<"form" | "otp">("form");
   const [formError, setFormError] = useState<string | null>(null);
-  const [confirmationSent, setConfirmationSent] = useState(false);
   const [duplicateEmail, setDuplicateEmail] = useState(false);
-  const [pendingPhone, setPendingPhone] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // ── Main signup form ──────────────────────────────────────────────────────
+  // ── Signup form ───────────────────────────────────────────────────────────
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { display_name: "", email: "", phone: "", password: "" },
+    defaultValues: { display_name: "", email: "", password: "" },
   });
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setFormError(null);
     setDuplicateEmail(false);
 
-    const hasPhone = !!values.phone?.trim();
-    const phone = hasPhone ? toE164(values.phone!) : undefined;
-
-    if (hasPhone && phone) {
-      // ── Phone signup path — use phone as primary identifier ────────────
-      // signUp with phone sends OTP via SMS (Twilio). Password is set so
-      // the account supports phone+password login after verification.
-      const { error } = await supabase.auth.signUp({
-        phone,
-        password: values.password,
-        options: {
-          data: { display_name: values.display_name, email: values.email },
-        },
-      });
-      if (error) {
-        if (error.code === "user_already_exists") { setDuplicateEmail(true); return; }
-        setFormError(error.message);
-        return;
-      }
-      setPendingPhone(phone);
-      setStep("otp");
-      startResendCooldown();
-      return;
-    }
-
-    // ── Email-only signup path ────────────────────────────────────────────
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
-      options: { data: { display_name: values.display_name } },
+      options: {
+        data: { display_name: values.display_name },
+        // emailRedirectTo not needed — OTP flow handles verification inline
+      },
     });
 
     if (error) {
@@ -121,15 +82,11 @@ function SignupPage() {
       return;
     }
 
-    if (data.session) {
-      try { await ensurePortfolioFn(); } catch (e) {
-        console.error("[signup] portfolio provisioning failed", e);
-      }
-      navigate({ to: "/dashboard/profile" });
-      return;
-    }
-
-    setConfirmationSent(true);
+    // Supabase sends a 6-digit OTP to the email when "Email OTP" is enabled.
+    // Show the OTP entry screen.
+    setPendingEmail(values.email);
+    setStep("otp");
+    startResendCooldown();
   };
 
   // ── OTP form ──────────────────────────────────────────────────────────────
@@ -141,9 +98,9 @@ function SignupPage() {
   const onOtpSubmit = async (values: z.infer<typeof otpSchema>) => {
     setFormError(null);
     const { data, error } = await supabase.auth.verifyOtp({
-      phone: pendingPhone,
+      email: pendingEmail,
       token: values.otp,
-      type: "sms",
+      type: "signup",
     });
     if (error) { setFormError(error.message); return; }
     if (data.session) {
@@ -157,7 +114,10 @@ function SignupPage() {
   const resendOtp = async () => {
     if (resendCooldown > 0) return;
     setFormError(null);
-    const { error } = await supabase.auth.resend({ type: "sms", phone: pendingPhone });
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingEmail,
+    });
     if (error) { setFormError(error.message); return; }
     startResendCooldown();
   };
@@ -175,11 +135,11 @@ function SignupPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">
-            {step === "otp" ? "Verify your phone" : "Create your account"}
+            {step === "otp" ? "Check your email" : "Create your account"}
           </CardTitle>
           <CardDescription>
             {step === "otp"
-              ? `Enter the 6-digit code sent to ${pendingPhone}.`
+              ? `We sent a 6-digit code to ${pendingEmail}.`
               : "Sign up to manage your portfolio leads."}
           </CardDescription>
         </CardHeader>
@@ -202,15 +162,26 @@ function SignupPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                {formError && <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>}
+                {formError && (
+                  <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>
+                )}
                 <Button type="submit" variant="hero" className="w-full" disabled={otpForm.formState.isSubmitting}>
-                  {otpForm.formState.isSubmitting ? "Verifying…" : "Verify & continue"}
+                  {otpForm.formState.isSubmitting ? "Verifying…" : "Verify & go to dashboard"}
                 </Button>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <button type="button" onClick={() => { setStep("form"); setFormError(null); otpForm.reset(); }} className="hover:text-foreground">
-                    ← Go back
+                  <button
+                    type="button"
+                    onClick={() => { setStep("form"); setFormError(null); otpForm.reset(); }}
+                    className="hover:text-foreground"
+                  >
+                    ← Change email
                   </button>
-                  <button type="button" onClick={resendOtp} disabled={resendCooldown > 0} className="disabled:opacity-50 hover:text-foreground">
+                  <button
+                    type="button"
+                    onClick={resendOtp}
+                    disabled={resendCooldown > 0}
+                    className="disabled:opacity-50 hover:text-foreground"
+                  >
                     {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
                   </button>
                 </div>
@@ -231,29 +202,17 @@ function SignupPage() {
             </div>
           )}
 
-          {/* ── Email confirmation sent ── */}
-          {step === "form" && confirmationSent && (
-            <div className="space-y-3">
-              <p role="status" className="text-sm text-muted-foreground">
-                Check your email to confirm your account, then{" "}
-                <Link to="/login" className="font-semibold text-primary">sign in</Link>.
-              </p>
-              <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <span>Already registered?{" "}<Link to="/login" className="font-semibold text-primary">Sign in</Link></span>
-                <span>Forgot your password?{" "}<Link to="/forgot-password" className="font-semibold text-primary">Reset it</Link></span>
-              </div>
-            </div>
-          )}
-
           {/* ── Main signup form ── */}
-          {step === "form" && !duplicateEmail && !confirmationSent && (
+          {step === "form" && !duplicateEmail && (
             <>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField control={form.control} name="display_name" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full name</FormLabel>
-                      <FormControl><Input autoComplete="name" {...field} /></FormControl>
+                      <FormControl>
+                        <Input autoComplete="name" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -261,30 +220,8 @@ function SignupPage() {
                   <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <FormControl><Input type="email" autoComplete="email" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                  <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Phone number{" "}
-                        <span className="text-xs font-normal text-muted-foreground">(optional)</span>
-                      </FormLabel>
                       <FormControl>
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-9 shrink-0 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
-                            +91
-                          </span>
-                          <Input
-                            type="tel"
-                            placeholder="9876543210"
-                            autoComplete="tel-national"
-                            inputMode="numeric"
-                            {...field}
-                          />
-                        </div>
+                        <Input type="email" autoComplete="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -293,7 +230,9 @@ function SignupPage() {
                   <FormField control={form.control} name="password" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Password</FormLabel>
-                      <FormControl><PasswordInput autoComplete="new-password" {...field} /></FormControl>
+                      <FormControl>
+                        <PasswordInput autoComplete="new-password" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
