@@ -46,7 +46,7 @@ function AdminLayout() {
   const { checked } = useRequireAdmin();
   const signOut = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   };
 
   if (!checked) {

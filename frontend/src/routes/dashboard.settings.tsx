@@ -139,7 +139,7 @@ function SettingsPage() {
   const handleSignOut = async () => {
     setSigningOut(true);
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   };
 
   return (

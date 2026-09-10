@@ -130,7 +130,7 @@ function DashboardLayout() {
   const { checked } = useRequireAuth();
   const signOut = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   };
   const isAdminQuery = useQuery({
     queryKey: ["is-current-user-admin"],
