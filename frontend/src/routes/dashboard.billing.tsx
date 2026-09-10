@@ -350,6 +350,41 @@ function BillingPage() {
 
       {/* Plan cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Free / Start plan card */}
+        {(() => {
+          const isCurrent = currentPlan === "free";
+          return (
+            <Card
+              className={`border-2 transition-all sm:col-span-2 ${
+                isCurrent
+                  ? "border-primary/50 bg-primary/5 cursor-default"
+                  : "border-border/70"
+              }`}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between text-base">
+                  {PLAN_LABELS["free"]}
+                  {isCurrent && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                </CardTitle>
+                <CardDescription className="text-lg font-semibold text-foreground">
+                  ₹0
+                  <span className="text-sm font-normal text-muted-foreground"> /forever</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1">
+                  {["5 services", "12 gallery photos", "WhatsApp & Call enquiries", "Basic SEO setup"].map((h) => (
+                    <li key={h} className="text-xs text-muted-foreground">• {h}</li>
+                  ))}
+                </ul>
+                {isCurrent && (
+                  <p className="mt-2 text-xs text-muted-foreground">No payment required.</p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         {PAID_PLANS.map((plan) => {
           const pricing = getDisplayPricing(plan);
           const price = cycle === "monthly" ? pricing.monthly : pricing.yearly;
