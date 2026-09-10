@@ -70,10 +70,7 @@ function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
-      options: {
-        data: { display_name: values.display_name },
-        // emailRedirectTo not needed — OTP flow handles verification inline
-      },
+      options: { data: { display_name: values.display_name } },
     });
 
     if (error) {
@@ -82,8 +79,7 @@ function SignupPage() {
       return;
     }
 
-    // Supabase sends a 6-digit OTP to the email when "Email OTP" is enabled.
-    // Show the OTP entry screen.
+    // Supabase sends 6-digit OTP to email when "Confirm email" is ON.
     setPendingEmail(values.email);
     setStep("otp");
     startResendCooldown();
@@ -114,10 +110,7 @@ function SignupPage() {
   const resendOtp = async () => {
     if (resendCooldown > 0) return;
     setFormError(null);
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: pendingEmail,
-    });
+    const { error } = await supabase.auth.resend({ type: "signup", email: pendingEmail });
     if (error) { setFormError(error.message); return; }
     startResendCooldown();
   };
@@ -153,9 +146,16 @@ function SignupPage() {
                   <FormItem>
                     <FormLabel>Verification code</FormLabel>
                     <FormControl>
-                      <InputOTP maxLength={6} value={field.value} onChange={field.onChange} inputMode="numeric">
+                      <InputOTP
+                        maxLength={6}
+                        value={field.value}
+                        onChange={field.onChange}
+                        inputMode="numeric"
+                      >
                         <InputOTPGroup>
-                          {[0, 1, 2, 3, 4, 5].map((i) => <InputOTPSlot key={i} index={i} />)}
+                          {[0, 1, 2, 3, 4, 5].map((i) => (
+                            <InputOTPSlot key={i} index={i} />
+                          ))}
                         </InputOTPGroup>
                       </InputOTP>
                     </FormControl>
@@ -165,7 +165,12 @@ function SignupPage() {
                 {formError && (
                   <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>
                 )}
-                <Button type="submit" variant="hero" className="w-full" disabled={otpForm.formState.isSubmitting}>
+                <Button
+                  type="submit"
+                  variant="hero"
+                  className="w-full"
+                  disabled={otpForm.formState.isSubmitting}
+                >
                   {otpForm.formState.isSubmitting ? "Verifying…" : "Verify & go to dashboard"}
                 </Button>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -197,12 +202,14 @@ function SignupPage() {
               </p>
               <div className="flex flex-col gap-1 text-sm">
                 <Link to="/login" className="font-semibold text-primary">Sign in instead</Link>
-                <Link to="/forgot-password" className="font-semibold text-primary">Forgot your password? Reset it</Link>
+                <Link to="/forgot-password" className="font-semibold text-primary">
+                  Forgot your password? Reset it
+                </Link>
               </div>
             </div>
           )}
 
-          {/* ── Main signup form ── */}
+          {/* ── Signup form ── */}
           {step === "form" && !duplicateEmail && (
             <>
               <Form {...form}>
@@ -210,13 +217,10 @@ function SignupPage() {
                   <FormField control={form.control} name="display_name" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full name</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="name" {...field} />
-                      </FormControl>
+                      <FormControl><Input autoComplete="name" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-
                   <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
@@ -226,7 +230,6 @@ function SignupPage() {
                       <FormMessage />
                     </FormItem>
                   )} />
-
                   <FormField control={form.control} name="password" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Password</FormLabel>
@@ -236,24 +239,29 @@ function SignupPage() {
                       <FormMessage />
                     </FormItem>
                   )} />
-
                   {formError && (
                     <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>
                   )}
-
-                  <Button type="submit" variant="hero" className="w-full" disabled={form.formState.isSubmitting}>
+                  <Button
+                    type="submit"
+                    variant="hero"
+                    className="w-full"
+                    disabled={form.formState.isSubmitting}
+                  >
                     {form.formState.isSubmitting ? "Creating account…" : "Sign up"}
                   </Button>
-
                   <p className="text-center text-xs text-muted-foreground">
                     By creating an account, you agree to the{" "}
-                    <Link to="/terms" className="font-medium text-primary underline">Terms of Service</Link>{" "}
+                    <Link to="/terms" className="font-medium text-primary underline">
+                      Terms of Service
+                    </Link>{" "}
                     and acknowledge the{" "}
-                    <Link to="/privacy" className="font-medium text-primary underline">Privacy Policy</Link>.
+                    <Link to="/privacy" className="font-medium text-primary underline">
+                      Privacy Policy
+                    </Link>.
                   </p>
                 </form>
               </Form>
-
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link to="/login" className="font-semibold text-primary">Sign in</Link>
