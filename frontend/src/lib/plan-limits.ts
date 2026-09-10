@@ -16,11 +16,11 @@ export const PORTFOLIO_PLANS: readonly PortfolioPlan[] = [
 ];
 
 export const PLAN_LABELS: Record<PortfolioPlan, string> = {
-  free: "Free",
-  starter: "Starter",
-  silver: "Silver",
-  gold: "Gold",
-  platinum: "Platinum",
+  free: "Start",
+  starter: "Search Ready",
+  silver: "Lead Growth",
+  gold: "Client Growth",
+  platinum: "Brand Growth",
 };
 
 const PLAN_RANK: Record<PortfolioPlan, number> = {

@@ -16,14 +16,13 @@ export function PricingPreview() {
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="eyebrow">Pricing</span>
           <h2 className="mt-5 text-3xl font-semibold sm:text-4xl">
-            Start free. Grow into more capacity as you need it.
+            Choose How You Want to Grow
           </h2>
           <p className="mt-4 text-muted-foreground">
-            No commissions on any plan — every enquiry belongs to you.
+            Start free. Upgrade as you need stronger search visibility, better lead management, and more business growth support.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            Paid plan upgrades are currently activated by the BeautyFolio team. Self-serve payments
-            are coming later.
+            No commissions on any plan — every enquiry belongs to you. Paid plan upgrades are currently activated by the BeautyFolio team, self-serve payments are coming later.
           </p>
         </Reveal>
 
@@ -101,7 +100,13 @@ export function PricingPreview() {
                     className="mt-6 w-full"
                     asChild
                   >
-                    <Link to="/signup">Start Free</Link>
+                    <Link to="/signup">
+                      {plan.monthly === 0 ? "Start Free" :
+                       plan.name === "Search Ready" ? "Make Me Search Ready" :
+                       plan.name === "Lead Growth" ? "Start Growing My Leads" :
+                       plan.name === "Client Growth" ? "Convert More Leads" :
+                       "Build My Beauty Brand"}
+                    </Link>
                   </Button>
                 </article>
               </Reveal>
@@ -152,6 +157,56 @@ export function PricingPreview() {
               </tbody>
             </table>
           </div>
+        </Reveal>
+
+        {/* Detailed plan capacity table */}
+        <Reveal delay={0.1} className="mt-6">
+          <details className="group">
+            <summary className="flex cursor-pointer items-center justify-center gap-2 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+              <span>Detailed plan capacity</span>
+              <span className="transition-transform group-open:rotate-180">▼</span>
+            </summary>
+            <div className="mt-4 overflow-x-auto rounded-2xl border border-border bg-card">
+              <table className="w-full min-w-[42rem] text-left text-sm">
+                <caption className="sr-only">Detailed plan capacity</caption>
+                <thead>
+                  <tr className="border-b border-border">
+                    <th scope="col" className="px-5 py-4 font-semibold">Compare plans</th>
+                    {plans.map((plan) => (
+                      <th key={plan.name} scope="col" className="px-4 py-4 text-center font-semibold">
+                        {plan.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { label: "Services",             values: ["5",  "10", "20", "50",  "150"] },
+                    { label: "Packages",              values: ["—",  "5",  "15", "40",  "100"] },
+                    { label: "Gallery photos",        values: ["12", "30", "75", "150", "300"] },
+                    { label: "Before & after pairs",  values: ["3",  "10", "25", "60",  "120"] },
+                    { label: "Videos",                values: ["—",  "—",  "5",  "15",  "30"]  },
+                    { label: "FAQs",                  values: ["5",  "10", "20", "40",  "80"]  },
+                    { label: "Service areas",         values: ["3",  "8",  "20", "50",  "100"] },
+                    { label: "Reviews",               values: ["—",  "20", "50", "100", "200"] },
+                    { label: "Advanced tracking support", values: ["—", "—", "✓", "✓", "✓"] },
+                    { label: "Commission on bookings",values: ["0%", "0%", "0%", "0%", "0%"]  },
+                  ].map((row) => (
+                    <tr key={row.label} className="border-b border-border last:border-0">
+                      <th scope="row" className="px-5 py-3.5 font-medium text-muted-foreground">
+                        {row.label}
+                      </th>
+                      {row.values.map((value, i) => (
+                        <td key={i} className="px-4 py-3.5 text-center font-medium">
+                          {value}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </Reveal>
 
         <Reveal className="mt-10 text-center">
