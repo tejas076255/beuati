@@ -90,6 +90,22 @@ function SingleImageDropzone({
     onFileChange(dropped);
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const pasted = items[i].getAsFile();
+        if (pasted) {
+          e.preventDefault();
+          onFileChange(pasted);
+          toast.success("Pasted image added!");
+          break;
+        }
+      }
+    }
+  };
+
   const handleUndo = () => {
     if (inputRef.current) inputRef.current.value = "";
     onFileChange(null);
@@ -98,7 +114,7 @@ function SingleImageDropzone({
   const displayUrl = previewUrl ?? existingUrl ?? null;
 
   return (
-    <div>
+    <div onPaste={handlePaste} tabIndex={0} className="outline-none">
       <p className="text-sm font-medium">{label}</p>
       <div className="mt-1">
         {displayUrl ? (
@@ -136,7 +152,7 @@ function SingleImageDropzone({
             className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-border px-4 py-6 text-center transition-colors hover:border-primary/50 hover:bg-secondary/30 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30"
           >
             <ImagePlus className="h-6 w-6 text-primary" aria-hidden="true" />
-            <span className="text-sm font-semibold">Choose image or drag &amp; drop</span>
+            <span className="text-sm font-semibold">Choose image, drag &amp; drop or paste (Ctrl+V)</span>
             <span className="text-xs text-muted-foreground">
               {IMAGE_GUIDELINES["before-after"]} · {UPLOAD_HINT}
             </span>

@@ -26,10 +26,16 @@ import {
   Phone,
   Share2,
   User as UserIcon,
+  Link2,
+  Upload,
+  Clipboard,
+  Check,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import {
   uploadPortfolioMedia,
+  uploadPortfolioMediaFromUrl,
   buildPublicMediaUrl,
   deletePortfolioMedia,
   resolveOwnedMediaPath,
@@ -49,6 +55,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -348,26 +361,16 @@ export function ProfileManager({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  // QA-1N-D2 — independent pending-upload tracking for Profile and Cover,
-  // mirroring the proven Videos fix (pendingThumbnailPathRef). Each ref
-  // holds ONLY a same-session, not-yet-saved upload's storage_path — never
-  // the already-persisted value. Reset to null whenever the persisted
-  // `profile` identity changes (see the effect below) and cleared
-  // (without deleting) the instant a Save successfully persists it.
+  // Modal for pasting image URL or direct link
+  const [pasteModalTarget, setPasteModalTarget] = useState<"photo" | "cover" | null>(null);
+  const [pastedUrlInput, setPastedUrlInput] = useState("");
+  const [processingUrl, setProcessingUrl] = useState(false);
+
+  // QA-1N-D2 — independent pending-upload tracking for Profile and Cover.
   const pendingPhotoPathRef = useRef<string | null>(null);
   const pendingCoverPathRef = useRef<string | null>(null);
-  // Monotonic per-asset tokens guard against a slower upload's response
-  // arriving after a faster, later upload already superseded it — same
-  // concept as the Videos fix's thumbnailUploadTokenRef, kept independent
-  // per asset since Profile and Cover uploads are otherwise unrelated.
   const photoUploadTokenRef = useRef(0);
   const coverUploadTokenRef = useRef(0);
-  // The most recently known PERSISTED value for each asset — the "OLD" a
-  // successful replacement is allowed to delete. Deliberately separate
-  // from photoUrl/coverUrl (the live draft, which may be a pending
-  // upload never yet saved) and from `profile` itself (which only
-  // re-renders after a refetch, not synchronously with this component's
-  // own successful save).
   const originalPhotoUrlRef = useRef<string | null>(profile?.profile_image_url ?? null);
   const originalCoverUrlRef = useRef<string | null>(profile?.cover_image_url ?? null);
 
@@ -376,55 +379,20 @@ export function ProfileManager({
     defaultValues: EMPTY_VALUES,
   });
 
-  // Keyed on profile?.id (not the whole object) so that switching the
-  // admin workspace's target (Dharti -> Janvi) always re-seeds every draft
-  // field from the newly-selected professional's own persisted row, while
-  // a same-target refetch (e.g. after save) doesn't redundantly reset a
-  // form the user may already be re-editing.
   useEffect(() => {
     if (!profile) return;
     setPhotoUrl(profile.profile_image_url);
     setCoverUrl(profile.cover_image_url);
-    // A pending upload from a PREVIOUS target profile can never be valid
-    // for this one — reset rather than carry it across.
     pendingPhotoPathRef.current = null;
     pendingCoverPathRef.current = null;
     originalPhotoUrlRef.current = profile.profile_image_url;
     originalCoverUrlRef.current = profile.cover_image_url;
     form.reset(toFormValues(profile));
-    // Only render the form (and mount the Radix Select) once reset has
-    // actually applied the real values — mounting it one render earlier,
-    // while the form still holds EMPTY_VALUES, leaves the Select's own
-    // displayed-value state stuck even after react-hook-form's value
-    // updates underneath it.
     setFormReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
 
-  // QA-1N-D2 §20/§21 — normal SPA navigation-away/unmount cleanup for
-  // whatever is still pending when this component goes away. This is a
-  // full-page form, not a dialog, so there is no onOpenChange seam; TanStack
-  // Router unmounting this component IS the "close" signal. A hard
-  // browser refresh/tab close/process termination cannot be made reliable
-  // from React alone — same residual limitation already documented for the
-  // Videos fix, not addressed here.
-  useEffect(() => {
-    return () => {
-      const pendingPhoto = pendingPhotoPathRef.current;
-      if (pendingPhoto) {
-        pendingPhotoPathRef.current = null;
-        void deletePortfolioMedia(pendingPhoto).catch(() => {});
-      }
-      const pendingCover = pendingCoverPathRef.current;
-      if (pendingCover) {
-        pendingCoverPathRef.current = null;
-        void deletePortfolioMedia(pendingCover).catch(() => {});
-      }
-    };
-  }, []);
-
-  // Best-effort protection against losing unsaved edits on an accidental tab
-  // close/refresh — uses react-hook-form's own dirty tracking, no new state.
+  // Best-effort protection against losing unsaved edits on an accidental tab close/refresh
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (!form.formState.isDirty) return;
@@ -450,18 +418,9 @@ export function ProfileManager({
         why_choose_points: toLineArray(values.why_choose_points),
       } as OwnProfileUpdate);
 
-      // Disarm pending-cleanup for whatever this save just persisted —
-      // BEFORE any further await, so an unmount/navigation racing right
-      // after this point can never treat a just-saved asset as abandoned.
       pendingPhotoPathRef.current = null;
       pendingCoverPathRef.current = null;
 
-      // The DB now successfully references the new values — safe to
-      // delete the OLD asset each field is replacing. Never earlier than
-      // this. Only ever deletes a value that resolves to a verifiably
-      // BeautyFolio-owned object under this same profile's own slug;
-      // anything external/legacy/malformed/wrong-owner is silently
-      // skipped (DB replacement already succeeded regardless).
       const previousPhotoUrl = originalPhotoUrlRef.current;
       const previousCoverUrl = originalCoverUrlRef.current;
       if (previousPhotoUrl && previousPhotoUrl !== photoUrl && uploadSlug) {
@@ -475,25 +434,18 @@ export function ProfileManager({
       originalPhotoUrlRef.current = photoUrl;
       originalCoverUrlRef.current = coverUrl;
 
-      toast.success("Profile saved");
+      toast.success("Profile saved — image synced across all devices!");
       form.reset(values);
     } catch (error) {
-      // Save failed — OLD (still originalPhotoUrlRef/originalCoverUrlRef)
-      // was never touched, and any pending NEW upload stays tracked for a
-      // retry (same values are simply resubmitted) or for unmount cleanup
-      // if the user instead navigates away.
       toast.error(error instanceof Error ? error.message : "Failed to save profile");
     } finally {
       setSaving(false);
     }
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadPhotoFile = async (file: File) => {
     if (!uploadSlug) {
       toast.error("Profile not loaded yet — please wait a moment and try again.");
-      if (photoInputRef.current) photoInputRef.current.value = "";
       return;
     }
     setUploadingPhoto(true);
@@ -501,25 +453,16 @@ export function ProfileManager({
     try {
       const path = await uploadPortfolioMedia(uploadSlug, "profile", file);
       if (token !== photoUploadTokenRef.current) {
-        // A newer selection already superseded this one while this
-        // upload was still in flight — this response is stale. Delete
-        // the object it just created rather than let it silently become
-        // an untracked orphan, and never touch state a later upload
-        // already owns.
         void deletePortfolioMedia(path).catch(() => {});
         return;
       }
-      // Supersede: delete whatever THIS session had pending before
-      // (never the persisted original, which is tracked separately in
-      // originalPhotoUrlRef and only ever deleted after a successful
-      // Save).
       const previousPending = pendingPhotoPathRef.current;
       pendingPhotoPathRef.current = path;
       if (previousPending && previousPending !== path) {
         void deletePortfolioMedia(previousPending).catch(() => {});
       }
       setPhotoUrl(buildPublicMediaUrl(path));
-      toast.success("Photo uploaded — click Save changes to apply");
+      toast.success("Photo uploaded! Click Save changes to apply across all devices.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to upload photo");
     } finally {
@@ -528,37 +471,9 @@ export function ProfileManager({
     }
   };
 
-  // Clears the draft `photoUrl` state. If it was backed by a same-session
-  // pending upload (never yet saved), that upload is deleted immediately —
-  // it was never referenced by anything, so there's no reason to wait for
-  // unmount cleanup. The persisted OLD asset (if any) is deliberately left
-  // alone here: it's only ever deleted after a successful Save actually
-  // clears the DB field (handleSubmit) — removing it now, before Save,
-  // would leave the DB pointing at a deleted object if the user closes
-  // without saving after all.
-  const handleRemovePhoto = () => {
-    if (
-      !window.confirm(
-        "Remove profile photo?\n\nThe portfolio will continue to work, but this profile photo will no longer appear publicly.",
-      )
-    ) {
-      return;
-    }
-    const pending = pendingPhotoPathRef.current;
-    if (pending) {
-      pendingPhotoPathRef.current = null;
-      void deletePortfolioMedia(pending).catch(() => {});
-    }
-    setPhotoUrl(null);
-    if (photoInputRef.current) photoInputRef.current.value = "";
-  };
-
-  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadCoverFile = async (file: File) => {
     if (!uploadSlug) {
       toast.error("Profile not loaded yet — please wait a moment and try again.");
-      if (coverInputRef.current) coverInputRef.current.value = "";
       return;
     }
     setUploadingCover(true);
@@ -575,13 +490,125 @@ export function ProfileManager({
         void deletePortfolioMedia(previousPending).catch(() => {});
       }
       setCoverUrl(buildPublicMediaUrl(path));
-      toast.success("Cover photo uploaded — click Save changes to apply");
+      toast.success("Cover photo uploaded! Click Save changes to apply across all devices.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to upload cover photo");
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
     }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadPhotoFile(file);
+  };
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadCoverFile(file);
+  };
+
+  const handleUrlSubmit = async () => {
+    if (!pastedUrlInput.trim()) {
+      toast.error("Please enter a valid image URL");
+      return;
+    }
+    if (!uploadSlug) {
+      toast.error("Profile not loaded yet — please wait a moment.");
+      return;
+    }
+    setProcessingUrl(true);
+    try {
+      const path = await uploadPortfolioMediaFromUrl(
+        uploadSlug,
+        "profile",
+        pastedUrlInput.trim(),
+      );
+      const publicUrl = buildPublicMediaUrl(path);
+      if (pasteModalTarget === "photo") {
+        setPhotoUrl(publicUrl);
+        toast.success("Profile photo updated from URL! Click Save changes to apply.");
+      } else if (pasteModalTarget === "cover") {
+        setCoverUrl(publicUrl);
+        toast.success("Cover photo updated from URL! Click Save changes to apply.");
+      }
+      setPasteModalTarget(null);
+      setPastedUrlInput("");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Failed to download image from URL. Make sure the URL is a direct link to an image.",
+      );
+    } finally {
+      setProcessingUrl(false);
+    }
+  };
+
+  // Global Clipboard Paste listener (Ctrl+V)
+  useEffect(() => {
+    const handleGlobalPaste = async (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTyping =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith("image/")) {
+            const file = items[i].getAsFile();
+            if (file) {
+              e.preventDefault();
+              await uploadPhotoFile(file);
+              return;
+            }
+          }
+        }
+      }
+
+      if (!isTyping && uploadSlug) {
+        const text = e.clipboardData?.getData("text")?.trim();
+        if (text && /^https?:\/\/.+\.(jpg|jpeg|png|webp|avif)(\?.*)?$/i.test(text)) {
+          e.preventDefault();
+          try {
+            setUploadingPhoto(true);
+            const path = await uploadPortfolioMediaFromUrl(uploadSlug, "profile", text);
+            setPhotoUrl(buildPublicMediaUrl(path));
+            toast.success("Pasted image URL uploaded as profile photo! Click Save changes to apply.");
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to load pasted image URL");
+          } finally {
+            setUploadingPhoto(false);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("paste", handleGlobalPaste);
+    return () => window.removeEventListener("paste", handleGlobalPaste);
+  }, [uploadSlug]);
+
+  const handleRemovePhoto = () => {
+    if (
+      !window.confirm(
+        "Remove profile photo?\n\nThe portfolio will continue to work, but this profile photo will no longer appear publicly.",
+      )
+    ) {
+      return;
+    }
+    const pending = pendingPhotoPathRef.current;
+    if (pending) {
+      pendingPhotoPathRef.current = null;
+      void deletePortfolioMedia(pending).catch(() => {});
+    }
+    setPhotoUrl(null);
+    if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
   const liveValues = form.watch();
@@ -666,13 +693,27 @@ export function ProfileManager({
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 )}
-                <label
-                  htmlFor="cover-photo-input"
-                  className="absolute right-3 top-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/55"
-                >
-                  <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-                  {coverUrl ? "Change cover" : "Add cover photo"}
-                </label>
+                <div className="absolute right-3 top-3 flex items-center gap-1.5">
+                  <label
+                    htmlFor="cover-photo-input"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70 shadow-sm"
+                  >
+                    <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{coverUrl ? "Change cover" : "Upload cover"}</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPastedUrlInput("");
+                      setPasteModalTarget("cover");
+                    }}
+                    className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-black/50 px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70 shadow-sm"
+                    title="Paste Image URL"
+                  >
+                    <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="hidden sm:inline">Paste URL</span>
+                  </button>
+                </div>
                 <input
                   id="cover-photo-input"
                   ref={coverInputRef}
@@ -684,7 +725,7 @@ export function ProfileManager({
                 />
                 {uploadingCover && (
                   <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs text-white">
-                    Uploading…
+                    Uploading cover…
                   </span>
                 )}
               </div>
@@ -693,7 +734,7 @@ export function ProfileManager({
                 <div className="flex flex-wrap items-end justify-between gap-4">
                   <div className="flex items-end gap-4">
                     <div className="-mt-10 flex shrink-0 flex-col items-center gap-1 sm:-mt-12">
-                      <div className="relative">
+                      <div className="relative group">
                         {photoUrl ? (
                           <img
                             src={photoUrl}
@@ -707,8 +748,9 @@ export function ProfileManager({
                         )}
                         <label
                           htmlFor="profile-photo-input"
-                          aria-label="Change profile photo"
+                          aria-label="Upload profile photo"
                           className="absolute -right-1 -bottom-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-card bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+                          title="Upload file or take photo"
                         >
                           <Camera className="h-4 w-4" aria-hidden="true" />
                         </label>
@@ -727,15 +769,31 @@ export function ProfileManager({
                           </span>
                         )}
                       </div>
-                      {photoUrl && (
+                      <div className="flex items-center gap-2 text-[11px]">
                         <button
                           type="button"
-                          onClick={handleRemovePhoto}
-                          className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-destructive"
+                          onClick={() => {
+                            setPastedUrlInput("");
+                            setPasteModalTarget("photo");
+                          }}
+                          className="inline-flex items-center gap-0.5 text-primary hover:underline"
                         >
-                          Remove photo
+                          <Link2 className="h-3 w-3" />
+                          <span>Paste URL</span>
                         </button>
-                      )}
+                        {photoUrl && (
+                          <>
+                            <span className="text-muted-foreground">·</span>
+                            <button
+                              type="button"
+                              onClick={handleRemovePhoto}
+                              className="text-muted-foreground underline underline-offset-2 hover:text-destructive"
+                            >
+                              Remove
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="min-w-0 pb-1">
                       <p className="truncate font-display text-lg font-semibold sm:text-xl text-foreground">
@@ -1201,9 +1259,100 @@ export function ProfileManager({
                 </SectionCard>
               </div>
             </div>
+
+            {/* Mobile floating save bar — ensures mobile users can easily save changes */}
+            {hasUnsavedProfileChanges && (
+              <div className="fixed bottom-4 left-4 right-4 z-40 flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-background/95 p-3 shadow-xl backdrop-blur-md sm:hidden">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  <p className="truncate text-xs font-medium text-foreground">
+                    Unsaved photo / profile edits
+                  </p>
+                </div>
+                <Button type="submit" size="sm" variant="hero" disabled={saving}>
+                  {saving ? "Saving…" : "Save changes"}
+                </Button>
+              </div>
+            )}
           </form>
         </Form>
       )}
+
+      {/* Paste Image URL Modal Dialog */}
+      <Dialog
+        open={pasteModalTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPasteModalTarget(null);
+            setPastedUrlInput("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {pasteModalTarget === "photo" ? "Paste Profile Photo URL" : "Paste Cover Photo URL"}
+            </DialogTitle>
+            <DialogDescription>
+              Enter or paste a direct image URL (JPEG, PNG, WebP). The image will be safely downloaded and stored in your profile.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Input
+                placeholder="https://example.com/image.jpg"
+                value={pastedUrlInput}
+                onChange={(e) => setPastedUrlInput(e.target.value)}
+                autoFocus
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Tip: You can also copy any image to your clipboard and press Ctrl+V anywhere on the page!
+              </p>
+            </div>
+
+            {pastedUrlInput.trim() && (
+              <div className="relative overflow-hidden rounded-lg border border-border bg-secondary/20 p-2">
+                <p className="text-[11px] font-medium text-muted-foreground mb-1">Preview:</p>
+                <img
+                  src={pastedUrlInput.trim()}
+                  alt="Preview"
+                  className={cn(
+                    "max-h-40 w-full object-cover rounded",
+                    pasteModalTarget === "photo" && "mx-auto h-24 w-24 rounded-full aspect-square",
+                  )}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = "none";
+                  }}
+                  onLoad={(e) => {
+                    (e.target as HTMLElement).style.display = "block";
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPasteModalTarget(null)}
+                disabled={processingUrl}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="hero"
+                onClick={handleUrlSubmit}
+                disabled={processingUrl || !pastedUrlInput.trim()}
+              >
+                {processingUrl ? "Downloading & Uploading…" : "Apply & Upload"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

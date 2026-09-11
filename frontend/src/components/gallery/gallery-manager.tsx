@@ -80,13 +80,30 @@ function ImageDropzone({
     syncFromInput();
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const pastedFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile();
+        if (file) pastedFiles.push(file);
+      }
+    }
+    if (pastedFiles.length > 0) {
+      e.preventDefault();
+      onFilesChange([...files, ...pastedFiles]);
+      toast.success(`${pastedFiles.length} pasted image(s) added!`);
+    }
+  };
+
   const handleRemove = () => {
     if (fileRef.current) fileRef.current.value = "";
     onFilesChange([]);
   };
 
   return (
-    <div>
+    <div onPaste={handlePaste} tabIndex={0} className="outline-none">
       <p className="text-sm font-medium">{label}</p>
       <div className="mt-1 space-y-2">
         {files.length > 0 ? (
@@ -126,7 +143,7 @@ function ImageDropzone({
             )}
           >
             <ImagePlus className="h-6 w-6 text-primary" aria-hidden="true" />
-            <span className="text-sm font-semibold">Choose images or drag &amp; drop</span>
+            <span className="text-sm font-semibold">Choose images, drag &amp; drop or paste (Ctrl+V)</span>
             <span className="text-xs text-muted-foreground">
               {IMAGE_GUIDELINES.gallery} · {UPLOAD_HINT}
             </span>

@@ -145,3 +145,37 @@ export async function uploadPortfolioVideo(slug: string, file: File): Promise<st
 
   return path;
 }
+
+/**
+ * Downloads an image from a URL or Data URL and uploads it to Supabase Storage
+ * under the profile's owned directory so that it is permanently stored and
+ * loads reliably across all devices without expiring or CORS issues.
+ */
+export async function uploadPortfolioMediaFromUrl(
+  slug: string,
+  category: MediaCategory,
+  imageUrl: string,
+): Promise<string> {
+  const trimmed = imageUrl.trim();
+  if (!trimmed) throw new Error("Please enter an image URL.");
+
+  const ownedPath = resolveOwnedMediaPath(trimmed, slug);
+  if (ownedPath) return ownedPath;
+
+  try {
+    const res = await fetch(trimmed);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const blob = await res.blob();
+    const type = blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+    const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : "jpg";
+    const file = new File([blob], `pasted-${Date.now()}.${ext}`, { type });
+    return await uploadPortfolioMedia(slug, category, file);
+  } catch (err) {
+    throw new Error(
+      err instanceof Error
+        ? `Could not download image from URL (${err.message}). Try copying the image directly and pasting (Ctrl+V) or uploading the file.`
+        : "Failed to download image from the provided URL.",
+    );
+  }
+}
+
