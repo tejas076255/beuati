@@ -68,6 +68,7 @@ const getOwnProfileSummaryFn = createServerFn({ method: "GET" })
       display_name: profile.display_name,
       profile_image_url: profile.profile_image_url,
       slug: profile.slug,
+      status: profile.status,
     };
   });
 
@@ -177,6 +178,7 @@ function DashboardLayout() {
   const name = profileQuery.data?.display_name;
   const photo = profileQuery.data?.profile_image_url;
   const slug = profileQuery.data?.slug;
+  const profileStatus = profileQuery.data?.status;
   const initial = name?.trim()?.[0]?.toUpperCase() ?? "?";
 
   return (
@@ -267,7 +269,7 @@ function DashboardLayout() {
                 <span className="text-sm font-medium">{name}</span>
               </div>
             )}
-            {slug && (
+            {slug && profileStatus === "published" && (
               <Link
                 to="/portfolio/$slug"
                 params={{ slug }}
@@ -278,6 +280,11 @@ function DashboardLayout() {
                 <ExternalLink className="h-3.5 w-3.5" />
                 View Public Portfolio
               </Link>
+            )}
+            {slug && profileStatus !== "published" && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">
+                Portfolio: {profileStatus ?? "draft"}
+              </span>
             )}
             {isAdminQuery.data && (
               <Link
