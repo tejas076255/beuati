@@ -85,14 +85,25 @@ function LoginPage() {
 
   // Auto-redirect if already logged in
   useEffect(() => {
+    // Guard against getSession() hanging indefinitely (e.g. network issues
+    // or slow auth server round-trips with new Supabase API key format).
+    // After 5 s we give up and show the login form regardless.
+    const timeout = setTimeout(() => setChecking(false), 5000);
+
     supabase.auth.getSession().then(async ({ data }) => {
+      clearTimeout(timeout);
       if (data.session) {
         const to = await getPostLoginRedirect();
         navigate({ to });
       } else {
         setChecking(false);
       }
+    }).catch(() => {
+      clearTimeout(timeout);
+      setChecking(false);
     });
+
+    return () => clearTimeout(timeout);
   }, [navigate]);
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
