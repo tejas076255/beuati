@@ -157,12 +157,17 @@ const activatePlanFn = createServerFn({ method: "POST" })
       .update({ status: "activated" })
       .eq("gateway_order_id", data.razorpay_order_id);
 
-    // Activate plan on beautician_profile
-    const supabaseAdmin = context.supabase;
-    await supabaseAdmin
+    // Activate plan on beautician_profile — must use service-role client to
+    // bypass RLS (the user client cannot update plan on their own row).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: updateError } = await supabaseAdmin
       .from("beautician_profiles")
       .update({ plan: data.plan, billing_hold: false })
       .eq("id", data.bp_id);
+
+    if (updateError) {
+      throw new Error(`Failed to activate plan: ${updateError.message}`);
+    }
 
     return { activated: true, plan: data.plan };
   });
@@ -231,6 +236,12 @@ function BillingPage() {
     onSuccess: (result) => {
       toast.success(`${PLAN_LABELS[result.plan]} plan activated!`);
       setPollingActive(false);
+      setSelectedPlan(null);
+      // Immediately update the cached billing status so the UI reflects the
+      // new plan without waiting for a refetch round-trip.
+      queryClient.setQueryData(["billing-status"], (prev: typeof statusQuery.data) =>
+        prev ? { ...prev, plan: result.plan, billing_hold: false } : prev,
+      );
       queryClient.invalidateQueries({ queryKey: ["billing-status"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] });
     },
@@ -287,6 +298,13 @@ function BillingPage() {
   }, [selectedPlan, cycle, createOrderMutation, activateMutation]);
 
   const currentPlan = statusQuery.data?.plan ?? "free";
+  // While activation is in-flight, treat the target plan as already active so
+  // the card immediately shows the "current" highlight instead of staying
+  // selected/highlighted as a pending choice.
+  const activatingPlan = activateMutation.isPending
+    ? (activateMutation.variables?.plan ?? null)
+    : null;
+  const effectivePlan = (activatingPlan ?? currentPlan) as PortfolioPlan;
   const isHold = statusQuery.data?.billing_hold ?? false;
   const razorpayReady = !!statusQuery.data?.razorpay_key_id;
 
@@ -306,7 +324,7 @@ function BillingPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-3">
           <Badge variant="default" className="text-sm">
-            {PLAN_LABELS[currentPlan]}
+            {PLAN_LABELS[effectivePlan]}
           </Badge>
           {isHold && (
             <Badge variant="destructive" className="text-xs">
@@ -352,7 +370,7 @@ function BillingPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Free / Start plan card */}
         {(() => {
-          const isCurrent = currentPlan === "free";
+          const isCurrent = effectivePlan === "free";
           return (
             <Card
               className={`border-2 transition-all sm:col-span-2 ${
@@ -388,8 +406,8 @@ function BillingPage() {
         {PAID_PLANS.map((plan) => {
           const pricing = getDisplayPricing(plan);
           const price = cycle === "monthly" ? pricing.monthly : pricing.yearly;
-          const isCurrent = plan === currentPlan;
-          const isSelected = plan === selectedPlan;
+          const isCurrent = plan === effectivePlan;
+          const isSelected = !isCurrent && plan === selectedPlan;
           return (
             <Card
               key={plan}
@@ -427,7 +445,7 @@ function BillingPage() {
       </div>
 
       {/* Upgrade button — sticky bottom bar on mobile */}
-      {selectedPlan && selectedPlan !== currentPlan && (
+      {selectedPlan && selectedPlan !== effectivePlan && (
         <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
           <div className="flex items-center gap-3 sm:justify-start">
             <Button
@@ -455,7 +473,7 @@ function BillingPage() {
       )}
 
       {/* Bottom padding so content doesn't hide behind sticky bar on mobile */}
-      {selectedPlan && selectedPlan !== currentPlan && (
+      {selectedPlan && selectedPlan !== effectivePlan && (
         <div className="h-20 sm:hidden" aria-hidden="true" />
       )}
 
