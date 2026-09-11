@@ -221,10 +221,10 @@ function LeadsPage() {
           placeholder="Search name, phone, email, professional, service…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
+          className="w-full sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -237,7 +237,7 @@ function LeadsPage() {
           </SelectContent>
         </Select>
         <Select value={professionalFilter} onValueChange={setProfessionalFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <SelectValue placeholder="Professional" />
           </SelectTrigger>
           <SelectContent>
@@ -250,7 +250,7 @@ function LeadsPage() {
           </SelectContent>
         </Select>
         <Select value={serviceFilter} onValueChange={setServiceFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <SelectValue placeholder="Service" />
           </SelectTrigger>
           <SelectContent>
@@ -266,17 +266,17 @@ function LeadsPage() {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
-          className="w-[150px]"
+          className="w-full sm:w-[150px]"
         />
         <span className="text-sm text-muted-foreground">to</span>
         <Input
           type="date"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
-          className="w-[150px]"
+          className="w-full sm:w-[150px]"
         />
         <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "newest" | "oldest")}>
-          <SelectTrigger className="w-[130px]">
+          <SelectTrigger className="w-full sm:w-[130px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -296,7 +296,8 @@ function LeadsPage() {
         ) : filtered.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">No leads match these filters.</p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -357,6 +358,7 @@ function LeadsPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </div>
 

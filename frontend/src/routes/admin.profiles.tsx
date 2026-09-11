@@ -271,7 +271,7 @@ function ProfilesPage() {
       </p>
 
       {/* ── Plan stat cards ────────────────────────────────────────────── */}
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {(["free", "starter", "silver", "gold", "platinum"] as PortfolioPlan[]).map((plan) => (
           <button
             key={plan}
@@ -303,7 +303,7 @@ function ProfilesPage() {
       {/* ── Filters row ───────────────────────────────────────────────── */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Select value={verifiedFilter} onValueChange={(v) => { setVerifiedFilter(v); resetPage(); }}>
-          <SelectTrigger className="h-8 w-[140px] text-xs">
+          <SelectTrigger className="h-8 w-full sm:w-[140px] text-xs">
             <SelectValue placeholder="Verified" />
           </SelectTrigger>
           <SelectContent>
@@ -314,7 +314,7 @@ function ProfilesPage() {
         </Select>
 
         <Select value={featuredFilter} onValueChange={(v) => { setFeaturedFilter(v); resetPage(); }}>
-          <SelectTrigger className="h-8 w-[140px] text-xs">
+          <SelectTrigger className="h-8 w-full sm:w-[140px] text-xs">
             <SelectValue placeholder="Featured" />
           </SelectTrigger>
           <SelectContent>
@@ -325,7 +325,7 @@ function ProfilesPage() {
         </Select>
 
         <Select value={planFilter} onValueChange={(v) => { setPlanFilter(v); resetPage(); }}>
-          <SelectTrigger className="h-8 w-[130px] text-xs">
+          <SelectTrigger className="h-8 w-full sm:w-[130px] text-xs">
             <SelectValue placeholder="Plan: any" />
           </SelectTrigger>
           <SelectContent>
@@ -337,7 +337,7 @@ function ProfilesPage() {
         </Select>
 
         <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v); resetPage(); }}>
-          <SelectTrigger className="h-8 w-[130px] text-xs">
+          <SelectTrigger className="h-8 w-full sm:w-[130px] text-xs">
             <SelectValue placeholder="Source: any" />
           </SelectTrigger>
           <SelectContent>
@@ -350,7 +350,7 @@ function ProfilesPage() {
         </Select>
 
         <Select value={scoreBandFilter} onValueChange={(v) => { setScoreBandFilter(v); resetPage(); }}>
-          <SelectTrigger className="h-8 w-[175px] text-xs">
+          <SelectTrigger className="h-8 w-full sm:w-[175px] text-xs">
             <SelectValue placeholder="Completion score: any" />
           </SelectTrigger>
           <SelectContent>
@@ -364,7 +364,7 @@ function ProfilesPage() {
         </Select>
 
         <Select value={signedUpRange} onValueChange={(v) => { setSignedUpRange(v as SignedUpRange); resetPage(); }}>
-          <SelectTrigger className="h-8 w-[180px] text-xs">
+          <SelectTrigger className="h-8 w-full sm:w-[180px] text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -374,14 +374,14 @@ function ProfilesPage() {
           </SelectContent>
         </Select>
 
-        {/* Custom date inputs — only visible when "custom range" is selected */}
+        {/* Custom date inputs */}
         {signedUpRange === "custom" && (
           <>
             <Input
               type="date"
               value={customFrom}
               onChange={(e) => { setCustomFrom(e.target.value); resetPage(); }}
-              className="h-8 w-[140px] text-xs"
+              className="h-8 w-full sm:w-[140px] text-xs"
               aria-label="From date"
             />
             <span className="text-xs text-muted-foreground">to</span>
@@ -389,7 +389,7 @@ function ProfilesPage() {
               type="date"
               value={customTo}
               onChange={(e) => { setCustomTo(e.target.value); resetPage(); }}
-              className="h-8 w-[140px] text-xs"
+              className="h-8 w-full sm:w-[140px] text-xs"
               aria-label="To date"
             />
           </>
