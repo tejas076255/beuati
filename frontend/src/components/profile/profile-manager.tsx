@@ -690,9 +690,9 @@ export function ProfileManager({
               </div>
 
               <CardContent className="pt-0">
-                <div className="-mt-10 flex flex-wrap items-end justify-between gap-4 sm:-mt-12">
+                <div className="flex flex-wrap items-end justify-between gap-4">
                   <div className="flex items-end gap-4">
-                    <div className="flex shrink-0 flex-col items-center gap-1">
+                    <div className="-mt-10 flex shrink-0 flex-col items-center gap-1 sm:-mt-12">
                       <div className="relative">
                         {photoUrl ? (
                           <img
@@ -738,7 +738,7 @@ export function ProfileManager({
                       )}
                     </div>
                     <div className="min-w-0 pb-1">
-                      <p className="truncate font-display text-lg font-semibold sm:text-xl">
+                      <p className="truncate font-display text-lg font-semibold sm:text-xl text-foreground">
                         {liveValues.display_name || "Your name"}
                       </p>
                       <p className="truncate text-sm text-muted-foreground">

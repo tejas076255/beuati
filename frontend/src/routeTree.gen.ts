@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ExpoRouteImport } from './routes/expo'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -19,7 +20,6 @@ import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ExpoRouteImport } from './routes/expo'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
@@ -62,6 +62,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExpoRoute = ExpoRouteImport.update({
+  id: '/expo',
+  path: '/expo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -95,11 +100,6 @@ const SignupRoute = SignupRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExpoRoute = ExpoRouteImport.update({
-  id: '/expo',
-  path: '/expo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -238,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
+  '/expo': typeof ExpoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -271,10 +272,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
-  '/expo': typeof ExpoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/expo': typeof ExpoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -282,7 +283,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/expo': typeof ExpoRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/profiles': typeof AdminProfilesRoute
@@ -315,6 +315,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
+  '/expo': typeof ExpoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -322,7 +323,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/expo': typeof ExpoRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/profiles': typeof AdminProfilesRoute
@@ -356,6 +356,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/expo'
     | '/forgot-password'
     | '/login'
     | '/privacy'
@@ -363,12 +364,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms'
-    | '/expo'
     | '/admin/audit-logs'
     | '/admin/leads'
     | '/admin/profiles'
     | '/admin/reviews'
     | '/admin/services'
+    | '/admin/sources'
     | '/admin/users'
     | '/dashboard/areas'
     | '/dashboard/availability'
@@ -392,6 +393,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/expo'
     | '/forgot-password'
     | '/login'
     | '/privacy'
@@ -399,12 +401,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms'
-    | '/expo'
     | '/admin/audit-logs'
     | '/admin/leads'
     | '/admin/profiles'
     | '/admin/reviews'
     | '/admin/services'
+    | '/admin/sources'
     | '/admin/users'
     | '/dashboard/areas'
     | '/dashboard/availability'
@@ -430,6 +432,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/expo'
     | '/forgot-password'
     | '/login'
     | '/privacy'
@@ -437,12 +440,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms'
-    | '/expo'
     | '/admin/audit-logs'
     | '/admin/leads'
     | '/admin/profiles'
     | '/admin/reviews'
     | '/admin/services'
+    | '/admin/sources'
     | '/admin/users'
     | '/dashboard/areas'
     | '/dashboard/availability'
@@ -469,6 +472,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
+  ExpoRoute: typeof ExpoRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -476,7 +480,6 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
-  ExpoRoute: typeof ExpoRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   PortfolioSlugServicesServiceSlugRoute: typeof PortfolioSlugServicesServiceSlugRoute
 }
@@ -502,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expo': {
+      id: '/expo'
+      path: '/expo'
+      fullPath: '/expo'
+      preLoaderRoute: typeof ExpoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -551,13 +561,6 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/expo': {
-      id: '/expo'
-      path: '/expo'
-      fullPath: '/expo'
-      preLoaderRoute: typeof ExpoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -815,6 +818,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
+  ExpoRoute: ExpoRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
@@ -822,7 +826,6 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
-  ExpoRoute: ExpoRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   PortfolioSlugServicesServiceSlugRoute: PortfolioSlugServicesServiceSlugRoute,
 }

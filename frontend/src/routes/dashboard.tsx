@@ -125,6 +125,90 @@ const NAV_GROUPS: {
   },
 ];
 
+function AppSidebar({
+  pathname,
+  newLeadsCount,
+}: {
+  pathname: string;
+  newLeadsCount: number;
+}) {
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="p-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:p-1">
+        {/* Icon mark always shows; the wordmark hides once the sidebar
+            collapses to its icon-only rail. The header's own padding also
+            shrinks in that state — at the default p-3, the 48px icon rail
+            only has 24px of content space left, smaller than the 36px icon
+            mark itself, which is what was clipping it even with the text
+            hidden. p-1 leaves 40px, comfortably fitting the icon centered. */}
+        <span className="inline-flex items-center gap-2">
+          <span className="bg-gradient-brand flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+            <Sparkles className="h-4.5 w-4.5 text-primary-foreground" aria-hidden="true" />
+          </span>
+          <span className="font-display text-lg font-semibold tracking-tight whitespace-nowrap group-data-[collapsible=icon]:hidden">
+            Beauty<span className="text-gradient-brand">Folio</span>
+          </span>
+        </span>
+      </SidebarHeader>
+      <SidebarContent>
+        {NAV_GROUPS.map((group) => (
+          <SidebarGroup key={group.heading}>
+            <SidebarGroupLabel>{group.heading}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isActive =
+                    !!item.to && (pathname === item.to || pathname.startsWith(`${item.to}/`));
+                  return (
+                    <SidebarMenuItem key={item.label}>
+                      {item.to ? (
+                        <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+                          <Link to={item.to} onClick={handleNavClick}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      ) : (
+                        <SidebarMenuButton
+                          disabled
+                          aria-disabled="true"
+                          className="cursor-not-allowed opacity-60"
+                          tooltip={`${item.label} — planned, not yet available`}
+                        >
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      )}
+                      {item.to === "/dashboard/leads" && newLeadsCount > 0 && (
+                        <SidebarMenuBadge className="bg-destructive text-destructive-foreground">
+                          {newLeadsCount > 99 ? "99+" : newLeadsCount}
+                        </SidebarMenuBadge>
+                      )}
+                      {!item.to && (
+                        <SidebarMenuBadge className="text-[10px] tracking-wide text-muted-foreground uppercase">
+                          Soon
+                        </SidebarMenuBadge>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+    </Sidebar>
+  );
+}
+
 function DashboardLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -183,71 +267,7 @@ function DashboardLayout() {
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="p-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:p-1">
-          {/* Icon mark always shows; the wordmark hides once the sidebar
-              collapses to its icon-only rail. The header's own padding also
-              shrinks in that state — at the default p-3, the 48px icon rail
-              only has 24px of content space left, smaller than the 36px icon
-              mark itself, which is what was clipping it even with the text
-              hidden. p-1 leaves 40px, comfortably fitting the icon centered. */}
-          <span className="inline-flex items-center gap-2">
-            <span className="bg-gradient-brand flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
-              <Sparkles className="h-4.5 w-4.5 text-primary-foreground" aria-hidden="true" />
-            </span>
-            <span className="font-display text-lg font-semibold tracking-tight whitespace-nowrap group-data-[collapsible=icon]:hidden">
-              Beauty<span className="text-gradient-brand">Folio</span>
-            </span>
-          </span>
-        </SidebarHeader>
-        <SidebarContent>
-          {NAV_GROUPS.map((group) => (
-            <SidebarGroup key={group.heading}>
-              <SidebarGroupLabel>{group.heading}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {group.items.map((item) => {
-                    const isActive =
-                      !!item.to && (pathname === item.to || pathname.startsWith(`${item.to}/`));
-                    return (
-                      <SidebarMenuItem key={item.label}>
-                        {item.to ? (
-                          <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                            <Link to={item.to}>
-                              <item.icon />
-                              <span>{item.label}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        ) : (
-                          <SidebarMenuButton
-                            disabled
-                            aria-disabled="true"
-                            className="cursor-not-allowed opacity-60"
-                            tooltip={`${item.label} — planned, not yet available`}
-                          >
-                            <item.icon />
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        )}
-                        {item.to === "/dashboard/leads" && newLeadsCount > 0 && (
-                          <SidebarMenuBadge className="bg-destructive text-destructive-foreground">
-                            {newLeadsCount > 99 ? "99+" : newLeadsCount}
-                          </SidebarMenuBadge>
-                        )}
-                        {!item.to && (
-                          <SidebarMenuBadge className="text-[10px] tracking-wide text-muted-foreground uppercase">
-                            Soon
-                          </SidebarMenuBadge>
-                        )}
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))}
-        </SidebarContent>
-      </Sidebar>
+      <AppSidebar pathname={pathname} newLeadsCount={newLeadsCount} />
 
       <SidebarInset>
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:px-6">
