@@ -1,4 +1,17 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import {
+  BarChart2,
+  BookOpen,
+  ClipboardList,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Share2,
+  Sparkles,
+  Star,
+  Users,
+  Users2,
+} from "lucide-react";
 
 import { useRequireAdmin } from "@/lib/require-admin";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,43 +19,52 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
-  // Private/auth-gated area — every child route (/admin/*) inherits this
-  // via TanStack Router's head merging, so no per-child duplication is
-  // needed. Never indexed, regardless of what any child page renders.
   head: () => ({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
   component: AdminLayout,
 });
 
-const NAV_GROUPS = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  exact?: boolean;
+};
+
+type NavGroup = {
+  heading: string;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Overview",
-    items: [{ to: "/admin", label: "Dashboard" }],
+    items: [{ to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }],
   },
   {
     heading: "Manage",
     items: [
-      { to: "/admin/profiles", label: "Professionals" },
-      { to: "/admin/leads", label: "Leads" },
-      { to: "/admin/reviews", label: "Reviews" },
+      { to: "/admin/profiles", label: "Professionals", icon: Users },
+      { to: "/admin/leads", label: "Leads", icon: Inbox },
+      { to: "/admin/reviews", label: "Reviews", icon: Star },
     ],
   },
   {
     heading: "Content",
     items: [
-      { to: "/admin/services", label: "Services" },
-      { to: "/admin/sources", label: "Sources" },
+      { to: "/admin/services", label: "Services", icon: Sparkles },
+      { to: "/admin/sources", label: "Sources", icon: Share2 },
     ],
   },
   {
     heading: "Platform",
     items: [
-      { to: "/admin/users", label: "Users & Roles" },
-      { to: "/admin/audit-logs", label: "Audit Logs" },
+      { to: "/admin/users", label: "Staff & Roles", icon: Users2 },
+      { to: "/admin/audit-logs", label: "Audit Logs", icon: ClipboardList },
     ],
   },
-] as const;
+];
 
 function AdminLayout() {
   const navigate = useNavigate();
@@ -74,30 +96,39 @@ function AdminLayout() {
             >
               Back to my dashboard
             </Link>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="gap-1.5 text-muted-foreground"
+            >
+              <LogOut className="h-4 w-4" />
               Log out
             </Button>
           </div>
         </div>
       </header>
+
       <div className="mx-auto flex max-w-6xl gap-8 px-4 py-8 sm:px-8">
-        <nav className="w-48 shrink-0 space-y-4">
+        {/* ── Sidebar nav ──────────────────────────────────────────────── */}
+        <nav className="w-48 shrink-0 space-y-5">
           {NAV_GROUPS.map((group) => (
             <div key={group.heading}>
-              <p className="px-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              <p className="px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {group.heading}
               </p>
-              <div className="mt-1 space-y-1">
+              <div className="mt-1 space-y-0.5">
                 {group.items.map((item) => (
                   <Link
                     key={item.to}
                     to={item.to}
-                    {...(item.to === "/admin" ? { activeOptions: { exact: true } } : {})}
+                    {...(item.exact ? { activeOptions: { exact: true } } : {})}
                     className={cn(
-                      "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                      "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground",
                     )}
                     activeProps={{ className: "bg-secondary text-foreground" }}
                   >
+                    <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                     {item.label}
                   </Link>
                 ))}
@@ -105,6 +136,8 @@ function AdminLayout() {
             </div>
           ))}
         </nav>
+
+        {/* ── Page content ─────────────────────────────────────────────── */}
         <div className="min-w-0 flex-1">
           <Outlet />
         </div>
