@@ -490,7 +490,12 @@ export function ProfileManager({
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !uploadSlug) return;
+    if (!file) return;
+    if (!uploadSlug) {
+      toast.error("Profile not loaded yet — please wait a moment and try again.");
+      if (photoInputRef.current) photoInputRef.current.value = "";
+      return;
+    }
     setUploadingPhoto(true);
     const token = ++photoUploadTokenRef.current;
     try {
@@ -550,7 +555,12 @@ export function ProfileManager({
 
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !uploadSlug) return;
+    if (!file) return;
+    if (!uploadSlug) {
+      toast.error("Profile not loaded yet — please wait a moment and try again.");
+      if (coverInputRef.current) coverInputRef.current.value = "";
+      return;
+    }
     setUploadingCover(true);
     const token = ++coverUploadTokenRef.current;
     try {
@@ -669,7 +679,7 @@ export function ProfileManager({
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   onChange={handleCoverChange}
-                  disabled={uploadingCover}
+                  disabled={uploadingCover || !uploadSlug}
                   className="sr-only"
                 />
                 {uploadingCover && (
@@ -708,7 +718,7 @@ export function ProfileManager({
                           type="file"
                           accept="image/jpeg,image/png,image/webp"
                           onChange={handlePhotoChange}
-                          disabled={uploadingPhoto}
+                          disabled={uploadingPhoto || !uploadSlug}
                           className="sr-only"
                         />
                         {uploadingPhoto && (
