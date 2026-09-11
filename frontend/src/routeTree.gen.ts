@@ -26,6 +26,7 @@ import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminProfilesRouteImport } from './routes/admin.profiles'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminServicesRouteImport } from './routes/admin.services'
+import { Route as AdminSourcesRouteImport } from './routes/admin.sources'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardAreasRouteImport } from './routes/dashboard.areas'
@@ -129,6 +130,11 @@ const AdminReviewsRoute = AdminReviewsRouteImport.update({
 const AdminServicesRoute = AdminServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSourcesRoute = AdminSourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/admin/profiles': typeof AdminProfilesRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/services': typeof AdminServicesRoute
+  '/admin/sources': typeof AdminSourcesRoute
   '/admin/users': typeof AdminUsersRoute
   '/dashboard/areas': typeof DashboardAreasRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
@@ -281,6 +288,7 @@ export interface FileRoutesByTo {
   '/admin/profiles': typeof AdminProfilesRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/services': typeof AdminServicesRoute
+  '/admin/sources': typeof AdminSourcesRoute
   '/admin/users': typeof AdminUsersRoute
   '/dashboard/areas': typeof DashboardAreasRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/admin/profiles': typeof AdminProfilesRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/services': typeof AdminServicesRoute
+  '/admin/sources': typeof AdminSourcesRoute
   '/admin/users': typeof AdminUsersRoute
   '/dashboard/areas': typeof DashboardAreasRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
@@ -593,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminServicesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/sources': {
+      id: '/admin/sources'
+      path: '/sources'
+      fullPath: '/admin/sources'
+      preLoaderRoute: typeof AdminSourcesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -735,6 +751,7 @@ interface AdminRouteChildren {
   AdminProfilesRoute: typeof AdminProfilesRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminServicesRoute: typeof AdminServicesRoute
+  AdminSourcesRoute: typeof AdminSourcesRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminBeauticiansSlugRoute: typeof AdminBeauticiansSlugRoute
@@ -746,6 +763,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProfilesRoute: AdminProfilesRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminServicesRoute: AdminServicesRoute,
+  AdminSourcesRoute: AdminSourcesRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminBeauticiansSlugRoute: AdminBeauticiansSlugRoute,

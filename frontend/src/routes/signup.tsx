@@ -39,7 +39,8 @@ const ensurePortfolioFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { ensureOwnPortfolio } = await import("@/data/dashboard/provisioning.server");
-    return ensureOwnPortfolio(context.supabase, context.userId);
+    // Tag regular (non-expo) sign-ups as Direct.
+    return ensureOwnPortfolio(context.supabase, context.userId, "Direct");
   });
 
 const signupSchema = z.object({

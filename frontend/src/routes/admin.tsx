@@ -30,7 +30,10 @@ const NAV_GROUPS = [
   },
   {
     heading: "Content",
-    items: [{ to: "/admin/services", label: "Services" }],
+    items: [
+      { to: "/admin/services", label: "Services" },
+      { to: "/admin/sources", label: "Sources" },
+    ],
   },
   {
     heading: "Platform",

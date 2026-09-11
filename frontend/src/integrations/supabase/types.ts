@@ -187,6 +187,7 @@ export type Database = {
           rating: number | null
           review_count: number
           short_tagline: string | null
+          signup_source: string | null
           slug: string
           state: string | null
           status: Database["public"]["Enums"]["portfolio_status"]
@@ -238,6 +239,7 @@ export type Database = {
           rating?: number | null
           review_count?: number
           short_tagline?: string | null
+          signup_source?: string | null
           slug: string
           state?: string | null
           status?: Database["public"]["Enums"]["portfolio_status"]
@@ -289,6 +291,7 @@ export type Database = {
           rating?: number | null
           review_count?: number
           short_tagline?: string | null
+          signup_source?: string | null
           slug?: string
           state?: string | null
           status?: Database["public"]["Enums"]["portfolio_status"]

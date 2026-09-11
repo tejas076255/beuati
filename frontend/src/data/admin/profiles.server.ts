@@ -30,6 +30,7 @@ export type AdminProfileSummary = Pick<
   | "client_count"
   | "plan"
   | "completion_score"
+  | "signup_source"
 >;
 
 export async function listAllProfiles(
@@ -41,7 +42,7 @@ export async function listAllProfiles(
   const { data, error } = await supabase
     .from("beautician_profiles")
     .select(
-      "id, slug, display_name, status, is_demo, is_verified, is_featured, created_at, review_count, client_count, plan, completion_score",
+      "id, slug, display_name, status, is_demo, is_verified, is_featured, created_at, review_count, client_count, plan, completion_score, signup_source",
     )
     .order("created_at", { ascending: false });
 
@@ -273,4 +274,28 @@ export async function updateProfileFlags(
       );
     }
   }
+}
+
+export async function updateProfileSource(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  profileId: string,
+  signup_source: string | null,
+): Promise<void> {
+  await assertIsAdmin(supabase, userId);
+
+  const { error } = await supabase
+    .from("beautician_profiles")
+    .update({ signup_source })
+    .eq("id", profileId);
+  if (error) throw new Error(`Failed to update source: ${error.message}`);
+
+  await logAdminAction(
+    supabase,
+    "profile_status_changed",
+    "beautician_profile",
+    profileId,
+    {},
+    { signup_source },
+  );
 }

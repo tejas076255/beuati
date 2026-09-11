@@ -34,7 +34,8 @@ const ensurePortfolioFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { ensureOwnPortfolio } = await import("@/data/dashboard/provisioning.server");
-    return ensureOwnPortfolio(context.supabase, context.userId);
+    // Tag every expo sign-up so admins can filter by source.
+    return ensureOwnPortfolio(context.supabase, context.userId, "Expo");
   });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

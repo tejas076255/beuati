@@ -14,6 +14,7 @@ function randomSuffix(): string {
 export async function ensureOwnPortfolio(
   supabase: SupabaseClient<Database>,
   userId: string,
+  signupSource?: string,
 ): Promise<{ slug: string; created: boolean }> {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -69,6 +70,7 @@ export async function ensureOwnPortfolio(
         slug: candidateSlug,
         display_name: displayName,
         status: "draft",
+        ...(signupSource ? { signup_source: signupSource } : {}),
       })
       .select("slug")
       .single();

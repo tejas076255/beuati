@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -29,6 +30,19 @@ import { MILESTONE_BANDS, getMilestone } from "@/lib/completion-score";
 export const Route = createFileRoute("/admin/profiles")({
   component: ProfilesPage,
 });
+
+// ---------- known signup sources ----------
+// New sources can be added here without touching the DB enum — the field is
+// free-text in the DB, this list only drives the admin dropdown.
+export const SIGNUP_SOURCES = [
+  "Direct",
+  "Expo",
+  "Ads",
+  "Seminar",
+  "Reference",
+] as const;
+
+export type SignupSource = (typeof SIGNUP_SOURCES)[number];
 
 const STATUSES: Database["public"]["Enums"]["portfolio_status"][] = [
   "draft",
@@ -71,6 +85,19 @@ const updatePlanFn = createServerFn({ method: "POST" })
     await updateProfilePlan(context.supabase, context.userId, data.profileId, data.plan);
   });
 
+const updateSourceFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { profileId: string; signup_source: string | null }) => data)
+  .handler(async ({ context, data }) => {
+    const { updateProfileSource } = await import("@/data/admin/profiles.server");
+    await updateProfileSource(
+      context.supabase,
+      context.userId,
+      data.profileId,
+      data.signup_source,
+    );
+  });
+
 function statusBadgeVariant(status: Database["public"]["Enums"]["portfolio_status"]) {
   switch (status) {
     case "published":
@@ -87,16 +114,23 @@ function statusBadgeVariant(status: Database["public"]["Enums"]["portfolio_statu
 const ALL = "__all__";
 const YES = "__yes__";
 const NO = "__no__";
+const NONE = "__none__";
 
 function ProfilesPage() {
   const queryClient = useQueryClient();
   const profilesQuery = useQuery({ queryKey: ["admin-profiles"], queryFn: () => listProfilesFn() });
 
+  // ── filters ────────────────────────────────────────────────────────────────
   const [verifiedFilter, setVerifiedFilter] = useState<string>(ALL);
   const [featuredFilter, setFeaturedFilter] = useState<string>(ALL);
   const [planFilter, setPlanFilter] = useState<string>(ALL);
   const [scoreBandFilter, setScoreBandFilter] = useState<string>(ALL);
+  const [sourceFilter, setSourceFilter] = useState<string>(ALL);
+  // "Signed up" date filter — matches on created_at date
+  const [signedUpFrom, setSignedUpFrom] = useState("");
+  const [signedUpTo, setSignedUpTo] = useState("");
 
+  // ── mutations ──────────────────────────────────────────────────────────────
   const updateStatus = useMutation({
     mutationFn: (vars: {
       profileId: string;
@@ -127,6 +161,15 @@ function ProfilesPage() {
     onError: (error: Error) => toast.error(error.message || "Failed to update plan"),
   });
 
+  const updateSource = useMutation({
+    mutationFn: (vars: { profileId: string; signup_source: string | null }) =>
+      updateSourceFn({ data: vars }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+    },
+    onError: (error: Error) => toast.error(error.message || "Failed to update source"),
+  });
+
   const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
 
   const filtered = useMemo(
@@ -140,16 +183,24 @@ function ProfilesPage() {
         if (scoreBandFilter !== ALL && getMilestone(p.completion_score).label !== scoreBandFilter) {
           return false;
         }
+        // source filter — NONE matches profiles with no source set
+        if (sourceFilter === NONE && p.signup_source != null) return false;
+        if (sourceFilter !== ALL && sourceFilter !== NONE && p.signup_source !== sourceFilter)
+          return false;
+        // signed-up date range
+        if (signedUpFrom && p.created_at < signedUpFrom) return false;
+        if (signedUpTo && p.created_at > `${signedUpTo}T23:59:59`) return false;
         return true;
       }),
-    [profiles, verifiedFilter, featuredFilter, planFilter, scoreBandFilter],
+    [profiles, verifiedFilter, featuredFilter, planFilter, scoreBandFilter, sourceFilter, signedUpFrom, signedUpTo],
   );
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold">Profiles</h1>
+      <h1 className="font-display text-2xl font-semibold">Professionals</h1>
       <p className="mt-1 text-sm text-muted-foreground">Platform-wide beautician moderation.</p>
 
+      {/* ── Filters ─────────────────────────────────────────────────────── */}
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <Select value={verifiedFilter} onValueChange={setVerifiedFilter}>
           <SelectTrigger className="w-[160px]">
@@ -198,8 +249,50 @@ function ProfilesPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>Source: any</SelectItem>
+            {SIGNUP_SOURCES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+            <SelectItem value={NONE}>Not set</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Signed up date range */}
+        <Input
+          type="date"
+          value={signedUpFrom}
+          onChange={(e) => setSignedUpFrom(e.target.value)}
+          className="w-[150px]"
+          aria-label="Signed up from"
+        />
+        <span className="text-sm text-muted-foreground">to</span>
+        <Input
+          type="date"
+          value={signedUpTo}
+          onChange={(e) => setSignedUpTo(e.target.value)}
+          className="w-[150px]"
+          aria-label="Signed up to"
+        />
+        {(signedUpFrom || signedUpTo) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setSignedUpFrom(""); setSignedUpTo(""); }}
+            className="text-xs text-muted-foreground"
+          >
+            Clear dates
+          </Button>
+        )}
       </div>
 
+      {/* ── Table ───────────────────────────────────────────────────────── */}
       <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
         {profilesQuery.isLoading ? (
           <p className="p-6 text-sm text-muted-foreground">Loading…</p>
@@ -215,14 +308,15 @@ function ProfilesPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
-                <TableHead>Reviews / Clients</TableHead>
+                <TableHead>Leads</TableHead>
                 <TableHead>Demo</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Signed up</TableHead>
                 <TableHead>Verified</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Plan</TableHead>
                 <TableHead>Score</TableHead>
+                <TableHead>Source</TableHead>
                 <TableHead>Manage</TableHead>
               </TableRow>
             </TableHeader>
@@ -233,10 +327,13 @@ function ProfilesPage() {
                   <TableCell>
                     <code className="text-xs">{profile.slug}</code>
                   </TableCell>
+                  {/* Task 3: renamed "Reviews / Clients" → "Leads"
+                      (review_count + client_count remain the underlying data) */}
                   <TableCell>
                     {profile.review_count} / {profile.client_count}
                   </TableCell>
                   <TableCell>{profile.is_demo ? "Yes" : ""}</TableCell>
+                  {/* Task 5: "Signed up" column (was "Created") */}
                   <TableCell>{new Date(profile.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Button
@@ -319,18 +416,46 @@ function ProfilesPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  {/* Task 4: score shows number only, no "/100 · milestone" suffix */}
                   <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium">{profile.completion_score}</span>
-                      <span className="text-xs text-muted-foreground">
-                        /100 · {getMilestone(profile.completion_score).label}
-                      </span>
-                    </div>
+                    <span className="font-medium">{profile.completion_score}</span>
+                  </TableCell>
+                  {/* Task 1+2: Source — editable inline dropdown */}
+                  <TableCell>
+                    <Select
+                      value={profile.signup_source ?? NONE}
+                      onValueChange={(value) =>
+                        updateSource.mutate({
+                          profileId: profile.id,
+                          signup_source: value === NONE ? null : value,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-8 w-[120px]">
+                        <SelectValue>
+                          <span className="text-sm">
+                            {profile.signup_source ?? (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </span>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE}>
+                          <span className="text-muted-foreground">Not set</span>
+                        </SelectItem>
+                        {SIGNUP_SOURCES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     <Button variant="softline" size="sm" asChild>
                       <Link to="/admin/beauticians/$slug" params={{ slug: profile.slug }}>
-                        Manage Portfolio
+                        Manage
                       </Link>
                     </Button>
                   </TableCell>
