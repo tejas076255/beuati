@@ -171,18 +171,46 @@ const activatePlanFn = createServerFn({ method: "POST" })
       }
     }
 
-    // Mark order activated
+    // Step 1: Fetch billing cycle from the order to compute expiry
+    const orderRow = await context.supabase
+      .from("billing_orders")
+      .select("billing_cycle")
+      .eq("gateway_order_id", data.razorpay_order_id)
+      .single();
+    const billingCycle = orderRow.data?.billing_cycle ?? "monthly";
+    const activatedAt = new Date();
+    const expiresAt = new Date(activatedAt);
+    if (billingCycle === "yearly") {
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    } else {
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
+    }
+
+    // Step 2: Mark order activated with timestamps
     await context.supabase
       .from("billing_orders")
-      .update({ status: "activated" })
+      .update({
+        status: "activated",
+        activated_at: activatedAt.toISOString(),
+        access_starts_at: activatedAt.toISOString(),
+        access_expires_at: expiresAt.toISOString(),
+      })
       .eq("gateway_order_id", data.razorpay_order_id);
 
-    // Activate plan on beautician_profile — must use service-role client to
-    // bypass RLS (the user client cannot update plan on their own row).
+    // Step 3: Activate plan on beautician_profile via service-role client
+    // (bypasses RLS). Must set plan_source='paid' + plan_expires_at to
+    // satisfy DB constraints bp_plan_source_free_is_free and
+    // bp_plan_source_paid_has_expiry — failing to do so was the
+    // "violates check constraint" error.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error: updateError } = await supabaseAdmin
       .from("beautician_profiles")
-      .update({ plan: data.plan, billing_hold: false })
+      .update({
+        plan: data.plan,
+        plan_source: "paid",
+        plan_expires_at: expiresAt.toISOString(),
+        billing_hold: false,
+      })
       .eq("id", data.bp_id);
 
     if (updateError) {

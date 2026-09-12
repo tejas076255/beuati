@@ -12,6 +12,7 @@ import {
   LogOut,
   MapPin,
   Package,
+  Receipt,
   Search,
   Settings,
   Sparkles,
@@ -121,6 +122,7 @@ const NAV_GROUPS: {
     heading: "Account",
     items: [
       { label: "Billing & Plan", icon: CreditCard, to: "/dashboard/billing" },
+      { label: "Invoice History", icon: Receipt, to: "/dashboard/invoice" },
       { label: "Settings", icon: Settings, to: "/dashboard/settings" },
     ],
   },
