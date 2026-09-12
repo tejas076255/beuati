@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { uploadPortfolioMedia, buildPublicMediaUrl, UPLOAD_HINT } from "@/lib/storage-upload";
+import { UPLOAD_HINT } from "@/lib/storage-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,9 +29,60 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-// ─── Server fns ───────────────────────────────────────────────────────────────
+// ─── Server-side image upload ─────────────────────────────────────────────────
+// Uses supabaseAdmin (service-role) so it bypasses Storage RLS and works
+// reliably with new Supabase API key format. The file arrives as a base64
+// data-URL string (the only serialisable form over a server fn boundary).
 
-/** Returns the current user's slug + existing profile fields for pre-filling. */
+interface UploadImageInput {
+  slug: string;
+  category: "profile" | "cover";
+  dataUrl: string;   // base64 data URL: "data:<mime>;base64,<data>"
+  filename: string;
+}
+
+const uploadImageFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: UploadImageInput) => d)
+  .handler(async ({ data }): Promise<{ publicUrl: string }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const BUCKET = "portfolio-media";
+    const MAX_MB = 5;
+
+    // Decode base64 data URL
+    const matches = data.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    if (!matches) throw new Error("Invalid image data.");
+    const mimeType = matches[1];
+    const base64Data = matches[2];
+
+    const accepted = ["image/jpeg", "image/png", "image/webp"];
+    if (!accepted.includes(mimeType)) {
+      throw new Error("Please upload a JPG, PNG or WebP image.");
+    }
+
+    const buffer = Buffer.from(base64Data, "base64");
+    if (buffer.byteLength > MAX_MB * 1024 * 1024) {
+      throw new Error(`Image is too large — please keep it under ${MAX_MB}MB.`);
+    }
+
+    const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
+    const safeName = data.filename.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+    const path = `profiles/${data.slug}/${data.category}/${Date.now()}-${safeName}.${ext}`;
+
+    const { error } = await supabaseAdmin.storage.from(BUCKET).upload(
+      path,
+      buffer,
+      { contentType: mimeType, cacheControl: "3600", upsert: false },
+    );
+
+    if (error) throw new Error(`Upload failed: ${error.message}`);
+
+    const { data: urlData } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
+    return { publicUrl: urlData.publicUrl };
+  });
+
+// ─── Server fns — profile data ───────────────────────────────────────────────
 const getOnboardingContextFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -224,13 +275,26 @@ function Step1({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Convert File → base64 data URL for server fn transport
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !slug) return;
+    if (!file) return;
+    if (!slug) { toast.error("Profile not ready yet — please wait a moment."); return; }
     setUploadingPhoto(true);
     try {
-      const path = await uploadPortfolioMedia(slug, "profile", file);
-      setPhotoUrl(buildPublicMediaUrl(path));
+      const dataUrl = await fileToDataUrl(file);
+      const { publicUrl } = await uploadImageFn({
+        data: { slug, category: "profile", dataUrl, filename: file.name },
+      });
+      setPhotoUrl(publicUrl);
       toast.success("Profile photo uploaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
@@ -242,11 +306,15 @@ function Step1({
 
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !slug) return;
+    if (!file) return;
+    if (!slug) { toast.error("Profile not ready yet — please wait a moment."); return; }
     setUploadingCover(true);
     try {
-      const path = await uploadPortfolioMedia(slug, "profile", file);
-      setCoverUrl(buildPublicMediaUrl(path));
+      const dataUrl = await fileToDataUrl(file);
+      const { publicUrl } = await uploadImageFn({
+        data: { slug, category: "cover", dataUrl, filename: file.name },
+      });
+      setCoverUrl(publicUrl);
       toast.success("Cover photo uploaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
