@@ -13,7 +13,7 @@
  * 5. UI polls billing status for confirmation
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Loader2, Zap } from "lucide-react";
@@ -342,6 +342,12 @@ function BillingPage() {
               Activating plan…
             </span>
           )}
+          <Link
+            to="/dashboard/invoice"
+            className="ml-auto text-xs font-medium text-primary hover:underline"
+          >
+            View Invoice →
+          </Link>
         </CardContent>
       </Card>
 

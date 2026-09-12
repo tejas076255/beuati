@@ -34,6 +34,7 @@ import { Route as DashboardAreasRouteImport } from './routes/dashboard.areas'
 import { Route as DashboardAvailabilityRouteImport } from './routes/dashboard.availability'
 import { Route as DashboardBeforeAfterRouteImport } from './routes/dashboard.before-after'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
+import { Route as DashboardInvoiceRouteImport } from './routes/dashboard.invoice'
 import { Route as DashboardFaqsRouteImport } from './routes/dashboard.faqs'
 import { Route as DashboardGalleryRouteImport } from './routes/dashboard.gallery'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
@@ -173,6 +174,11 @@ const DashboardBillingRoute = DashboardBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardInvoiceRoute = DashboardInvoiceRouteImport.update({
+  id: '/invoice',
+  path: '/invoice',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFaqsRoute = DashboardFaqsRouteImport.update({
   id: '/faqs',
   path: '/faqs',
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/before-after': typeof DashboardBeforeAfterRoute
   '/dashboard/billing': typeof DashboardBillingRoute
+  '/dashboard/invoice': typeof DashboardInvoiceRoute
   '/dashboard/faqs': typeof DashboardFaqsRoute
   '/dashboard/gallery': typeof DashboardGalleryRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
@@ -306,6 +313,7 @@ export interface FileRoutesById {
   '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/before-after': typeof DashboardBeforeAfterRoute
   '/dashboard/billing': typeof DashboardBillingRoute
+  '/dashboard/invoice': typeof DashboardInvoiceRoute
   '/dashboard/faqs': typeof DashboardFaqsRoute
   '/dashboard/gallery': typeof DashboardGalleryRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
@@ -348,6 +356,7 @@ export interface FileRouteTypes {
     | '/dashboard/availability'
     | '/dashboard/before-after'
     | '/dashboard/billing'
+    | '/dashboard/invoice'
     | '/dashboard/faqs'
     | '/dashboard/gallery'
     | '/dashboard/leads'
@@ -386,6 +395,7 @@ export interface FileRouteTypes {
     | '/dashboard/availability'
     | '/dashboard/before-after'
     | '/dashboard/billing'
+    | '/dashboard/invoice'
     | '/dashboard/faqs'
     | '/dashboard/gallery'
     | '/dashboard/leads'
@@ -426,6 +436,7 @@ export interface FileRouteTypes {
     | '/dashboard/availability'
     | '/dashboard/before-after'
     | '/dashboard/billing'
+    | '/dashboard/invoice'
     | '/dashboard/faqs'
     | '/dashboard/gallery'
     | '/dashboard/leads'
@@ -637,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBillingRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/invoice': {
+      id: '/dashboard/invoice'
+      path: '/invoice'
+      fullPath: '/dashboard/invoice'
+      preLoaderRoute: typeof DashboardInvoiceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/faqs': {
       id: '/dashboard/faqs'
       path: '/faqs'
@@ -762,6 +780,7 @@ interface DashboardRouteChildren {
   DashboardAvailabilityRoute: typeof DashboardAvailabilityRoute
   DashboardBeforeAfterRoute: typeof DashboardBeforeAfterRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
+  DashboardInvoiceRoute: typeof DashboardInvoiceRoute
   DashboardFaqsRoute: typeof DashboardFaqsRoute
   DashboardGalleryRoute: typeof DashboardGalleryRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
@@ -780,6 +799,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAvailabilityRoute: DashboardAvailabilityRoute,
   DashboardBeforeAfterRoute: DashboardBeforeAfterRoute,
   DashboardBillingRoute: DashboardBillingRoute,
+  DashboardInvoiceRoute: DashboardInvoiceRoute,
   DashboardFaqsRoute: DashboardFaqsRoute,
   DashboardGalleryRoute: DashboardGalleryRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
