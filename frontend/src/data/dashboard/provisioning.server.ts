@@ -18,7 +18,7 @@ export async function ensureOwnPortfolio(
 ): Promise<{ slug: string; created: boolean }> {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, display_name, email")
+    .select("id, display_name, email, phone")
     .eq("auth_user_id", userId)
     .single();
 
@@ -70,6 +70,10 @@ export async function ensureOwnPortfolio(
         slug: candidateSlug,
         display_name: displayName,
         status: "draft",
+        // Pre-fill phone from profiles so it's immediately available
+        // in the dashboard without requiring the user to go through
+        // onboarding first.
+        ...(profile.phone ? { phone: profile.phone, whatsapp_number: profile.phone } : {}),
         ...(signupSource ? { signup_source: signupSource } : {}),
       })
       .select("slug")
