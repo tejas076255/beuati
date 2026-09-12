@@ -20,14 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-// ─── Google SSO helper ────────────────────────────────────────────────────────
-async function signInWithGoogle() {
-  await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${window.location.origin}/dashboard/profile` },
-  });
-}
-
 export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
@@ -39,44 +31,64 @@ const ensurePortfolioFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { ensureOwnPortfolio } = await import("@/data/dashboard/provisioning.server");
-    // Tag regular (non-expo) sign-ups as Direct.
     return ensureOwnPortfolio(context.supabase, context.userId, "Direct");
   });
 
 const signupSchema = z.object({
   display_name: z.string().min(1, "Enter your full name"),
   email: z.string().email("Enter a valid email address"),
+  phone: z
+    .string()
+    .min(10, "Enter a valid phone number")
+    .regex(/^[0-9+\s\-()]+$/, "Enter a valid phone number"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
+
+type SignupValues = z.infer<typeof signupSchema>;
 
 function SignupPage() {
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const [duplicateEmail, setDuplicateEmail] = useState(false);
 
-  const form = useForm<z.infer<typeof signupSchema>>({
+  const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { display_name: "", email: "", password: "" },
+    defaultValues: { display_name: "", email: "", phone: "", password: "" },
   });
 
-  const onSubmit = async (values: z.infer<typeof signupSchema>) => {
+  const onSubmit = async (values: SignupValues) => {
     setFormError(null);
     setDuplicateEmail(false);
+
+    // Normalize phone — prefix +91 if no country code given
+    const phone = values.phone.trim().startsWith("+")
+      ? values.phone.trim()
+      : `+91${values.phone.replace(/\D/g, "")}`;
 
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
-      options: { data: { display_name: values.display_name } },
+      options: {
+        data: {
+          display_name: values.display_name,
+          phone,
+        },
+      },
     });
 
     if (error) {
-      if (error.code === "user_already_exists") { setDuplicateEmail(true); return; }
+      if (error.code === "user_already_exists") {
+        setDuplicateEmail(true);
+        return;
+      }
       setFormError(error.message);
       return;
     }
 
     if (data.session) {
-      try { await ensurePortfolioFn(); } catch (e) {
+      try {
+        await ensurePortfolioFn();
+      } catch (e) {
         console.error("[signup] portfolio provisioning failed", e);
       }
       navigate({ to: "/dashboard/profile" });
@@ -105,81 +117,85 @@ function SignupPage() {
               </div>
             </div>
           ) : (
-            <>
-              {/* Google SSO */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2"
-                onClick={signInWithGoogle}
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                Continue with Google
-              </Button>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <div className="h-px flex-1 bg-border" />
-                <span>or</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
+                {/* Full name */}
+                <FormField control={form.control} name="display_name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full name <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input autoComplete="name" placeholder="Priya Sharma" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField control={form.control} name="display_name" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full name</FormLabel>
-                      <FormControl><Input autoComplete="name" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" autoComplete="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="password" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <PasswordInput autoComplete="new-password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  {formError && (
-                    <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>
-                  )}
-                  <Button
-                    type="submit"
-                    variant="hero"
-                    className="w-full"
-                    disabled={form.formState.isSubmitting}
-                  >
-                    {form.formState.isSubmitting ? "Creating account…" : "Sign up"}
-                  </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    By creating an account, you agree to the{" "}
-                    <Link to="/terms" className="font-medium text-primary underline">Terms of Service</Link>{" "}
-                    and acknowledge the{" "}
-                    <Link to="/privacy" className="font-medium text-primary underline">Privacy Policy</Link>.
-                  </p>
-                </form>
-              </Form>
-              <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-primary">Sign in</Link>
-              </p>
-            </>
+                {/* Email */}
+                <FormField control={form.control} name="email" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input type="email" autoComplete="email" placeholder="you@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {/* Phone */}
+                <FormField control={form.control} name="phone" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone number <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input
+                        type="tel"
+                        autoComplete="tel"
+                        placeholder="9876543210"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {/* Password */}
+                <FormField control={form.control} name="password" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <PasswordInput autoComplete="new-password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {formError && (
+                  <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="hero"
+                  className="w-full"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? "Creating account…" : "Sign up"}
+                </Button>
+
+                <p className="text-center text-xs text-muted-foreground">
+                  By creating an account, you agree to the{" "}
+                  <Link to="/terms" className="font-medium text-primary underline">Terms of Service</Link>{" "}
+                  and acknowledge the{" "}
+                  <Link to="/privacy" className="font-medium text-primary underline">Privacy Policy</Link>.
+                </p>
+              </form>
+            </Form>
           )}
+
+          <p className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link to="/login" className="font-semibold text-primary">Sign in</Link>
+          </p>
 
         </CardContent>
       </Card>
