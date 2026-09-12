@@ -343,52 +343,68 @@ function Step1({
   return (
     <div>
       <h2 className="mb-1 font-display text-xl font-semibold">Basic information</h2>
-      <p className="mb-5 text-sm text-muted-foreground">
+      <p className="mb-4 text-sm text-muted-foreground">
         Add your photos and professional details.
       </p>
 
-      {/* Cover photo */}
-      <div className="relative mb-12 h-28 overflow-hidden rounded-xl bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 sm:h-36">
-        {coverUrl && (
-          <img src={coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        )}
-        <label
-          htmlFor="ob-cover-input"
-          className="absolute right-3 top-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm hover:bg-black/55"
-        >
-          <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-          {uploadingCover ? "Uploading…" : coverUrl ? "Change cover" : "Upload cover"}
-        </label>
-        <input
-          id="ob-cover-input"
-          ref={coverInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleCoverChange}
-          disabled={uploadingCover || !slug}
-          className="sr-only"
-        />
+      {/* ── Photo section ── */}
+      <div className="mb-6 overflow-visible rounded-xl border border-border bg-secondary/30">
+        {/* Cover banner */}
+        <div className="relative h-28 overflow-hidden rounded-t-xl bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600">
+          {coverUrl && (
+            <img src={coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          {uploadingCover && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <span className="text-xs font-medium text-white">Uploading…</span>
+            </div>
+          )}
+          {/* Upload cover button */}
+          <label
+            htmlFor="ob-cover-input"
+            className="absolute right-3 top-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+          >
+            <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+            {coverUrl ? "Change cover" : "Upload cover"}
+          </label>
+          <input
+            id="ob-cover-input"
+            ref={coverInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleCoverChange}
+            disabled={uploadingCover || !slug}
+            className="sr-only"
+          />
+        </div>
 
-        {/* Profile photo — overlapping bottom of cover */}
-        <div className="absolute -bottom-10 left-4 sm:-bottom-12">
-          <div className="relative">
+        {/* Profile photo row — sits below cover, fully visible */}
+        <div className="flex items-end gap-3 px-4 pb-3 pt-0">
+          {/* Avatar — pulled up to overlap cover */}
+          <div className="relative -mt-8 shrink-0">
             {photoUrl ? (
               <img
                 src={photoUrl}
-                alt=""
-                className="h-20 w-20 rounded-full border-4 border-background object-cover shadow-md sm:h-24 sm:w-24"
+                alt="Profile"
+                className="h-16 w-16 rounded-full border-4 border-card object-cover shadow-md"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-secondary text-[10px] text-muted-foreground shadow-md sm:h-24 sm:w-24">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-card bg-muted text-[9px] font-medium text-muted-foreground shadow-md">
                 No photo
               </div>
             )}
+            {uploadingPhoto && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                <span className="text-[8px] text-white">…</span>
+              </div>
+            )}
+            {/* Camera button */}
             <label
               htmlFor="ob-photo-input"
               aria-label="Upload profile photo"
-              className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-sm hover:opacity-90"
+              className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-card bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
             >
-              <Camera className="h-4 w-4" aria-hidden="true" />
+              <Camera className="h-3 w-3" aria-hidden="true" />
             </label>
             <input
               id="ob-photo-input"
@@ -400,12 +416,14 @@ function Step1({
               className="sr-only"
             />
           </div>
+          {/* Hint text */}
+          <p className="pb-1 text-[11px] leading-tight text-muted-foreground">
+            {UPLOAD_HINT}
+          </p>
         </div>
       </div>
 
-      <p className="mb-4 text-[11px] text-muted-foreground">{UPLOAD_HINT}</p>
-
-      {/* Fields */}
+      {/* ── Form fields ── */}
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="ob-name">Full name</Label>
@@ -418,18 +436,22 @@ function Step1({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="ob-title">
-            Professional title <span className="text-muted-foreground text-xs">(e.g. Bridal Makeup Artist)</span>
+            Professional title{" "}
+            <span className="text-[11px] font-normal text-muted-foreground">
+              (e.g. Bridal Makeup Artist)
+            </span>
           </Label>
           <Input
             id="ob-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Bridal &amp; HD Makeup Artist"
+            placeholder="Bridal & HD Makeup Artist"
           />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="ob-tagline">
-            Short tagline <span className="text-muted-foreground text-xs">(optional)</span>
+            Short tagline{" "}
+            <span className="text-[11px] font-normal text-muted-foreground">(optional)</span>
           </Label>
           <Input
             id="ob-tagline"
@@ -440,7 +462,8 @@ function Step1({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="ob-exp">
-            Years of experience <span className="text-muted-foreground text-xs">(optional)</span>
+            Years of experience{" "}
+            <span className="text-[11px] font-normal text-muted-foreground">(optional)</span>
           </Label>
           <Input
             id="ob-exp"
@@ -695,62 +718,68 @@ function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-start justify-center bg-background px-4 py-10 sm:items-center">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-        {/* Header */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-            <span className="text-sm font-bold text-primary">B</span>
+    <div className="min-h-screen bg-background">
+      {/* Centered column — full height scroll on mobile, vertically centered on desktop */}
+      <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-start px-4 py-8 sm:justify-center sm:py-12">
+        <div className="w-full rounded-2xl border border-border bg-card shadow-sm">
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <span className="text-sm font-bold text-primary">B</span>
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground">BeautyFolio</p>
+              <p className="text-sm font-semibold leading-tight">Complete your profile</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">BeautyFolio</p>
-            <p className="text-sm font-semibold">Complete your profile</p>
-          </div>
-        </div>
 
-        <ProgressBar step={step} />
+          {/* Body */}
+          <div className="px-5 pb-6 pt-5">
+            <ProgressBar step={step} />
 
         {step === 1 && (
-          <Step1
-            slug={ctx.slug}
-            initial={{
-              display_name: ctx.display_name,
-              professional_title: ctx.professional_title,
-              short_tagline: ctx.short_tagline,
-              years_experience: ctx.years_experience,
-              profile_image_url: ctx.profile_image_url,
-              cover_image_url: ctx.cover_image_url,
-            }}
-            onNext={handleStep1Next}
-            onSkip={goNext}
-          />
-        )}
+              <Step1
+                slug={ctx.slug}
+                initial={{
+                  display_name: ctx.display_name,
+                  professional_title: ctx.professional_title,
+                  short_tagline: ctx.short_tagline,
+                  years_experience: ctx.years_experience,
+                  profile_image_url: ctx.profile_image_url,
+                  cover_image_url: ctx.cover_image_url,
+                }}
+                onNext={handleStep1Next}
+                onSkip={goNext}
+              />
+            )}
 
-        {step === 2 && (
-          <Step2
-            initial={{
-              whatsapp_number: ctx.whatsapp_number,
-              email: ctx.email,
-              website_url: ctx.website_url,
-            }}
-            onNext={handleStep2Next}
-            onSkip={goNext}
-            onBack={goBack}
-          />
-        )}
+            {step === 2 && (
+              <Step2
+                initial={{
+                  whatsapp_number: ctx.whatsapp_number,
+                  email: ctx.email,
+                  website_url: ctx.website_url,
+                }}
+                onNext={handleStep2Next}
+                onSkip={goNext}
+                onBack={goBack}
+              />
+            )}
 
-        {step === 3 && (
-          <Step3
-            initial={{
-              primary_city: ctx.primary_city,
-              locality: ctx.locality,
-              state: ctx.state,
-            }}
-            onNext={handleStep3Next}
-            onSkip={() => navigate({ to: "/dashboard" })}
-            onBack={goBack}
-          />
-        )}
+            {step === 3 && (
+              <Step3
+                initial={{
+                  primary_city: ctx.primary_city,
+                  locality: ctx.locality,
+                  state: ctx.state,
+                }}
+                onNext={handleStep3Next}
+                onSkip={() => navigate({ to: "/dashboard" })}
+                onBack={goBack}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
