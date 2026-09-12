@@ -18,6 +18,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -95,6 +96,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -273,43 +280,6 @@ export interface FileRoutesByFullPath {
   '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
   '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
 }
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/expo': typeof ExpoRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy': typeof PrivacyRoute
-  '/refund-policy': typeof RefundPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms': typeof TermsRoute
-  '/admin/audit-logs': typeof AdminAuditLogsRoute
-  '/admin/leads': typeof AdminLeadsRoute
-  '/admin/profiles': typeof AdminProfilesRoute
-  '/admin/reviews': typeof AdminReviewsRoute
-  '/admin/services': typeof AdminServicesRoute
-  '/admin/sources': typeof AdminSourcesRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/dashboard/areas': typeof DashboardAreasRoute
-  '/dashboard/availability': typeof DashboardAvailabilityRoute
-  '/dashboard/before-after': typeof DashboardBeforeAfterRoute
-  '/dashboard/billing': typeof DashboardBillingRoute
-  '/dashboard/faqs': typeof DashboardFaqsRoute
-  '/dashboard/gallery': typeof DashboardGalleryRoute
-  '/dashboard/leads': typeof DashboardLeadsRoute
-  '/dashboard/packages': typeof DashboardPackagesRoute
-  '/dashboard/profile': typeof DashboardProfileRoute
-  '/dashboard/reviews': typeof DashboardReviewsRoute
-  '/dashboard/seo': typeof DashboardSeoRoute
-  '/dashboard/services': typeof DashboardServicesRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/videos': typeof DashboardVideosRoute
-  '/portfolio/$slug': typeof PortfolioSlugRoute
-  '/admin': typeof AdminIndexRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/admin/beauticians/$slug': typeof AdminBeauticiansSlugRoute
-  '/portfolio/$slug/services/$serviceSlug': typeof PortfolioSlugServicesServiceSlugRoute
-}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -318,9 +288,11 @@ export interface FileRoutesById {
   '/expo': typeof ExpoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -359,6 +331,7 @@ export interface FileRouteTypes {
     | '/expo'
     | '/forgot-password'
     | '/login'
+    | '/onboarding'
     | '/privacy'
     | '/refund-policy'
     | '/reset-password'
@@ -399,6 +372,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/reset-password'
+    | '/onboarding'
     | '/signup'
     | '/terms'
     | '/admin/audit-logs'
@@ -438,6 +412,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/reset-password'
+    | '/onboarding'
     | '/signup'
     | '/terms'
     | '/admin/audit-logs'
@@ -475,6 +450,7 @@ export interface RootRouteChildren {
   ExpoRoute: typeof ExpoRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -547,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -821,6 +804,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExpoRoute: ExpoRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   ResetPasswordRoute: ResetPasswordRoute,

@@ -112,7 +112,7 @@ function SignupPage() {
       } catch (e) {
         console.error("[signup] portfolio provisioning failed", e);
       }
-      navigate({ to: "/dashboard/profile" });
+      navigate({ to: "/onboarding" });
     }
   };
 
