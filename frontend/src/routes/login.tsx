@@ -25,9 +25,26 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-// ─── Redirect logic ───────────────────────────────────────────────────────────
-// Draft/new portfolio → /dashboard/profile to complete setup
-// Published portfolio → /dashboard
+// ─── Helpers (must match signup.tsx exactly) ──────────────────────────────────
+
+/** Normalize phone to E.164 — prefix +91 if no country code. */
+function normalizePhone(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("+")) return trimmed.replace(/\s/g, "");
+  return `+91${trimmed.replace(/\D/g, "")}`;
+}
+
+/**
+ * Reconstruct the same deterministic fake email that signup.tsx created.
+ * Must stay byte-for-byte identical to the signup helper.
+ */
+function phoneToFakeEmail(normalizedPhone: string): string {
+  const digits = normalizedPhone.replace(/^\+/, "");
+  return `${digits}@beuati.app`;
+}
+
+// ─── Post-login redirect ──────────────────────────────────────────────────────
+
 async function getPostLoginRedirect(): Promise<string> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -55,22 +72,26 @@ async function getPostLoginRedirect(): Promise<string> {
 }
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
+
 const loginSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
+  phone: z
+    .string()
+    .min(10, "Enter a valid phone number")
+    .regex(/^[0-9+\s\-()]+$/, "Enter a valid phone number"),
   password: z.string().min(1, "Password required"),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
 
 // ─── Component ────────────────────────────────────────────────────────────────
+
 function LoginPage() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Auto-redirect if already logged in.
-  // 5 s timeout guards against getSession() hanging (slow auth server /
-  // new Supabase API key format extra round-trip).
+  // 5 s timeout guards against getSession() hanging on slow auth servers.
   useEffect(() => {
     const timeout = setTimeout(() => setChecking(false), 5000);
 
@@ -92,16 +113,26 @@ function LoginPage() {
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { phone: "", password: "" },
   });
 
   const onSubmit = async (values: LoginValues) => {
     setFormError(null);
-    const { error } = await supabase.auth.signInWithPassword(values);
+
+    const phone = normalizePhone(values.phone);
+    const email = phoneToFakeEmail(phone);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: values.password,
+    });
+
     if (error) {
-      setFormError(error.message);
+      // Show a friendly message — don't expose internal email to the user
+      setFormError("Invalid phone number or password.");
       return;
     }
+
     const to = await getPostLoginRedirect();
     navigate({ to });
   };
@@ -126,15 +157,20 @@ function LoginPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-              {/* Email */}
+              {/* Phone */}
               <FormField
                 control={form.control}
-                name="email"
+                name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Phone number</FormLabel>
                     <FormControl>
-                      <Input type="email" autoComplete="email" placeholder="you@example.com" {...field} />
+                      <Input
+                        type="tel"
+                        autoComplete="tel"
+                        placeholder="9876543210"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

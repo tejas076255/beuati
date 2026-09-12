@@ -34,9 +34,30 @@ const ensurePortfolioFn = createServerFn({ method: "GET" })
     return ensureOwnPortfolio(context.supabase, context.userId, "Direct");
   });
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Normalize phone to digits-only E.164 format (prefix +91 if no country code). */
+function normalizePhone(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("+")) return trimmed.replace(/\s/g, "");
+  return `+91${trimmed.replace(/\D/g, "")}`;
+}
+
+/**
+ * Supabase requires an email for password-based auth. We derive a stable,
+ * deterministic fake email from the normalized phone number so the user never
+ * has to enter one. The domain is internal-only and never receives mail.
+ */
+function phoneToFakeEmail(normalizedPhone: string): string {
+  // Strip leading '+' so the local part is a plain number string.
+  const digits = normalizedPhone.replace(/^\+/, "");
+  return `${digits}@beuati.app`;
+}
+
+// ─── Schema ───────────────────────────────────────────────────────────────────
+
 const signupSchema = z.object({
   display_name: z.string().min(1, "Enter your full name"),
-  email: z.string().email("Enter a valid email address"),
   phone: z
     .string()
     .min(10, "Enter a valid phone number")
@@ -46,27 +67,27 @@ const signupSchema = z.object({
 
 type SignupValues = z.infer<typeof signupSchema>;
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 function SignupPage() {
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
-  const [duplicateEmail, setDuplicateEmail] = useState(false);
+  const [duplicatePhone, setDuplicatePhone] = useState(false);
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { display_name: "", email: "", phone: "", password: "" },
+    defaultValues: { display_name: "", phone: "", password: "" },
   });
 
   const onSubmit = async (values: SignupValues) => {
     setFormError(null);
-    setDuplicateEmail(false);
+    setDuplicatePhone(false);
 
-    // Normalize phone — prefix +91 if no country code given
-    const phone = values.phone.trim().startsWith("+")
-      ? values.phone.trim()
-      : `+91${values.phone.replace(/\D/g, "")}`;
+    const phone = normalizePhone(values.phone);
+    const email = phoneToFakeEmail(phone);
 
     const { data, error } = await supabase.auth.signUp({
-      email: values.email,
+      email,
       password: values.password,
       options: {
         data: {
@@ -78,7 +99,7 @@ function SignupPage() {
 
     if (error) {
       if (error.code === "user_already_exists") {
-        setDuplicateEmail(true);
+        setDuplicatePhone(true);
         return;
       }
       setFormError(error.message);
@@ -104,10 +125,10 @@ function SignupPage() {
         </CardHeader>
         <CardContent className="space-y-4">
 
-          {duplicateEmail ? (
+          {duplicatePhone ? (
             <div className="space-y-3">
               <p role="status" className="text-sm text-muted-foreground">
-                It looks like you already have an account with this email.
+                An account with this phone number already exists.
               </p>
               <div className="flex flex-col gap-1 text-sm">
                 <Link to="/login" className="font-semibold text-primary">Sign in instead</Link>
@@ -123,20 +144,9 @@ function SignupPage() {
                 {/* Full name */}
                 <FormField control={form.control} name="display_name" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full name <span className="text-destructive">*</span></FormLabel>
+                    <FormLabel>Full name <span className="text-destructive" aria-hidden="true">*</span></FormLabel>
                     <FormControl>
                       <Input autoComplete="name" placeholder="Priya Sharma" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-
-                {/* Email */}
-                <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email <span className="text-destructive">*</span></FormLabel>
-                    <FormControl>
-                      <Input type="email" autoComplete="email" placeholder="you@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -145,7 +155,7 @@ function SignupPage() {
                 {/* Phone */}
                 <FormField control={form.control} name="phone" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone number <span className="text-destructive">*</span></FormLabel>
+                    <FormLabel>Phone number <span className="text-destructive" aria-hidden="true">*</span></FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
@@ -161,7 +171,7 @@ function SignupPage() {
                 {/* Password */}
                 <FormField control={form.control} name="password" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password <span className="text-destructive">*</span></FormLabel>
+                    <FormLabel>Password <span className="text-destructive" aria-hidden="true">*</span></FormLabel>
                     <FormControl>
                       <PasswordInput autoComplete="new-password" {...field} />
                     </FormControl>
