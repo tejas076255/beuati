@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, Zap } from "lucide-react";
+import { CheckCircle2, Loader2, Zap, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PLAN_LABELS, type PortfolioPlan } from "@/lib/plan-limits";
-import { getDisplayPricing, getPriceInPaise, type PaidPlan, type BillingCycle } from "@/lib/billing-prices";
+import { getDisplayPricing, getPriceInPaise, paiseToRupeeDisplay, type PaidPlan, type BillingCycle } from "@/lib/billing-prices";
 
 export const Route = createFileRoute("/dashboard/billing")({
   component: BillingPage,
@@ -47,10 +47,30 @@ const getBillingStatusFn = createServerFn({ method: "GET" })
       .eq("id", bpId)
       .single();
     if (error || !data) throw new Error("Failed to load billing status");
+
+    // Fetch all activated orders for invoice history
+    const { data: orders } = await context.supabase
+      .from("billing_orders")
+      .select("id, plan, billing_cycle, amount_paise, currency, gateway_order_id, activated_at, access_starts_at, access_expires_at")
+      .eq("beautician_profile_id", bpId)
+      .eq("status", "activated")
+      .order("activated_at", { ascending: false });
+
     return {
       plan: (data.plan ?? "free") as PortfolioPlan,
       billing_hold: data.billing_hold ?? false,
       razorpay_key_id: process.env["RAZORPAY_KEY_ID"] ?? "",
+      orders: (orders ?? []) as Array<{
+        id: string;
+        plan: string;
+        billing_cycle: string;
+        amount_paise: number;
+        currency: string;
+        gateway_order_id: string | null;
+        activated_at: string | null;
+        access_starts_at: string | null;
+        access_expires_at: string | null;
+      }>,
     };
   });
 
@@ -342,12 +362,6 @@ function BillingPage() {
               Activating plan…
             </span>
           )}
-          <Link
-            to="/dashboard/invoice"
-            className="ml-auto text-xs font-medium text-primary hover:underline"
-          >
-            View Invoice →
-          </Link>
         </CardContent>
       </Card>
 
@@ -489,6 +503,98 @@ function BillingPage() {
           <span className="ml-1 font-medium text-amber-600">(Test mode)</span>
         )}
       </p>
+
+      {/* ── Invoice History ── */}
+      <div>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Invoice History</h2>
+          {(statusQuery.data?.orders?.length ?? 0) > 0 && (
+            <Link
+              to="/dashboard/invoice"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Full invoice →
+            </Link>
+          )}
+        </div>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          All your past payments and plan activations.
+        </p>
+      </div>
+
+      {statusQuery.isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : !statusQuery.data?.orders?.length ? (
+        <Card className="border-border/70 shadow-sm">
+          <CardContent className="py-8 text-center">
+            <FileText className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm font-medium text-muted-foreground">No invoices yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Your payment invoices will appear here after you upgrade.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {statusQuery.data.orders.map((order, idx) => {
+            const isLatest = idx === 0;
+            const planLabel = PLAN_LABELS[order.plan as PortfolioPlan] ?? order.plan;
+            const orderCycle = order.billing_cycle === "yearly" ? "Yearly" : "Monthly";
+            const date = order.activated_at
+              ? new Date(order.activated_at).toLocaleDateString("en-IN", {
+                  day: "2-digit", month: "short", year: "numeric",
+                })
+              : "—";
+            const expiresAt = order.access_expires_at
+              ? new Date(order.access_expires_at).toLocaleDateString("en-IN", {
+                  day: "2-digit", month: "short", year: "numeric",
+                })
+              : null;
+            const amount = `₹${paiseToRupeeDisplay(order.amount_paise).toLocaleString("en-IN")}`;
+
+            return (
+              <Card
+                key={order.id}
+                className={`border-border/70 shadow-sm ${isLatest ? "ring-1 ring-primary/30" : ""}`}
+              >
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+                  {/* Left — plan + date */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{planLabel}</span>
+                        {isLatest && (
+                          <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                            Active
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">{orderCycle}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Paid on {date}
+                        {expiresAt && ` · Expires ${expiresAt}`}
+                      </p>
+                      {order.gateway_order_id && (
+                        <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                          {order.gateway_order_id}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {/* Right — amount */}
+                  <div className="text-right">
+                    <p className="text-base font-bold">{amount}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">INR</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
