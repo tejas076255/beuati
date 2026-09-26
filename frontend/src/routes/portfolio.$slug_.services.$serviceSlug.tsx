@@ -865,7 +865,7 @@ function ServicePage() {
         <section className="mt-10 rounded-2xl border border-border bg-secondary/20 p-5">
           <p className="text-sm text-muted-foreground">
             <img
-              src={portrait || "/default-profile-avatar.jpg"}
+              src={portrait || "/default-profile-avatar.jpg?v=2"}
               alt=""
               width={40}
               height={40}

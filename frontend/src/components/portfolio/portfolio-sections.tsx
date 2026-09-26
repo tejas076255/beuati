@@ -338,7 +338,7 @@ export function PortfolioHeroSection({ profile }: P) {
           ) : (
             <div className="overflow-hidden rounded-3xl border border-border/40 bg-card p-2 shadow-lift">
               <img
-                src="/default-profile-avatar.jpg"
+                src="/default-profile-avatar.jpg?v=2"
                 alt={`${profile.name}, ${profile.role} in ${profile.primaryCity}`}
                 width={900}
                 height={1100}

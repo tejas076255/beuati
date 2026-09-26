@@ -384,7 +384,7 @@ function Step1({
           {/* Avatar — pulled up to overlap cover */}
           <div className="relative -mt-8 shrink-0">
             <img
-              src={photoUrl || "/default-profile-avatar.jpg"}
+              src={photoUrl || "/default-profile-avatar.jpg?v=2"}
               alt="Profile"
               className="h-16 w-16 rounded-full border-4 border-card object-cover shadow-md"
             />

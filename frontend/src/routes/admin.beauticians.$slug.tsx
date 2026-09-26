@@ -761,7 +761,7 @@ function TargetProfileHeader({ profile }: { profile: AdminTargetProfile }) {
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
       <div className="flex min-w-0 items-center gap-4">
         <img
-          src={profile.profile_image_url || "/default-profile-avatar.jpg"}
+          src={profile.profile_image_url || "/default-profile-avatar.jpg?v=2"}
           alt=""
           className="h-16 w-16 shrink-0 rounded-full object-cover"
         />

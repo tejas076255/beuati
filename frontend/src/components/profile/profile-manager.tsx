@@ -777,7 +777,7 @@ export function ProfileManager({
                     <div className="-mt-10 flex shrink-0 flex-col items-center gap-1 sm:-mt-12">
                       <div className="relative group">
                         <img
-                          src={photoUrl || "/default-profile-avatar.jpg"}
+                          src={photoUrl || "/default-profile-avatar.jpg?v=2"}
                           alt=""
                           className="h-20 w-20 rounded-full border-4 border-card object-cover shadow-md sm:h-24 sm:w-24"
                         />

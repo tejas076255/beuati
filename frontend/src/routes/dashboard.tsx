@@ -340,7 +340,7 @@ function DashboardLayout() {
             {name && (
               <div className="flex items-center gap-2">
                 <img
-                  src={photo || "/default-profile-avatar.jpg"}
+                  src={photo || "/default-profile-avatar.jpg?v=2"}
                   alt={name}
                   className="h-8 w-8 rounded-full border border-border object-cover"
                 />
