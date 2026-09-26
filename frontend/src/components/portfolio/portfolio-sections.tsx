@@ -738,16 +738,16 @@ function BeforeAfter({
     <figure className="h-full overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
       <div className="relative aspect-[4/5] w-full select-none">
         <img
-          src={item.before}
-          alt={item.beforeAlt ?? imageAlt(profile, `Natural look before ${item.service}`)}
+          src={item.after}
+          alt={item.afterAlt ?? imageAlt(profile, `Finished ${item.service} look`)}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-top"
         />
         <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
           <img
-            src={item.after}
-            alt={item.afterAlt ?? imageAlt(profile, `Finished ${item.service} look`)}
+            src={item.before}
+            alt={item.beforeAlt ?? imageAlt(profile, `Natural look before ${item.service}`)}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover object-top"
@@ -755,10 +755,10 @@ function BeforeAfter({
           />
         </div>
         <span className="absolute top-3 left-3 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-semibold tracking-widest uppercase">
-          After
+          Before
         </span>
         <span className="absolute top-3 right-3 rounded-full bg-plum-deep/70 px-2.5 py-1 text-[11px] font-semibold tracking-widest text-primary-foreground uppercase">
-          Before
+          After
         </span>
         <span
           className="pointer-events-none absolute inset-y-0 w-0.5 bg-card"
