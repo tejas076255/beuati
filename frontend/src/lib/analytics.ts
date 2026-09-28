@@ -28,7 +28,7 @@
 // currently fully configured-off everywhere by default; setting
 // VITE_GTM_ID later is the only step needed to start actually sending data
 // anywhere.
-const GTM_ID = (import.meta.env["VITE_GTM_ID"] ?? "").trim();
+const GTM_ID = (import.meta.env["VITE_GTM_ID"] || "GTM-W73HLNH4").trim();
 
 /** True only when a real GTM container ID is configured — never assume one. */
 export function isAnalyticsConfigured(): boolean {

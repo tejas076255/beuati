@@ -93,9 +93,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         {errorMessage && errorMessage !== "undefined" && errorMessage !== "[object Object]" && (
           <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-left">
-            <p className="font-mono text-xs text-destructive break-all">
-              {errorMessage}
-            </p>
+            <p className="font-mono text-xs text-destructive break-all">{errorMessage}</p>
           </div>
         )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -146,10 +144,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
-    // Phase 3G.3 §4/§5/§27 — only injected when a real container ID is
-    // configured (VITE_GTM_ID); never hardcoded. Standard async GTM loader
-    // snippet — doesn't block rendering. Local dev / any deployment without
-    // this env var renders with zero analytics scripts at all.
+    // Google Tag Manager
     scripts: isAnalyticsConfigured()
       ? [
           {
@@ -172,9 +167,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {/* Phase 3G.3 §4/§5 — GTM's standard <noscript> fallback, only
-            rendered alongside the loader script above when a real
-            container is configured. */}
+        {/* Google Tag Manager (noscript) */}
         {gtmId && (
           <noscript>
             <iframe
@@ -186,6 +179,7 @@ function RootShell({ children }: { children: ReactNode }) {
             />
           </noscript>
         )}
+        {/* End Google Tag Manager (noscript) */}
         {children}
         <Toaster />
         <Scripts />
