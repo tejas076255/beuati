@@ -37,7 +37,7 @@ export function AuthHero({ variant }: AuthHeroProps) {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.14]">
                 Your Beauty <br />
                 Business, <br />
-                <span className="text-[#8b5cf6] bg-gradient-to-r from-[#8b5cf6] via-[#7c3aed] to-[#6d28d9] bg-clip-text text-transparent">
+                <span className="text-pink-600 bg-gradient-to-r from-pink-500 via-pink-600 to-rose-600 bg-clip-text text-transparent">
                   More Visible
                 </span>{" "}
                 <br />
@@ -51,7 +51,7 @@ export function AuthHero({ variant }: AuthHeroProps) {
             <div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.14]">
                 Create Your <br />
-                <span className="text-[#8b5cf6] bg-gradient-to-r from-[#8b5cf6] via-[#7c3aed] to-[#6d28d9] bg-clip-text text-transparent">
+                <span className="text-pink-600 bg-gradient-to-r from-pink-500 via-pink-600 to-rose-600 bg-clip-text text-transparent">
                   Beauty Portfolio
                 </span>{" "}
                 <br />
@@ -76,7 +76,7 @@ export function AuthHero({ variant }: AuthHeroProps) {
             </div>
 
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 shrink-0 shadow-sm border border-purple-100">
+              <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 shrink-0 shadow-sm border border-pink-100">
                 <Briefcase className="w-5 h-5" />
               </div>
               <div>

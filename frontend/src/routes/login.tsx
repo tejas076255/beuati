@@ -157,17 +157,17 @@ function LoginPage() {
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#faf9fc] text-sm text-slate-500">
-        <Loader2 className="w-5 h-5 animate-spin mr-2 text-[#8b5cf6]" />
+        <Loader2 className="w-5 h-5 animate-spin mr-2 text-pink-600" />
         Checking session…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fcfbfe] via-[#faf8fd] to-[#f4effc] flex items-center justify-center p-4 sm:p-6 lg:p-10 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#fcfbfe] via-[#faf8fd] to-[#fdf2f8] flex items-center justify-center p-4 sm:p-6 lg:p-10 relative overflow-hidden">
       {/* Background soft ambient glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-200/25 rounded-full blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-purple-300/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pink-200/25 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-rose-200/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
         {/* Left Hero Column */}
@@ -177,7 +177,7 @@ function LoginPage() {
 
         {/* Right Form Card Column */}
         <div className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end">
-          <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-purple-950/5 border border-slate-100 p-8 sm:p-10">
+          <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-pink-950/5 border border-slate-100 p-8 sm:p-10">
             {/* Header */}
             <div className="mb-6">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -202,7 +202,7 @@ function LoginPage() {
                     autoComplete="username"
                     placeholder="Enter your phone number or email"
                     {...form.register("phoneOrEmail")}
-                    className="w-full pl-10 pr-4 h-12 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                    className="w-full pl-10 pr-4 h-12 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
                   />
                 </div>
                 {form.formState.errors.phoneOrEmail && (
@@ -224,7 +224,7 @@ function LoginPage() {
                     autoComplete="current-password"
                     placeholder="Enter your password"
                     {...form.register("password")}
-                    className="w-full pl-10 pr-11 h-12 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                    className="w-full pl-10 pr-11 h-12 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
                   />
                   <button
                     type="button"
@@ -239,7 +239,7 @@ function LoginPage() {
                 <div className="flex justify-end mt-2">
                   <Link
                     to="/forgot-password"
-                    className="text-xs font-semibold text-[#8b5cf6] hover:text-[#7c3aed] hover:underline"
+                    className="text-xs font-semibold text-pink-600 hover:text-pink-700 hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -266,7 +266,7 @@ function LoginPage() {
               <button
                 type="submit"
                 disabled={form.formState.isSubmitting}
-                className="w-full h-12 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-[0.99] disabled:opacity-50 transition-all cursor-pointer"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:to-pink-800 text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 active:scale-[0.99] disabled:opacity-50 transition-all cursor-pointer"
               >
                 {form.formState.isSubmitting ? (
                   <>
@@ -286,12 +286,13 @@ function LoginPage() {
                 <span className="text-sm text-slate-500">Don&apos;t have an account? </span>
                 <Link
                   to="/signup"
-                  className="text-sm font-semibold text-[#8b5cf6] hover:text-[#7c3aed] hover:underline"
+                  className="text-sm font-semibold text-pink-600 hover:text-pink-700 hover:underline"
                 >
                   Sign up
                 </Link>
               </div>
             </form>
+
           </div>
         </div>
       </div>

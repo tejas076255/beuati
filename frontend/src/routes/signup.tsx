@@ -135,10 +135,10 @@ function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fcfbfe] via-[#faf8fd] to-[#f4effc] flex items-center justify-center p-4 sm:p-6 lg:p-10 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#fcfbfe] via-[#faf8fd] to-[#fdf2f8] flex items-center justify-center p-4 sm:p-6 lg:p-10 relative overflow-hidden">
       {/* Background soft ambient glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-200/25 rounded-full blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-purple-300/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pink-200/25 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-rose-200/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
         {/* Left Hero Column */}
@@ -148,7 +148,7 @@ function SignupPage() {
 
         {/* Right Form Card Column */}
         <div className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end">
-          <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-2xl shadow-purple-950/5 border border-slate-100 p-8 sm:p-10">
+          <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-2xl shadow-pink-950/5 border border-slate-100 p-8 sm:p-10">
             {/* Header */}
             <div className="mb-6">
               <div className="flex items-start justify-between gap-2">
@@ -159,7 +159,7 @@ function SignupPage() {
                   <span className="text-[11px] text-slate-400 block leading-tight">Already have an account?</span>
                   <Link
                     to="/login"
-                    className="text-xs sm:text-sm font-bold text-[#8b5cf6] hover:text-[#7c3aed] hover:underline"
+                    className="text-xs sm:text-sm font-bold text-pink-600 hover:text-pink-700 hover:underline"
                   >
                     Sign in
                   </Link>
@@ -171,20 +171,20 @@ function SignupPage() {
             </div>
 
             {duplicatePhone ? (
-              <div className="space-y-4 p-5 rounded-2xl bg-purple-50/60 border border-purple-100 text-center">
+              <div className="space-y-4 p-5 rounded-2xl bg-pink-50/60 border border-pink-100 text-center">
                 <p role="status" className="text-sm font-medium text-slate-700">
                   An account with this phone number already exists.
                 </p>
                 <div className="flex flex-col gap-2 pt-1 text-sm font-semibold">
                   <Link
                     to="/login"
-                    className="h-11 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] text-white flex items-center justify-center shadow-md transition-colors"
+                    className="h-11 rounded-xl bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center shadow-md transition-colors"
                   >
                     Sign in instead
                   </Link>
                   <Link
                     to="/forgot-password"
-                    className="text-xs text-[#8b5cf6] hover:underline pt-1"
+                    className="text-xs text-pink-600 hover:underline pt-1"
                   >
                     Forgot your password? Reset it
                   </Link>
@@ -204,7 +204,7 @@ function SignupPage() {
                       autoComplete="name"
                       placeholder="Enter your full name"
                       {...form.register("display_name")}
-                      className="w-full pl-10 pr-4 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                      className="w-full pl-10 pr-4 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
                     />
                   </div>
                   {form.formState.errors.display_name && (
@@ -232,7 +232,7 @@ function SignupPage() {
                         autoComplete="tel"
                         placeholder="98765 43210"
                         {...form.register("phone")}
-                        className="w-full pl-10 pr-4 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                        className="w-full pl-10 pr-4 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
                       />
                     </div>
                   </div>
@@ -252,7 +252,7 @@ function SignupPage() {
                     <button
                       type="button"
                       onClick={handleCopyPhoneToWhatsapp}
-                      className="text-[11px] font-semibold text-[#8b5cf6] hover:underline"
+                      className="text-[11px] font-semibold text-pink-600 hover:underline cursor-pointer"
                     >
                       Same as phone
                     </button>
@@ -269,7 +269,7 @@ function SignupPage() {
                         type="tel"
                         placeholder="98765 43210"
                         {...form.register("whatsapp")}
-                        className="w-full pl-10 pr-4 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                        className="w-full pl-10 pr-4 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
                       />
                     </div>
                   </div>
@@ -295,7 +295,7 @@ function SignupPage() {
                       autoComplete="new-password"
                       placeholder="Create a password"
                       {...form.register("password")}
-                      className="w-full pl-10 pr-11 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                      className="w-full pl-10 pr-11 h-11 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
                     />
                     <button
                       type="button"
@@ -328,7 +328,7 @@ function SignupPage() {
                 <button
                   type="submit"
                   disabled={form.formState.isSubmitting}
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-[0.99] disabled:opacity-50 transition-all cursor-pointer mt-2"
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:to-pink-800 text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 active:scale-[0.99] disabled:opacity-50 transition-all cursor-pointer mt-2"
                 >
                   {form.formState.isSubmitting ? (
                     <>
@@ -346,11 +346,11 @@ function SignupPage() {
                 {/* Disclaimer */}
                 <p className="text-center text-[11px] leading-relaxed text-slate-500 pt-1">
                   By creating an account, you agree to the{" "}
-                  <Link to="/terms" className="font-semibold text-[#8b5cf6] hover:underline">
+                  <Link to="/terms" className="font-semibold text-pink-600 hover:underline">
                     Terms of Service
                   </Link>{" "}
                   and acknowledge the{" "}
-                  <Link to="/privacy" className="font-semibold text-[#8b5cf6] hover:underline">
+                  <Link to="/privacy" className="font-semibold text-pink-600 hover:underline">
                     Privacy Policy
                   </Link>
                   .
@@ -362,4 +362,5 @@ function SignupPage() {
       </div>
     </div>
   );
+
 }
