@@ -1,28 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Users, Briefcase, Star, TrendingUp, Search, CheckCircle2 } from "lucide-react";
-
-export function GoogleGIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className}>
-      <path
-        fill="#4285F4"
-        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.27 21.39 7.33 24 12 24z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.17 0 9.97 0 12s.45 3.83 1.25 5.42l4.03-3.15z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.27 2.61 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-      />
-    </svg>
-  );
-}
+import { Users, Briefcase, Star, TrendingUp } from "lucide-react";
+import { Logo } from "@/components/site/logo";
 
 export function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -40,23 +18,16 @@ export function AuthHero({ variant }: AuthHeroProps) {
   const isLogin = variant === "login";
 
   return (
-    <div className="flex flex-col justify-between h-full space-y-8 select-none">
-      {/* Top Logo / Branding */}
-      <Link to="/" className="inline-flex items-center gap-3 group focus:outline-none w-fit">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#7c3aed] to-[#a855f7] flex items-center justify-center text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
-          <span className="font-extrabold text-2xl font-serif tracking-tight">B</span>
-        </div>
-        <div>
-          <div className="font-extrabold text-xl text-slate-900 tracking-tight leading-none">
-            Beauty<span className="text-[#8b5cf6]">Folio</span>
-          </div>
-          <div className="text-[11px] text-slate-500 font-medium tracking-tight mt-1">
-            Beauty Professionals. Found by Clients.
-          </div>
-        </div>
+    <div className="flex flex-col justify-between h-full space-y-6 sm:space-y-8 select-none">
+      {/* Top Logo / Original Branding */}
+      <Link to="/" className="inline-flex flex-col gap-1 focus:outline-none w-fit group">
+        <Logo size="md" />
+        <span className="text-[11px] text-slate-500 font-medium tracking-tight">
+          Beauty Professionals. Found by Clients.
+        </span>
       </Link>
 
-      {/* Main Hero Section: Headline + Features on Left & Visual on Right */}
+      {/* Main Hero: Headline + 4 Features on Left, and Exact Visual Mockup on Right */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
         {/* Left Side: Headline & Features */}
         <div className="md:col-span-6 space-y-6">
@@ -136,142 +107,15 @@ export function AuthHero({ variant }: AuthHeroProps) {
           </div>
         </div>
 
-        {/* Right Side of Hero: Center Mockup / Visual Card */}
-        <div className="md:col-span-6 relative flex flex-col items-center justify-center pt-2">
-          {/* Soft purple radial aura background */}
-          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-80 bg-purple-200/50 rounded-full blur-3xl -z-10 pointer-events-none" />
-
-          {/* Bride Photo Container */}
-          <div className="relative w-full max-w-[340px] flex flex-col items-center">
-            {/* Elegant Handwritten Callout */}
-            <div className="absolute -top-4 right-0 sm:-right-4 z-10 text-right rotate-3 pointer-events-none">
-              <span className="font-serif italic font-bold text-[#7c3aed] text-xs sm:text-sm drop-shadow-sm whitespace-nowrap block">
-                Turn ♡
-              </span>
-              <span className="font-serif italic font-bold text-[#7c3aed] text-xs sm:text-sm drop-shadow-sm whitespace-nowrap block">
-                Your Passion
-              </span>
-              <span className="font-serif italic font-semibold text-[#8b5cf6] text-xs drop-shadow-sm whitespace-nowrap block">
-                into Opportunities
-              </span>
-              {/* Decorative curved arrow */}
-              <svg
-                viewBox="0 0 50 30"
-                className="w-8 h-6 text-[#8b5cf6] ml-auto -mt-1 -scale-x-100"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M5 5 C 20 2, 40 10, 42 24" />
-                <path d="M37 20 L 42 24 L 46 19" />
-              </svg>
-            </div>
-
-            {/* Bride Portrait with organic pill/arch shape */}
-            <div className="w-48 h-56 sm:w-56 sm:h-64 rounded-t-full rounded-b-[40px] overflow-hidden shadow-2xl border-4 border-white/90 bg-gradient-to-b from-purple-100 to-purple-200">
-              <img
-                src="/auth-hero-bride.jpg"
-                alt="Bridal Makeup BeautyFolio"
-                className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                onError={(e) => {
-                  // Fallback if needed
-                  (e.currentTarget as HTMLImageElement).src = "/demo/dharti-portrait.jpg";
-                }}
-              />
-            </div>
-
-            {/* Floating Google Search Bar */}
-            <div className="-mt-7 z-20 w-full max-w-[280px] bg-white/95 backdrop-blur-md rounded-full px-3.5 py-2 shadow-lg shadow-purple-900/10 border border-slate-200/80 flex items-center gap-2">
-              <GoogleGIcon className="w-4 h-4 shrink-0" />
-              <span className="text-[11px] sm:text-xs font-medium text-slate-800 truncate flex-1">
-                Bridal makeup artist in Ahmedabad
-              </span>
-              <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            </div>
-
-            {/* Floating Google Result Card (Riya Sharma) */}
-            <div className="mt-3.5 w-full bg-white rounded-2xl shadow-xl shadow-purple-950/10 border border-slate-100 p-3 sm:p-3.5 z-20">
-              <div className="flex items-center gap-3">
-                <img
-                  src="/demo/dharti-portrait.jpg"
-                  alt="Riya Sharma"
-                  className="w-12 h-14 rounded-lg object-cover border border-slate-100 shrink-0"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = "/auth-hero-bride.jpg";
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-bold text-xs sm:text-sm text-slate-900 truncate">Riya Sharma</span>
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-semibold">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      Verified
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                    Bridal Makeup Artist • Ahmedabad
-                  </div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <div className="flex text-amber-400 text-xs">★★★★★</div>
-                    <span className="text-[10px] font-semibold text-slate-700">4.8</span>
-                    <span className="text-[10px] text-slate-400">(120 reviews)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Portfolio thumbnails with tags */}
-              <div className="grid grid-cols-3 gap-1.5 mt-3">
-                <div className="relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
-                  <img
-                    src="/demo/gallery-1.jpg"
-                    alt="Bridal Makeup"
-                    className="w-full h-14 object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "/auth-hero-bride.jpg";
-                    }}
-                  />
-                  <div className="p-1 bg-white/95 text-center">
-                    <span className="text-[9px] font-medium text-slate-700 block truncate">
-                      Bridal Makeup
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
-                  <img
-                    src="/demo/gallery-2.jpg"
-                    alt="Party Makeup"
-                    className="w-full h-14 object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "/auth-hero-bride.jpg";
-                    }}
-                  />
-                  <div className="p-1 bg-white/95 text-center">
-                    <span className="text-[9px] font-medium text-slate-700 block truncate">
-                      Party Makeup
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
-                  <img
-                    src="/demo/gallery-3.jpg"
-                    alt="Engagement Makeup"
-                    className="w-full h-14 object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "/auth-hero-bride.jpg";
-                    }}
-                  />
-                  <div className="p-1 bg-white/95 text-center">
-                    <span className="text-[9px] font-medium text-slate-700 block truncate">
-                      Engagement
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Right Side: Exact Visual Mockup from Image */}
+        <div className="md:col-span-6 relative flex items-center justify-center">
+          <div className="relative w-full max-w-[340px] sm:max-w-[380px] flex items-center justify-center">
+            {/* Exact artwork from design mockup */}
+            <img
+              src="/auth-hero-visual.png"
+              alt="BeautyFolio on Google"
+              className="w-full h-auto object-contain drop-shadow-md select-none pointer-events-none rounded-3xl"
+            />
           </div>
         </div>
       </div>
