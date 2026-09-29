@@ -3,20 +3,10 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { User, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import { AuthHero } from "@/components/auth/auth-hero";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -47,7 +37,9 @@ function phoneToFakeEmail(normalizedPhone: string): string {
 
 async function getPostLoginRedirect(): Promise<string> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return "/dashboard";
 
     const { data: adminRole } = await supabase
@@ -84,10 +76,16 @@ async function getPostLoginRedirect(): Promise<string> {
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 const loginSchema = z.object({
-  phone: z
+  phoneOrEmail: z
     .string()
-    .min(10, "Enter a valid phone number")
-    .regex(/^[0-9+\s\-()]+$/, "Enter a valid phone number"),
+    .min(3, "Enter your phone number or email")
+    .refine((val) => {
+      const trimmed = val.trim();
+      if (trimmed.includes("@")) {
+        return z.string().email().safeParse(trimmed).success;
+      }
+      return /^[0-9+\s\-()]{10,}$/.test(trimmed);
+    }, "Enter a valid phone number or email address"),
   password: z.string().min(1, "Password required"),
 });
 
@@ -99,38 +97,48 @@ function LoginPage() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Auto-redirect if already logged in.
-  // 5 s timeout guards against getSession() hanging on slow auth servers.
   useEffect(() => {
     const timeout = setTimeout(() => setChecking(false), 5000);
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      clearTimeout(timeout);
-      if (data.session) {
-        const to = await getPostLoginRedirect();
-        navigate({ to });
-      } else {
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
+        clearTimeout(timeout);
+        if (data.session) {
+          const to = await getPostLoginRedirect();
+          navigate({ to });
+        } else {
+          setChecking(false);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeout);
         setChecking(false);
-      }
-    }).catch(() => {
-      clearTimeout(timeout);
-      setChecking(false);
-    });
+      });
 
     return () => clearTimeout(timeout);
   }, [navigate]);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { phone: "", password: "" },
+    defaultValues: { phoneOrEmail: "", password: "" },
   });
 
   const onSubmit = async (values: LoginValues) => {
     setFormError(null);
 
-    const phone = normalizePhone(values.phone);
-    const email = phoneToFakeEmail(phone);
+    const input = values.phoneOrEmail.trim();
+    let email = "";
+
+    if (input.includes("@")) {
+      email = input.toLowerCase();
+    } else {
+      const phone = normalizePhone(input);
+      email = phoneToFakeEmail(phone);
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -138,8 +146,7 @@ function LoginPage() {
     });
 
     if (error) {
-      // Show a friendly message — don't expose internal email to the user
-      setFormError("Invalid phone number or password.");
+      setFormError("Invalid phone number, email, or password.");
       return;
     }
 
@@ -149,90 +156,145 @@ function LoginPage() {
 
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-[#faf9fc] text-sm text-slate-500">
+        <Loader2 className="w-5 h-5 animate-spin mr-2 text-[#8b5cf6]" />
         Checking session…
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Sign in</CardTitle>
-          <CardDescription>Sign in to manage your BeautyFolio.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#fcfbfe] via-[#faf8fd] to-[#f4effc] flex items-center justify-center p-4 sm:p-6 lg:p-10 relative overflow-hidden">
+      {/* Background soft ambient glows */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-200/25 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-purple-300/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+        {/* Left Hero Column */}
+        <div className="lg:col-span-7 xl:col-span-7">
+          <AuthHero variant="login" />
+        </div>
 
-              {/* Phone */}
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone number</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="tel"
-                        autoComplete="tel"
-                        placeholder="9876543210"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+        {/* Right Form Card Column */}
+        <div className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end">
+          <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-purple-950/5 border border-slate-100 p-8 sm:p-10">
+            {/* Header */}
+            <div className="mb-6">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Welcome back
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Log in to your BeautyFolio account.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              {/* Phone or Email */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Phone number or Email
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    autoComplete="username"
+                    placeholder="Enter your phone number or email"
+                    {...form.register("phoneOrEmail")}
+                    className="w-full pl-10 pr-4 h-12 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                  />
+                </div>
+                {form.formState.errors.phoneOrEmail && (
+                  <p className="text-xs text-rose-500 font-medium mt-1">
+                    {form.formState.errors.phoneOrEmail.message}
+                  </p>
                 )}
-              />
+              </div>
 
               {/* Password */}
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
-                      <Link
-                        to="/forgot-password"
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <FormControl>
-                      <PasswordInput autoComplete="current-password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    {...form.register("password")}
+                    className="w-full pl-10 pr-11 h-12 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 focus:border-[#8b5cf6] transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
 
+                <div className="flex justify-end mt-2">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-semibold text-[#8b5cf6] hover:text-[#7c3aed] hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
+                {form.formState.errors.password && (
+                  <p className="text-xs text-rose-500 font-medium mt-1">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Form Error */}
               {formError && (
-                <p role="alert" className="text-sm font-medium text-destructive">{formError}</p>
+                <div
+                  role="alert"
+                  className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-600 text-xs font-medium"
+                >
+                  {formError}
+                </div>
               )}
 
-              <Button
+              {/* Submit Button */}
+              <button
                 type="submit"
-                variant="hero"
-                className="w-full"
                 disabled={form.formState.isSubmitting}
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-[0.99] disabled:opacity-50 transition-all cursor-pointer"
               >
-                {form.formState.isSubmitting ? "Signing in…" : "Sign in"}
-              </Button>
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Signing in…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Log in</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </button>
 
+              {/* Footer Switch */}
+              <div className="text-center pt-2">
+                <span className="text-sm text-slate-500">Don&apos;t have an account? </span>
+                <Link
+                  to="/signup"
+                  className="text-sm font-semibold text-[#8b5cf6] hover:text-[#7c3aed] hover:underline"
+                >
+                  Sign up
+                </Link>
+              </div>
             </form>
-          </Form>
-
-          <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link to="/signup" className="font-semibold text-primary">Sign up</Link>
-          </p>
-
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
