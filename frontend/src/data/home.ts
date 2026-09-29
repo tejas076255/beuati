@@ -357,6 +357,12 @@ export const footerColumns: { title: string; links: { label: string; href: strin
     links: [{ label: "About", href: "#why" }],
   },
   {
+    title: "Support",
+    links: [
+      { label: "8320699679 (support)", href: "https://wa.me/918320699679" },
+    ],
+  },
+  {
     title: "Legal",
     links: [
       { label: "Privacy Policy", href: "/privacy" },
