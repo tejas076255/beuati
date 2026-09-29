@@ -12,17 +12,51 @@
 // plain-named process.env fallback for parity with the server-only vars
 // used elsewhere (SUPABASE_URL, etc).
 //
-// Deliberately NO fallback to window.location / a hardcoded domain / a
-// localhost default: if the env var isn't set, every helper below degrades
-// to a relative path (the same behavior this app already had before this
-// phase) rather than either (a) claiming localhost is the production
-// domain, or (b) baking a guessed production domain into the source that
-// would silently apply even to a fork/staging deploy with a different URL.
-const configuredSiteUrl = (import.meta.env["VITE_SITE_URL"] ?? process.env["SITE_URL"] ?? "")
-  .trim()
-  .replace(/\/+$/, "");
+export const CANONICAL_PRODUCTION_URL = "https://beautyfolio.in";
 
-/** The bare origin, e.g. "https://beautyfolio.in" — "" if not configured. */
+function isDevelopmentOrLocalHost(url: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/i.test(url.trim());
+}
+
+function resolveSiteUrl(): string {
+  const envUrl = (import.meta.env["VITE_SITE_URL"] ?? process.env["SITE_URL"] ?? "")
+    .trim()
+    .replace(/\/+$/, "");
+
+  // Automated test environments (Vitest / Playwright QA) may explicitly supply
+  // a local test server URL (e.g. QA_BASE_URL / http://localhost:8080) for testing.
+  const isTest =
+    process.env.NODE_ENV === "test" ||
+    Boolean(process.env["VITEST"]) ||
+    Boolean(process.env["PLAYWRIGHT_TEST"]);
+
+  if (isTest && envUrl) {
+    return envUrl;
+  }
+
+  // In production builds and live environments, never allow localhost or dev URLs
+  // to leak into canonical links, metadata, or the sitemap.
+  const isProd = import.meta.env.PROD || process.env.NODE_ENV === "production";
+  if (isProd) {
+    if (!envUrl || isDevelopmentOrLocalHost(envUrl)) {
+      return CANONICAL_PRODUCTION_URL;
+    }
+    return envUrl;
+  }
+
+  // In development, if an explicit non-localhost URL is provided, use it.
+  // Otherwise, default to the canonical production URL so that local SSR/prerender
+  // generates correct canonical/OG/JSON-LD and sitemap tags without localhost pollution.
+  if (envUrl && !isDevelopmentOrLocalHost(envUrl)) {
+    return envUrl;
+  }
+
+  return CANONICAL_PRODUCTION_URL;
+}
+
+const configuredSiteUrl = resolveSiteUrl();
+
+/** The bare origin, e.g. "https://beautyfolio.in" — never localhost in production. */
 export function getSiteUrl(): string {
   return configuredSiteUrl;
 }

@@ -127,6 +127,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "BeautyFolio helps Indian beauty professionals build SEO portfolios, rank on Google and win direct client enquiries.",
       },
       { name: "author", content: "BeautyFolio" },
+      {
+        name: "google-site-verification",
+        content: "7kz2bU1UDUR4k2EbgP8O0vPWcb5ScPimAstp31ArUgM",
+      },
       { property: "og:site_name", content: "BeautyFolio" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
