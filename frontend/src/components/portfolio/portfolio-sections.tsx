@@ -248,6 +248,11 @@ export function PortfolioHeroSection({ profile }: P) {
               </span>
             )}
           </h1>
+          {profile.businessName?.trim() && (
+            <p className="mt-1 text-sm font-medium text-muted-foreground sm:text-base">
+              Owner of {profile.businessName.trim()}
+            </p>
+          )}
           <p className="mt-2 text-[19px] leading-snug font-medium text-primary sm:text-lg">
             {profile.headline}
           </p>

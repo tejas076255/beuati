@@ -768,7 +768,7 @@ function TargetProfileHeader({ profile }: { profile: AdminTargetProfile }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="truncate font-display text-xl font-semibold">
-              {profile.business_name || profile.display_name}
+              {profile.display_name || profile.business_name}
             </p>
             {profile.is_verified && (
               <span title="Verified">
@@ -776,6 +776,11 @@ function TargetProfileHeader({ profile }: { profile: AdminTargetProfile }) {
               </span>
             )}
           </div>
+          {profile.business_name?.trim() && (
+            <p className="truncate text-xs font-medium text-muted-foreground">
+              Owner of {profile.business_name.trim()}
+            </p>
+          )}
           <p className="truncate text-sm text-muted-foreground">
             {profile.professional_title || "—"}
             {profile.primary_city ? ` · ${profile.primary_city}` : ""}

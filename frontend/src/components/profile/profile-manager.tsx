@@ -834,6 +834,11 @@ export function ProfileManager({
                       <p className="truncate font-display text-lg font-semibold sm:text-xl text-foreground">
                         {liveValues.display_name || "Your name"}
                       </p>
+                      {liveValues.business_name?.trim() && (
+                        <p className="truncate text-xs font-medium text-muted-foreground">
+                          Owner of {liveValues.business_name.trim()}
+                        </p>
+                      )}
                       <p className="truncate text-sm text-muted-foreground">
                         {liveValues.professional_title || "Professional title"}
                       </p>
