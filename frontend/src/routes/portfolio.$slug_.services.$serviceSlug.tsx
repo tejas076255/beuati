@@ -535,7 +535,14 @@ function ServicePage() {
           </ol>
         </nav>
 
-        <h1 className="mt-4 font-display text-[30px] leading-tight font-semibold sm:text-4xl">
+        {service.category && (
+          <div className="mt-3">
+            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+              {service.category}
+            </span>
+          </div>
+        )}
+        <h1 className="mt-2 font-display text-[30px] leading-tight font-semibold sm:text-4xl">
           {h1}
         </h1>
         <p className="mt-2 text-[15px] text-muted-foreground">

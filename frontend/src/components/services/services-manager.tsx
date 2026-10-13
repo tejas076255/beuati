@@ -70,7 +70,7 @@ import {
 // Application-level controlled list, not a new database table — see the
 // original dashboard.services.tsx comment (Phase 3F.6) for why the
 // service_categories taxonomy table isn't wired up here instead.
-const CATEGORY_OPTIONS = [
+export const CATEGORY_OPTIONS = [
   "Bridal Makeup",
   "Party / Occasion Makeup",
   "Makeup Services",
@@ -79,8 +79,16 @@ const CATEGORY_OPTIONS = [
   "Skin & Beauty",
   "Eyelash & Eyebrow",
   "Mehndi",
+  "Waxing & Hair Removal",
+  "Body Care & Spa",
+  "Manicure & Pedicure",
+  "Draping & Styling",
+  "Pre-Bridal Care",
+  "Beauty Consultation & Training",
   "Other",
 ] as const;
+
+export type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
 
 const isPositiveNumber = (v: string) => Number.isFinite(Number(v)) && Number(v) > 0;
 
